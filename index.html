@@ -4266,24 +4266,26 @@ function speak(text, rate = 0.82) {
   utt.rate = rate;
   utt.pitch = 1.0;
   utt.lang = 'en-US';
-  // Try to get best voice immediately; if voices not loaded yet, wait for them
   const voice = getBestVoice();
   if (voice) {
     utt.voice = voice;
     window.speechSynthesis.speak(utt);
   } else {
-    // Voices not loaded yet (common on first call) — wait for them
-    const onVoicesChanged = () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+    let spoken = false;
+    const doSpeak = () => {
+      if (spoken) return;
+      spoken = true;
       utt.voice = getBestVoice();
       window.speechSynthesis.speak(utt);
     };
+    const onVoicesChanged = () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+      doSpeak();
+    };
     window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
-    // Fallback if voiceschanged never fires
     setTimeout(() => {
       window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
-      utt.voice = getBestVoice();
-      window.speechSynthesis.speak(utt);
+      doSpeak();
     }, 500);
   }
 }

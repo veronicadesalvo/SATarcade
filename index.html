@@ -1411,6 +1411,16 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
         </div>
       </div>
 
+      {/* Hidden image preloader — fires onLoad so allIconsLoaded becomes true */}
+      <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
+        <img src="https://lichess1.org/assets/piece/pixel/wN.svg" onLoad={() => setLoadedIcons(prev => ({...prev, chess: true}))} alt="" />
+        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/hangman.png" onLoad={() => setLoadedIcons(prev => ({...prev, hangman: true}))} alt="" />
+        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/crossword.png" onLoad={() => setLoadedIcons(prev => ({...prev, crossword: true}))} alt="" />
+        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png" onLoad={() => setLoadedIcons(prev => ({...prev, search: true}))} alt="" />
+        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png" onLoad={() => setLoadedIcons(prev => ({...prev, oddoneout: true}))} alt="" />
+        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png" onLoad={() => setLoadedIcons(prev => ({...prev, ear: true}))} alt="" />
+      </div>
+
       {/* Tagline */}
       <div style={{ textAlign: 'center', padding: '4px 14px 0', flexShrink: 0 }}>
         <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2 }}>6 GAMES. ONE GOAL: ACTUALLY LEARN THE WORDS.</span>
@@ -1418,9 +1428,9 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
 
       {/* 2×3 game grid */}
       <div style={{ flex: 1, padding: "8px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
-        {games.map((g, i) => (
+        {allIconsLoaded && games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
-            animationDelay: `${i * 0.03}s`, cursor: "pointer",
+            animationDelay: `${i * 0.05}s`, cursor: "pointer",
             background: `color-mix(in srgb, ${g.color} 12%, #0a0a12)`, border: `2px solid ${g.color}66`,
             borderRadius: 14, transition: "all 0.2s",
             position: "relative", overflow: "hidden",

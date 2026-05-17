@@ -5916,6 +5916,8 @@ function useWinCelebration() {
   }, [runLoop]);
 
   const celebrate = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
     const w = window.innerWidth;
     const h = window.innerHeight;
     // Launch from multiple spots
@@ -5931,9 +5933,12 @@ function useWinCelebration() {
     }, 600);
   }, [launch]);
 
-  const CelebrationCanvas = useCallback(() => (
-    <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998 }} />
-  ), []);
+  const CelebrationCanvas = useCallback(() =>
+    ReactDOM.createPortal(
+      <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998 }} />,
+      document.body
+    )
+  , []);
 
   return { celebrate, CelebrationCanvas };
 }
@@ -6095,10 +6100,12 @@ function VocabChess({ onBack, onScore, onCorrect }) {
   const checkOver = (g) => {
     const hasWhiteKing = g.board.some(row => row.some(p => p?.type==='k' && p?.color==='w'));
     const hasBlackKing = g.board.some(row => row.some(p => p?.type==='k' && p?.color==='b'));
-    if (!hasBlackKing) { setGameOver('white_wins'); return true; }
+    if (!hasBlackKing) { setGameOver('white_wins'); celebrate(); return true; }
     if (!hasWhiteKing) { setGameOver('black_wins'); return true; }
     if (gameIsCheckmate(g)) {
-      setGameOver(g.turn==='b'?'white_wins':'black_wins');
+      const winner = g.turn==='b'?'white_wins':'black_wins';
+      setGameOver(winner);
+      if (winner === 'white_wins') celebrate();
       return true;
     }
     if (gameIsDraw(g)) { setGameOver('draw'); return true; }

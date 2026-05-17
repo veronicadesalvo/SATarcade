@@ -275,7 +275,7 @@ const WORD_BANK = [
   { word: "AFFLUENT", def: "Having great wealth", pos: "adj", example: "The ___ neighborhood was lined with mansions, luxury cars, and manicured lawns." },
   { word: "AFFRONT", def: "An insult or deliberate offense", pos: "noun", example: "He took the dismissive comment as a personal ___ and refused to speak to her." },
   { word: "AGGRANDIZE", def: "To increase power or reputation excessively", pos: "verb", example: "The politician used every photo opportunity to ___ his public image." },
-  { word: "AGGREGATE", def: "A whole formed by combining elements", pos: "noun", example: "The city aggregate tax revenue fell short of projections for the third year." },
+  { word: "AGGREGATE", def: "A whole formed by combining elements", pos: "noun", example: "The city's ___ tax revenue fell short of projections for the third consecutive year." },
   { word: "AGGRIEVED", def: "Feeling resentment from unfair treatment", pos: "adj", example: "The ___ workers filed a complaint after being denied their promised bonuses." },
   { word: "AGILE", def: "Able to move quickly and nimbly", pos: "adj", example: "The ___ gymnast moved through the routine without a single stumble." },
   { word: "AGNOSTIC", def: "One who believes God existence cannot be proven", pos: "adj", example: "He described himself as ___ rather than atheist, uncertain rather than disbelieving." },
@@ -1465,13 +1465,13 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
             <div style={{ position: "absolute", top: 0, left: 0, width: 3, height: "100%", background: g.color, borderRadius: "14px 0 0 14px", opacity: 0.8 }} />
             <div style={{ fontSize: 28, flexShrink: 0, width: 52, textAlign: "center", display:'flex', alignItems:'center', justifyContent:'center' }}>
               {g.id === 'chess'
-                ? <img src="https://lichess1.org/assets/piece/pixel/wN.svg" width={34} height={34} onLoad={()=>setLoadedIcons(prev=>({...prev,chess:true}))} style={{display:'block',filter:`drop-shadow(0 0 4px ${g.color}88)`,visibility:allIconsLoaded?'visible':'hidden'}} alt="knight"/>
+                ? <img src="https://lichess1.org/assets/piece/pixel/wN.svg" width={34} height={34} onLoad={()=>setLoadedIcons(prev=>({...prev,chess:true}))} style={{display:'block',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons['chess']?1:0,transition:'opacity 0.2s'}} alt="knight"/>
                 : ({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]
                 ? <img
                     src={`https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/${({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]}.png`}
                     width={g.id==='crossword'?34:44} height={g.id==='crossword'?34:44}
                     onLoad={()=>setLoadedIcons(prev=>({...prev,[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]:true}))}
-                    style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 4px ${g.color}88)`,visibility:allIconsLoaded?'visible':'hidden',transition:'opacity 0.15s'}}
+                    style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]?1:0,transition:'opacity 0.2s'}}
                     alt={g.title}/>
                 : g.icon}
             </div>
@@ -3700,7 +3700,11 @@ function WordDetective({ onBack, onScore, onCorrect }) {
   };
 
   const next = () => {
-    if (idx < pool.length - 1) setIdx(i => i + 1);
+    if (idx < pool.length - 1) {
+      setChosen(null);
+      setShuffledOptions([]);
+      setIdx(i => i + 1);
+    }
   };
 
   const done = idx >= pool.length - 1 && chosen;

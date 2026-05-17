@@ -14,7 +14,7 @@
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png" as="image"/>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png" as="image"/>
   <link rel="preconnect" href="https://raw.githubusercontent.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -1090,6 +1090,7 @@ const globalStyle = `
   .fadeIn { animation: fadeIn 0.25s ease both; }
   .shake { animation: shake 0.4s ease; }
   .pop { animation: pop 0.3s ease; }
+  @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
 `;
 
 // ─── COMPONENTS ───────────────────────────────────────────────────────────────
@@ -1147,6 +1148,13 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
   const [loadedIcons, setLoadedIcons] = useState({});
   const ICON_KEYS = ['hangman','crossword','search','oddoneout','ear','chess'];
   const allIconsLoaded = ICON_KEYS.every(k => loadedIcons[k]);
+  // Safety fallback: show all icons after 3s regardless of load state
+  React.useEffect(() => {
+    const t = setTimeout(() => setLoadedIcons(prev => {
+      const all = {}; ICON_KEYS.forEach(k => all[k] = true); return all;
+    }), 3000);
+    return () => clearTimeout(t);
+  }, []);
   // Pixel art icons — 16x16 grid, each rect is one "pixel"
   const px = (x, y, w=1, h=1, fill) => `<rect x="${x*2}" y="${y*2}" width="${w*2}" height="${h*2}" fill="${fill}"/>`;
 
@@ -1302,12 +1310,12 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
   const PIXEL_ICONS = { hangman: PixelHangman, crossword: PixelCrossword, detective: PixelDetective, oddoneout: PixelOddOneOut, eartrainer: PixelEarTrainer };
 
   const games = [
-    { id: "hangman", icon: "🪢", title: "Hangman", sub: "Definition as your only clue", color: "#ff5e7a" },
-    { id: "crossword", icon: "🔠", title: "SAT Crossword", sub: "Fill the grid with words", color: "#7c5cfc" },
-    { id: "detective", icon: "🔍", title: "Word Detective", sub: "Choose the word that fits", color: "#f4c430" },
-    { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "Find the word that doesn't belong", color: "#22d3a0" },
-    { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Hear it. Pick the definition.", color: "#f97316" },
-    { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Capture pieces by knowing words", color: "#a78bfa" },
+    { id: "hangman", icon: "🪢", title: "Hangman", sub: "Definition as your only clue", color: "#ff1a5e" },
+    { id: "detective", icon: "🔍", title: "Word Detective", sub: "Choose the word that fits", color: "#f5e000" },
+    { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "Find the word that doesn't belong", color: "#00f5a0" },
+    { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Hear it. Pick the definition.", color: "#f700ff" },
+    { id: "crossword", icon: "🔠", title: "SAT Crossword", sub: "Fill the grid with words", color: "#3d8ef5" },
+    { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Capture pieces by knowing words", color: "#9b30d9" },
   ];
 
   // Arcade dot-grid + scanline SVG background as a data URI
@@ -1323,45 +1331,60 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
         backgroundImage: arcadeBg,
         backgroundSize: "40px 40px",
       }}>
-        {/* Scanline overlay */}
+        {/* Stronger scanline overlay for CRT feel */}
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none",
-          background: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px)",
+          background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px)",
+          zIndex: 2,
+        }} />
+        {/* CRT vignette */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.55) 100%)",
+          zIndex: 2,
         }} />
         {/* Corner glow blobs */}
-        <div style={{ position: "absolute", top: -40, left: -40, width: 180, height: 180, borderRadius: "50%", background: "#7c5cfc", opacity: 0.07, filter: "blur(50px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: "#f4c430", opacity: 0.06, filter: "blur(50px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: -40, left: -40, width: 180, height: 180, borderRadius: "50%", background: "#ff1a5e", opacity: 0.09, filter: "blur(50px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: "#f5e000", opacity: 0.07, filter: "blur(50px)", pointerEvents: "none" }} />
 
-        {/* INSERT COIN ticker */}
+        {/* INSERT COIN ticker — Press Start 2P */}
         <div style={{
-          position: "relative", textAlign: "center", marginBottom: 18,
-          fontFamily: theme.fontMono, fontSize: 11, letterSpacing: 4,
-          color: theme.gold, textTransform: "uppercase", opacity: 0.7,
+          position: "relative", textAlign: "center", marginBottom: 18, zIndex: 3,
+          fontFamily: "'Press Start 2P', monospace", fontSize: 9, letterSpacing: 3,
+          color: theme.gold, textTransform: "uppercase", opacity: 0.85,
         }}>
-          ── INSERT COIN ──
+          -- INSERT COIN --
         </div>
 
         {/* Main title */}
-        <div style={{ position: "relative", textAlign: "center" }}>
+        <div style={{ position: "relative", textAlign: "center", zIndex: 3 }}>
+          {/* CRT chromatic aberration layers */}
           <div style={{
-            fontFamily: theme.fontMono, fontWeight: 900, letterSpacing: 6,
-            fontSize: "clamp(28px, 8vw, 52px)",
-            lineHeight: 1,
-            background: `linear-gradient(135deg, #a78bfa 0%, #7c5cfc 40%, #f4c430 100%)`,
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            textShadow: "none",
-            marginBottom: 6,
+            fontFamily: "'Press Start 2P', monospace", fontWeight: 400,
+            fontSize: "clamp(22px, 6.5vw, 44px)",
+            lineHeight: 1.2,
+            letterSpacing: 4,
+            position: "relative",
+            display: "inline-block",
+            marginBottom: 10,
           }}>
-            SAT ARCADE
+            {/* Main text */}
+            <span style={{
+              position: "relative",
+              background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #f5e000 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              filter: "drop-shadow(0 0 12px rgba(155,48,217,0.6)) drop-shadow(0 0 28px rgba(255,26,94,0.3))",
+            }}>SAT ARCADE</span>
           </div>
-          {/* Pixel underline */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 3, marginBottom: 16 }}>
-            {["#ff5e7a","#ff5e7a","#f4c430","#f4c430","#22d3a0","#22d3a0","#7c5cfc","#7c5cfc","#f97316","#f97316","#a78bfa","#a78bfa","#f4c430","#ff5e7a","#22d3a0"].map((c, i) => (
-              <div key={i} style={{ width: 16, height: 3, borderRadius: 2, background: c, opacity: 0.85 }} />
+
+          {/* Pixel underline — square dots instead of rounded bars */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 16 }}>
+            {["#ff1a5e","#ff1a5e","#f5e000","#f5e000","#00f5a0","#00f5a0","#f700ff","#f700ff","#3d8ef5","#3d8ef5","#00e8d8","#00e8d8","#9b30d9","#ff1a5e","#f5e000"].map((c, i) => (
+              <div key={i} style={{ width: 10, height: 10, borderRadius: 0, background: c, opacity: 0.9, imageRendering: "pixelated" }} />
             ))}
           </div>
           <p style={{ color: theme.textMuted, fontSize: 14, maxWidth: 320, margin: "0 auto", fontFamily: theme.fontBody, letterSpacing: 0.5 }}>
-            Five games. One goal: actually learn the words.
+            Six games. One goal: actually learn the words.
           </p>
           {/* Progress bar */}
           <div style={{ marginTop: 18, maxWidth: 320, margin: '18px auto 0' }}>
@@ -1449,7 +1472,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
             <div style={{ fontSize: 28, flexShrink: 0, width: 52, textAlign: "center", display:'flex', alignItems:'center', justifyContent:'center' }}>
               {g.id === 'chess'
                 ? <img src="https://lichess1.org/assets/piece/pixel/wN.svg" width={34} height={34} onLoad={()=>setLoadedIcons(prev=>({...prev,chess:true}))} style={{display:'block',filter:`drop-shadow(0 0 4px ${g.color}88)`,visibility:allIconsLoaded?'visible':'hidden'}} alt="knight"/>
-                : {hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'}[g.id]
+                : ({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]
                 ? <img
                     src={`https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/${({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]}.png`}
                     width={g.id==='crossword'?34:44} height={g.id==='crossword'?34:44}
@@ -4737,9 +4760,9 @@ function evaluate(B) {
     if (p.type==='r') {
       const backRank = p.color==='b' ? 0 : 7;
       const minors = p.color==='b' ? bMinors : wMinors;
-      // Strong penalty for leaving back rank before minors developed
-      if (r !== backRank && minors >= 2) extra -= 25;
-      // Open file bonus only after development
+      // Penalize leaving back rank if ANY minor piece is still undeveloped
+      if (r !== backRank && minors >= 1) extra -= 30;
+      // Open file bonus only after full development
       if (minors === 0) {
         const hasFriendlyPawn = Array.from({length:8},(_,row)=>B[row][c])
           .some(sq=>sq?.type==='p'&&sq?.color===p.color);
@@ -5722,56 +5745,106 @@ function getHintMove(game) {
 }
 
 // ── Explosion Sound ───────────────────────────────────────────────────────────
+// 4 styles: 'retro' (8-bit zap), 'thud' (deep boom), 'laser' (sci-fi), 'arcade' (classic)
+const EXPLOSION_SOUND_STYLE = 'arcade'; // change to 'retro', 'thud', 'laser', or 'arcade'
+
 function playExplosionSound(isAiCapture = false) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const vol = isAiCapture ? 0.4 : 0.6;
+    const t = ctx.currentTime;
 
-    // White noise burst
-    const bufferSize = ctx.sampleRate * 0.15;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
+    if (EXPLOSION_SOUND_STYLE === 'retro') {
+      // 8-bit style: descending square wave zap
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.exponentialRampToValueAtTime(55, t + 0.18);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.2);
 
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
+    } else if (EXPLOSION_SOUND_STYLE === 'thud') {
+      // Deep cinematic boom: noise + sub bass drop
+      const bufSize = ctx.sampleRate * 0.3;
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource(); noise.buffer = buf;
+      const nGain = ctx.createGain();
+      nGain.gain.setValueAtTime(vol * 0.6, t);
+      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      const filt = ctx.createBiquadFilter();
+      filt.type = 'lowpass'; filt.frequency.setValueAtTime(400, t);
+      filt.frequency.exponentialRampToValueAtTime(60, t + 0.3);
+      noise.connect(filt); filt.connect(nGain); nGain.connect(ctx.destination);
+      const sub = ctx.createOscillator();
+      const sGain = ctx.createGain();
+      sub.type = 'sine'; sub.frequency.setValueAtTime(150, t);
+      sub.frequency.exponentialRampToValueAtTime(30, t + 0.25);
+      sGain.gain.setValueAtTime(vol * 0.8, t);
+      sGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      sub.connect(sGain); sGain.connect(ctx.destination);
+      noise.start(t); noise.stop(t + 0.3);
+      sub.start(t); sub.stop(t + 0.3);
 
-    // Shape the noise with a quick attack and decay envelope
-    const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(0, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(isAiCapture ? 0.35 : 0.5, ctx.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    } else if (EXPLOSION_SOUND_STYLE === 'laser') {
+      // Sci-fi laser zap: sawtooth sweep up then noise burst
+      const osc = ctx.createOscillator();
+      const g1 = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(200, t);
+      osc.frequency.exponentialRampToValueAtTime(1200, t + 0.06);
+      osc.frequency.exponentialRampToValueAtTime(80, t + 0.16);
+      g1.gain.setValueAtTime(vol * 0.5, t);
+      g1.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(g1); g1.connect(ctx.destination);
+      // Noise burst after
+      const bufSize = ctx.sampleRate * 0.1;
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource(); noise.buffer = buf;
+      const nGain = ctx.createGain();
+      const filt = ctx.createBiquadFilter();
+      filt.type = 'highpass'; filt.frequency.value = 2000;
+      nGain.gain.setValueAtTime(vol * 0.4, t + 0.06);
+      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+      noise.connect(filt); filt.connect(nGain); nGain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.2);
+      noise.start(t + 0.06); noise.stop(t + 0.2);
 
-    // Low-pass filter to make it thuddy, not hissy
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(isAiCapture ? 600 : 900, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.18);
+    } else {
+      // 'arcade' — classic video game explosion: noise burst + pitched impact
+      const bufSize = ctx.sampleRate * 0.25;
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource(); noise.buffer = buf;
+      const nFilt = ctx.createBiquadFilter();
+      nFilt.type = 'bandpass'; nFilt.frequency.value = 800; nFilt.Q.value = 0.5;
+      const nGain = ctx.createGain();
+      nGain.gain.setValueAtTime(vol, t);
+      nGain.gain.setValueAtTime(vol * 0.8, t + 0.01);
+      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      noise.connect(nFilt); nFilt.connect(nGain); nGain.connect(ctx.destination);
+      // Punchy square wave thud underneath
+      const osc = ctx.createOscillator();
+      const oGain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(isAiCapture ? 180 : 240, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+      oGain.gain.setValueAtTime(vol * 0.7, t);
+      oGain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(oGain); oGain.connect(ctx.destination);
+      noise.start(t); noise.stop(t + 0.25);
+      osc.start(t); osc.stop(t + 0.2);
+    }
 
-    // Short bass thud underneath
-    const osc = ctx.createOscillator();
-    const oscGain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(isAiCapture ? 120 : 160, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.12);
-    oscGain.gain.setValueAtTime(isAiCapture ? 0.4 : 0.6, ctx.currentTime);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-
-    noise.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    osc.connect(oscGain);
-    oscGain.connect(ctx.destination);
-
-    noise.start(ctx.currentTime);
-    noise.stop(ctx.currentTime + 0.2);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.2);
-
-    setTimeout(() => ctx.close(), 500);
-  } catch(e) {
-    // Audio not supported — fail silently
-  }
+    setTimeout(() => ctx.close(), 600);
+  } catch(e) { /* Audio not supported — fail silently */ }
 }
 
 // ── Pixelated Explosion Effect ─────────────────────────────────────────────────
@@ -5893,7 +5966,6 @@ function VocabChess({ onBack, onScore, onCorrect }) {
   const [gameOver, setGameOver] = useState(null);
   const [quiz, setQuiz] = useState(null);
   const [winBackQuiz, setWinBackQuiz] = useState(null); // quiz shown after AI captures
-  const [reversing, setReversing] = useState(null);
   const [aiFlash, setAiFlash] = useState(null);
   const [lastAiMove, setLastAiMove] = useState(null);
   const [moveHistory, setMoveHistory] = useState([]);
@@ -5903,6 +5975,7 @@ function VocabChess({ onBack, onScore, onCorrect }) {
   const [coachMsg, setCoachMsg] = useState('');
   const [lastWord, setLastWord] = useState(null); // { word, def, correct }
   const [blunderWarn, setBlunderWarn] = useState(null);
+  const [reversing, setReversing] = useState(false);
   const [hint, setHint] = useState(null); // { move, reason } — highlighted hint square
   const [hintLoading, setHintLoading] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0); // [r,c] of dangerous dest
@@ -5975,22 +6048,26 @@ function VocabChess({ onBack, onScore, onCorrect }) {
             onResult: (correct) => {
               setWinBackQuiz(null);
               if (correct) {
-                // Fully restore board to pre-AI-move state (piece back, white to move)
-                setGame(preAiGame);
-                setLastMove(null);
-                // Remove from opponent-captured sidebar
-                setCaptured(prev => {
-                  const idx = [...prev.b].lastIndexOf(capType);
-                  if (idx === -1) return prev;
-                  const nb2 = [...prev.b]; nb2.splice(idx, 1);
-                  return {...prev, b: nb2};
-                });
-                onCorrect(wordEntry.word);
-                setLastWord({ word: wordEntry.word, def: wordEntry.def, correct: true });
-                showMsg(`✓ Correct! Your ${pieceName} is back — it's your turn!`, 3000);
-                const recoveryCoach = `✓ ${wordEntry.word} — and your ${pieceName} is back. You earned it.`;
-                showCoach(recoveryCoach);
-                if (!checkOver(preAiGame)) setTurn('w');
+                // Animate reversal: flash "reversing" state briefly, then restore
+                setReversing(true);
+                showMsg(`↩ Reversing move...`, 1200);
+                setTimeout(() => {
+                  setGame(preAiGame);
+                  setLastMove(null);
+                  setReversing(false);
+                  // Remove from opponent-captured sidebar
+                  setCaptured(prev => {
+                    const idx = [...prev.b].lastIndexOf(capType);
+                    if (idx === -1) return prev;
+                    const nb2 = [...prev.b]; nb2.splice(idx, 1);
+                    return {...prev, b: nb2};
+                  });
+                  onCorrect(wordEntry.word);
+                  setLastWord({ word: wordEntry.word, def: wordEntry.def, correct: true });
+                  showMsg(`✓ Correct! Your ${pieceName} is back — it's your turn!`, 3000);
+                  showCoach(`✓ ${wordEntry.word} — and your ${pieceName} is back. You earned it.`);
+                  if (!checkOver(preAiGame)) setTurn('w');
+                }, 900);
               } else {
                 showMsg(`✗ Wrong — your ${pieceName} stays captured.`, 2500);
                 if (!checkOver(result)) setTurn('w');
@@ -6179,6 +6256,12 @@ function VocabChess({ onBack, onScore, onCorrect }) {
           </div>
 
           {/* Board */}
+          <div style={{position:'relative',flexShrink:0}}>
+            {reversing && (
+              <div style={{position:'absolute',inset:0,zIndex:10,background:'#22d3a022',border:`3px solid ${theme.success}`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',animation:'pulse 0.5s ease-in-out infinite alternate'}}>
+                <span style={{fontFamily:theme.fontMono,fontSize:13,color:theme.success,letterSpacing:2,fontWeight:700,textShadow:`0 0 10px ${theme.success}`}}>↩ REVERSING</span>
+              </div>
+            )}
           <div ref={boardRef} style={{display:'grid',gridTemplateColumns:`repeat(8,${cellSize}px)`,border:'2px solid #2a2a3a',borderRadius:6,overflow:'hidden',flexShrink:0}}>
             {Array.from({length:64}).map((_,i)=>{
               const r=Math.floor(i/8),c=i%8;
@@ -6189,7 +6272,7 @@ function VocabChess({ onBack, onScore, onCorrect }) {
               const isLast=lastMove&&((lastMove.from[0]===r&&lastMove.from[1]===c)||(lastMove.to[0]===r&&lastMove.to[1]===c));
               const isCheck=checkedKingPos&&checkedKingPos[0]===r&&checkedKingPos[1]===c;
               const isFlash=aiFlash&&aiFlash[0]===r&&aiFlash[1]===c;
-              const isRev=reversing&&reversing[0]===r&&reversing[1]===c;
+              const isRev=false; // reversing is now a board-level overlay, not per-cell
               const isThreatened = showOverlays && threatened.has(`${r},${c}`) && piece?.color==='w' && !isSel;
               const isBlunderDest = showOverlays && isDest && blunderDests.has(`${r},${c}`);
               const isHintFrom = hint && hint.move.from[0]===r && hint.move.from[1]===c;
@@ -6216,6 +6299,7 @@ function VocabChess({ onBack, onScore, onCorrect }) {
                 </div>
               );
             })}
+          </div>
           </div>
 
           {/* Bottom tray: your captured (black pieces you took) */}

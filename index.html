@@ -1356,7 +1356,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
           <div style={{ margin: '44px 0 44px' }}>
           <span style={{
             fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(32px, 9vw, 58px)",
-            letterSpacing: 4, lineHeight: 1.2, display: 'block',
+            letterSpacing: 4, lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap',
             background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 14px rgba(155,48,217,0.6))",
@@ -1365,7 +1365,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
           </div>
           {/* Mastery count — centered below title */}
           <div style={{ marginTop: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
-            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 2 }}>{masteredCount} WORDS MASTERED / {total}</span>
+            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 2 }}>{masteredCount} WORDS MASTERED</span>
           </div>
         </div>
 
@@ -1402,7 +1402,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
             <div style={{ position: 'absolute', height: '100%', width: `${pct}%`, background: '#00e5ff', borderRadius: 3, transition: 'width 0.6s ease' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-            <span style={{ fontSize: 11, color: theme.textMuted }}>{seenCount} seen</span>
+            <span style={{ fontSize: 11, color: theme.textMuted }}>{seenCount} seen / {total}</span>
             {masteredCount > 0 && (
               <button onClick={() => setShowMastered(true)} style={{ background: 'none', border: 'none', color: theme.accentLight, fontSize: 11, fontFamily: theme.fontMono, padding: 0, cursor: 'pointer', letterSpacing: 1 }}>VIEW ALL ›</button>
             )}
@@ -1446,7 +1446,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
             {/* Title + Subtitle */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <div style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: g.color, letterSpacing: 0.5, textTransform: "uppercase", lineHeight: 1.3 }}>{g.title}</div>
-              <div style={{ fontSize: 12, color: theme.textMuted, lineHeight: 1.3 }}>{g.sub}</div>
+              <div style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.3 }}>{g.sub}</div>
             </div>
           </div>
         ))}

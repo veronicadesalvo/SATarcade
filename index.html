@@ -6079,6 +6079,7 @@ function VocabChess({ onBack, onScore, onCorrect }) {
 
   const handleSquare = (r, c) => {
     if (turn!=='w'||gameOver) return;
+    if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
     const g = gameRef.current;
 
     if (selected) {

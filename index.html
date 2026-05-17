@@ -3068,6 +3068,8 @@ function FreeformCrossword({ onBack, onScore, onCorrect }) {
   const [wordHintsUsed, setWordHintsUsed] = useState({}); // "num-dir" -> hint string
   const [confirmAction, setConfirmAction] = useState(null); // { type: 'word'|'all', label }
   const inputRef = useRef(null);
+  const { celebrate, CelebrationCanvas } = useWinCelebration();
+
 
   const generate = useCallback(() => {
     setPuzzle(null);
@@ -3358,6 +3360,7 @@ function FreeformCrossword({ onBack, onScore, onCorrect }) {
   useEffect(() => {
     if (isSolved) {
       onScore(200);
+      celebrate();
       // Mark all words in this puzzle as mastered
       if (puzzle) {
         Object.values(puzzle.acrossClues).forEach(c => onCorrect(c.word));
@@ -3641,6 +3644,7 @@ function FreeformCrossword({ onBack, onScore, onCorrect }) {
       <div style={{ marginTop: 12, color: theme.textMuted, fontSize: 11, textAlign: 'center' }}>
         Tap a cell to select • Tap again to switch direction
       </div>
+      <CelebrationCanvas />
     </div>
   );
 }
@@ -5835,6 +5839,106 @@ function playExplosionSound(isAiCapture = false) {
   } catch(e) { /* Audio not supported */ }
 }
 
+    // ── Win Celebration (confetti + fireworks) ────────────────────────────────────
+function useWinCelebration() {
+  const canvasRef = useRef(null);
+  const rafRef = useRef(null);
+  const particlesRef = useRef([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  const runLoop = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particlesRef.current = particlesRef.current.filter(p => p.life > 0);
+
+    for (const p of particlesRef.current) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.25; // gravity
+      p.vx *= 0.99;
+      p.life -= 1;
+      p.rotation += p.rotSpeed;
+
+      const alpha = Math.min(1, p.life / 40);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.fillStyle = p.color;
+      if (p.type === 'rect') {
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    if (particlesRef.current.length > 0) {
+      rafRef.current = requestAnimationFrame(runLoop);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      rafRef.current = null;
+    }
+  }, []);
+
+  const launch = useCallback((x, y) => {
+    const colors = ['#ff1a5e','#f5e000','#00f5a0','#f700ff','#3d8ef5','#ff9900','#ffffff','#9b30d9'];
+    const newParticles = Array.from({ length: 80 }, () => {
+      const angle = (Math.random() * Math.PI * 2);
+      const speed = 4 + Math.random() * 8;
+      return {
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 6 + Math.random() * 8,
+        life: 80 + Math.random() * 60,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.3,
+        type: Math.random() > 0.4 ? 'rect' : 'circle',
+      };
+    });
+    particlesRef.current.push(...newParticles);
+    if (!rafRef.current) rafRef.current = requestAnimationFrame(runLoop);
+  }, [runLoop]);
+
+  const celebrate = useCallback(() => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    // Launch from multiple spots
+    const spots = [[w * 0.2, h * 0.3], [w * 0.5, h * 0.2], [w * 0.8, h * 0.3]];
+    spots.forEach(([x, y], i) => {
+      setTimeout(() => launch(x, y), i * 200);
+    });
+    // Second wave
+    setTimeout(() => {
+      [[w * 0.1, h * 0.4], [w * 0.9, h * 0.4], [w * 0.5, h * 0.35]].forEach(([x, y], i) => {
+        setTimeout(() => launch(x, y), i * 150);
+      });
+    }, 600);
+  }, [launch]);
+
+  const CelebrationCanvas = useCallback(() => (
+    <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998 }} />
+  ), []);
+
+  return { celebrate, CelebrationCanvas };
+}
+
+
 // ── Canvas-based Explosion Effect (GPU composited — no SVG lag on mobile) ──────
 function useExplosion() {
   const canvasRef = useRef(null);
@@ -5978,6 +6082,7 @@ function VocabChess({ onBack, onScore, onCorrect }) {
   const [showCoachTips, setShowCoachTips] = useState(true);
   const boardRef = useRef(null);
   const { trigger: triggerExplosion, ExplodeSVG } = useExplosion();
+  const { celebrate, CelebrationCanvas } = useWinCelebration();
   const gameRef = useRef(game);
   gameRef.current = game;
   const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth,420)-32-64)/8));
@@ -6378,6 +6483,7 @@ function VocabChess({ onBack, onScore, onCorrect }) {
       </div>
       {quiz&&<ChessVocabQuiz word={quiz.word.word||quiz.word} context={quiz.context} timeLimit={quiz.timeLimit} onResult={quiz.onResult}/>}
       {winBackQuiz&&<ChessVocabQuiz word={winBackQuiz.word.word||winBackQuiz.word} context={winBackQuiz.context} timeLimit={winBackQuiz.timeLimit} onResult={winBackQuiz.onResult} isHard={true}/>}
+      <CelebrationCanvas />
       <ExplodeSVG />
     </div>
   );

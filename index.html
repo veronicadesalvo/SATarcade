@@ -1343,7 +1343,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
       {/* Compact header */}
       <div style={{
         position: "relative", overflow: "hidden", flexShrink: 0,
-        padding: "20px 20px 14px",
+        padding: "32px 20px 22px",
         backgroundImage: arcadeBg, backgroundSize: "40px 40px",
       }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px)", zIndex: 2 }} />
@@ -1353,16 +1353,17 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
 
         <div style={{ position: "relative", zIndex: 3, textAlign: 'center' }}>
           {/* Title */}
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85, marginBottom: 6 }}>-- INSERT COIN --</div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85, marginBottom: 18 }}>-- INSERT COIN --</div>
           <span style={{
-            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(22px, 6vw, 36px)",
+            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(26px, 7vw, 42px)",
             letterSpacing: 4, lineHeight: 1.2, display: 'block',
             background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 14px rgba(155,48,217,0.6))",
+            transform: "scaleY(1.2)", transformOrigin: "center",
           }}>SAT ARCADE</span>
           {/* Mastery count — centered below title */}
-          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+          <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
             <span style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 1 }}>{masteredCount} WORDS MASTERED / {total}</span>
           </div>
         </div>
@@ -1370,8 +1371,8 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
         {/* Compact progress bar */}
         <div style={{ position: 'relative', zIndex: 3, marginTop: 10 }}>
           <div style={{ height: 5, background: theme.border, borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
-            <div style={{ position: 'absolute', height: '100%', width: `${Math.round(seenCount/total*100)}%`, background: theme.accent + '44', borderRadius: 3 }} />
-            <div style={{ position: 'absolute', height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${theme.accent}, ${theme.gold})`, borderRadius: 3, transition: 'width 0.6s ease' }} />
+            <div style={{ position: 'absolute', height: '100%', width: `${Math.round(seenCount/total*100)}%`, background: '#007a8a', borderRadius: 3 }} />
+            <div style={{ position: 'absolute', height: '100%', width: `${pct}%`, background: '#00e5ff', borderRadius: 3, transition: 'width 0.6s ease' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
             <span style={{ fontSize: 9, color: theme.textMuted }}>{seenCount} seen</span>
@@ -1404,39 +1405,39 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
       )}
 
       {/* 2×3 game grid */}
-      <div style={{ flex: 1, padding: closeCount > 0 ? "10px 14px 14px" : "14px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', gap: 10 }}>
+      <div style={{ flex: 1, padding: closeCount > 0 ? "10px 14px 14px" : "14px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
             animationDelay: `${i * 0.03}s`, cursor: "pointer",
             background: theme.surface, border: `1px solid ${theme.border}`,
             borderRadius: 14, transition: "all 0.2s",
             position: "relative", overflow: "hidden",
-            display: "flex", flexDirection: 'column', justifyContent: 'center',
-            padding: '12px 12px 10px',
+            display: "flex", flexDirection: 'row', alignItems: "center", gap: 10,
+            padding: '10px 12px',
           }}
             onClick={() => onSelect(g.id)}
             onMouseEnter={e => { e.currentTarget.style.border = `1px solid ${g.color}66`; e.currentTarget.style.boxShadow = `0 4px 20px ${g.color}22`; }}
             onMouseLeave={e => { e.currentTarget.style.border = `1px solid ${theme.border}`; e.currentTarget.style.boxShadow = ""; }}>
             {/* Top color bar */}
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: g.color, opacity: 0.9 }} />
-            {/* Icon + Title row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ fontSize: 28, width: 40, height: 40, flexShrink: 0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                {g.id === 'chess'
-                  ? <img src="https://lichess1.org/assets/piece/pixel/wN.svg" width={34} height={34} onLoad={()=>setLoadedIcons(prev=>({...prev,chess:true}))} style={{display:'block',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons['chess']?1:0,transition:'opacity 0.2s'}} alt="knight"/>
-                  : ({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]
-                  ? <img
-                      src={`https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/${({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]}.png`}
-                      width={g.id==='crossword'?34:40} height={g.id==='crossword'?34:40}
-                      onLoad={()=>setLoadedIcons(prev=>({...prev,[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]:true}))}
-                      style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]?1:0,transition:'opacity 0.2s'}}
-                      alt={g.title}/>
-                  : g.icon}
-              </div>
-              <div style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: g.color, letterSpacing: 0.5, textTransform: "uppercase", lineHeight: 1.3 }}>{g.title}</div>
+            {/* Icon */}
+            <div style={{ fontSize: 28, width: 40, flexShrink: 0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {g.id === 'chess'
+                ? <img src="https://lichess1.org/assets/piece/pixel/wN.svg" width={34} height={34} onLoad={()=>setLoadedIcons(prev=>({...prev,chess:true}))} style={{display:'block',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons['chess']?1:0,transition:'opacity 0.2s'}} alt="knight"/>
+                : ({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]
+                ? <img
+                    src={`https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/${({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]}.png`}
+                    width={g.id==='crossword'?34:40} height={g.id==='crossword'?34:40}
+                    onLoad={()=>setLoadedIcons(prev=>({...prev,[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]:true}))}
+                    style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]?1:0,transition:'opacity 0.2s'}}
+                    alt={g.title}/>
+                : g.icon}
             </div>
-            {/* Subtitle */}
-            <div style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.3, marginTop: 6, paddingLeft: 50 }}>{g.sub}</div>
+            {/* Title + Subtitle */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: g.color, letterSpacing: 0.5, textTransform: "uppercase", lineHeight: 1.3 }}>{g.title}</div>
+              <div style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.3 }}>{g.sub}</div>
+            </div>
           </div>
         ))}
       </div>

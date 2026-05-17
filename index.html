@@ -1311,111 +1311,134 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
 
   const games = [
     { id: "hangman", icon: "🪢", title: "Hangman", sub: "Definition as your only clue", color: "#ff1a5e" },
-    { id: "detective", icon: "🔍", title: "Word Detective", sub: "Choose the word that fits", color: "#f5e000" },
     { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "Find the word that doesn't belong", color: "#00f5a0" },
-    { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Hear it. Pick the definition.", color: "#f700ff" },
+    { id: "detective", icon: "🔍", title: "Word Detective", sub: "Choose the word that fits", color: "#f5e000" },
     { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Capture pieces by knowing words", color: "#3d8ef5" },
+    { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Hear it. Pick the definition.", color: "#f700ff" },
     { id: "crossword", icon: "🔠", title: "SAT Crossword", sub: "Fill the grid with words", color: "#9b30d9" },
   ];
 
   // Arcade dot-grid + scanline SVG background as a data URI
   const arcadeBg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='1.2' fill='%237c5cfc' opacity='0.18'/%3E%3C/svg%3E")`;
 
-  return (
-    <div className="fadeIn" style={{ maxWidth: 820, margin: "0 auto", padding: "0 0 40px" }}>
+  // Words close to mastery (count >= 1, not yet mastered) — find best game to play
+  const closeToMastery = Object.entries(wordStats)
+    .filter(([word, v]) => !mastered.has(word) && v.count >= 1)
+    .sort(([,a],[,b]) => b.count - a.count)
+    .slice(0, 5);
+  const closeCount = closeToMastery.length;
+  // Suggest the game where close-to-mastery words haven't appeared yet
+  const GAME_LABELS = { hangman:'Hangman', detective:'Word Detective', oddoneout:'Odd One Out', eartrainer:'Ear Trainer', chess:'Vocab Chess', crossword:'Crossword' };
+  const gameCounts = {};
+  closeToMastery.forEach(([,v]) => {
+    ['hangman','detective','oddoneout','eartrainer','chess','crossword'].forEach(g => {
+      if (!v.games.has(g)) gameCounts[g] = (gameCounts[g]||0) + 1;
+    });
+  });
+  const suggestedGame = Object.entries(gameCounts).sort(([,a],[,b])=>b-a)[0]?.[0] || 'detective';
 
-      {/* Hero header with arcade texture */}
+  return (
+    <div className="fadeIn" style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', padding: "0", overflow: 'hidden' }}>
+
+      {/* Compact header */}
       <div style={{
-        position: "relative", overflow: "hidden",
-        padding: "48px 20px 36px",
-        backgroundImage: arcadeBg,
-        backgroundSize: "40px 40px",
+        position: "relative", overflow: "hidden", flexShrink: 0,
+        padding: "20px 20px 14px",
+        backgroundImage: arcadeBg, backgroundSize: "40px 40px",
       }}>
-        {/* Stronger scanline overlay for CRT feel */}
-        <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px)",
-          zIndex: 2,
-        }} />
-        {/* CRT vignette */}
-        <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.55) 100%)",
-          zIndex: 2,
-        }} />
-        {/* Corner glow blobs */}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px)", zIndex: 2 }} />
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.55) 100%)", zIndex: 2 }} />
         <div style={{ position: "absolute", top: -40, left: -40, width: 180, height: 180, borderRadius: "50%", background: "#ff1a5e", opacity: 0.09, filter: "blur(50px)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: "#f5e000", opacity: 0.07, filter: "blur(50px)", pointerEvents: "none" }} />
 
-        {/* INSERT COIN ticker — Press Start 2P */}
-        <div style={{
-          position: "relative", textAlign: "center", marginBottom: 18, zIndex: 3,
-          fontFamily: "'Press Start 2P', monospace", fontSize: 9, letterSpacing: 3,
-          color: theme.gold, textTransform: "uppercase", opacity: 0.85,
-        }}>
-          -- INSERT COIN --
+        <div style={{ position: "relative", zIndex: 3, textAlign: 'center' }}>
+          {/* Title */}
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85, marginBottom: 6 }}>-- INSERT COIN --</div>
+          <span style={{
+            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(22px, 6vw, 36px)",
+            letterSpacing: 4, lineHeight: 1.2, display: 'block',
+            background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #00e5ff 100%)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 0 14px rgba(155,48,217,0.6))",
+          }}>SAT ARCADE</span>
+          {/* Mastery count — centered below title */}
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+            <span style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 1 }}>{masteredCount} WORDS MASTERED / {total}</span>
+          </div>
         </div>
 
-        {/* Main title */}
-        <div style={{ position: "relative", textAlign: "center", zIndex: 3 }}>
-          {/* CRT chromatic aberration layers */}
-          <div style={{
-            fontFamily: "'Press Start 2P', monospace", fontWeight: 400,
-            fontSize: "clamp(22px, 6.5vw, 44px)",
-            lineHeight: 1.2,
-            letterSpacing: 4,
-            position: "relative",
-            display: "inline-block",
-            marginBottom: 10,
-          }}>
-            {/* Main text */}
-            <span style={{
-              position: "relative",
-              background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #f5e000 100%)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              filter: "drop-shadow(0 0 12px rgba(155,48,217,0.6)) drop-shadow(0 0 28px rgba(255,26,94,0.3))",
-            }}>SAT ARCADE</span>
+        {/* Compact progress bar */}
+        <div style={{ position: 'relative', zIndex: 3, marginTop: 10 }}>
+          <div style={{ height: 5, background: theme.border, borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
+            <div style={{ position: 'absolute', height: '100%', width: `${Math.round(seenCount/total*100)}%`, background: theme.accent + '44', borderRadius: 3 }} />
+            <div style={{ position: 'absolute', height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${theme.accent}, ${theme.gold})`, borderRadius: 3, transition: 'width 0.6s ease' }} />
           </div>
-
-          {/* Pixel underline — square dots instead of rounded bars */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 16 }}>
-            {["#ff1a5e","#ff1a5e","#f5e000","#f5e000","#00f5a0","#00f5a0","#f700ff","#f700ff","#3d8ef5","#3d8ef5","#00e8d8","#00e8d8","#9b30d9","#ff1a5e","#f5e000"].map((c, i) => (
-              <div key={i} style={{ width: 10, height: 10, borderRadius: 0, background: c, opacity: 0.9, imageRendering: "pixelated" }} />
-            ))}
-          </div>
-          <p style={{ color: theme.textMuted, fontSize: 14, maxWidth: 320, margin: "0 auto", fontFamily: theme.fontBody, letterSpacing: 0.5 }}>
-            Six games. One goal: actually learn the words.
-          </p>
-          {/* Progress bar */}
-          <div style={{ marginTop: 18, maxWidth: 320, margin: '18px auto 0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontFamily: theme.fontMono, fontSize: 11, color: theme.textMuted, letterSpacing: 1 }}>PROGRESS</span>
-              <span style={{ fontFamily: theme.fontMono, fontSize: 11, color: theme.accentLight }}>{masteredCount} / {total} mastered</span>
-            </div>
-            <div style={{ height: 7, background: theme.border, borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
-              {/* Seen tier (faint) */}
-              <div style={{ position: 'absolute', height: '100%', width: `${Math.round(seenCount/total*100)}%`, background: theme.accent + '44', borderRadius: 3 }} />
-              {/* Mastered tier (bright) */}
-              <div style={{ position: 'absolute', height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${theme.accent}, ${theme.gold})`, borderRadius: 3, transition: 'width 0.6s ease' }} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-              <span style={{ fontSize: 10, color: theme.textMuted }}>{seenCount} seen</span>
-              <span style={{ fontSize: 10, color: theme.textMuted }}>{pct}% mastered</span>
-            </div>
-            <div style={{ fontSize: 10, color: theme.textMuted + 'aa', marginTop: 3, textAlign: 'center' }}>
-              Mastered = 3+ correct in 2+ games
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+            <span style={{ fontSize: 9, color: theme.textMuted }}>{seenCount} seen</span>
             {masteredCount > 0 && (
-              <div style={{ textAlign: 'center', marginTop: 8 }}>
-                <button onClick={() => setShowMastered(true)} style={{
-                  background: 'none', border: `1px solid ${theme.accent}55`, borderRadius: 8,
-                  color: theme.accentLight, fontSize: 11, fontFamily: theme.fontMono,
-                  padding: '4px 12px', cursor: 'pointer', letterSpacing: 1,
-                }}>VIEW {masteredCount} MASTERED WORDS ›</button>
-              </div>
+              <button onClick={() => setShowMastered(true)} style={{ background: 'none', border: 'none', color: theme.accentLight, fontSize: 9, fontFamily: theme.fontMono, padding: 0, cursor: 'pointer', letterSpacing: 1 }}>VIEW ALL ›</button>
             )}
+            <span style={{ fontSize: 9, color: theme.textMuted }}>{pct}% mastered</span>
           </div>
         </div>
+      </div>
+
+      {/* Mastery nudge */}
+      {closeCount > 0 && (
+        <div onClick={() => onSelect(suggestedGame)} style={{
+          flexShrink: 0, margin: '10px 14px 0', borderRadius: 12, cursor: 'pointer',
+          background: `linear-gradient(135deg, ${theme.accent}18, ${theme.gold}12)`,
+          border: `1px solid ${theme.gold}44`, padding: '10px 14px',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 20 }}>⚡</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: theme.gold, fontFamily: theme.fontMono, letterSpacing: 0.5 }}>
+              {closeCount} word{closeCount > 1 ? 's' : ''} close to mastery
+            </div>
+            <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 1 }}>
+              Play {GAME_LABELS[suggestedGame]} to push them over →
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2×3 game grid */}
+      <div style={{ flex: 1, padding: closeCount > 0 ? "10px 14px 14px" : "14px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', gap: 10 }}>
+        {games.map((g, i) => (
+          <div key={g.id} className="fadeIn" style={{
+            animationDelay: `${i * 0.03}s`, cursor: "pointer",
+            background: theme.surface, border: `1px solid ${theme.border}`,
+            borderRadius: 14, transition: "all 0.2s",
+            position: "relative", overflow: "hidden",
+            display: "flex", flexDirection: 'column', justifyContent: 'center',
+            padding: '12px 12px 10px',
+          }}
+            onClick={() => onSelect(g.id)}
+            onMouseEnter={e => { e.currentTarget.style.border = `1px solid ${g.color}66`; e.currentTarget.style.boxShadow = `0 4px 20px ${g.color}22`; }}
+            onMouseLeave={e => { e.currentTarget.style.border = `1px solid ${theme.border}`; e.currentTarget.style.boxShadow = ""; }}>
+            {/* Top color bar */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: g.color, opacity: 0.9 }} />
+            {/* Icon + Title row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 28, width: 40, height: 40, flexShrink: 0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                {g.id === 'chess'
+                  ? <img src="https://lichess1.org/assets/piece/pixel/wN.svg" width={34} height={34} onLoad={()=>setLoadedIcons(prev=>({...prev,chess:true}))} style={{display:'block',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons['chess']?1:0,transition:'opacity 0.2s'}} alt="knight"/>
+                  : ({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]
+                  ? <img
+                      src={`https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/${({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]}.png`}
+                      width={g.id==='crossword'?34:40} height={g.id==='crossword'?34:40}
+                      onLoad={()=>setLoadedIcons(prev=>({...prev,[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]:true}))}
+                      style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]?1:0,transition:'opacity 0.2s'}}
+                      alt={g.title}/>
+                  : g.icon}
+              </div>
+              <div style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: g.color, letterSpacing: 0.5, textTransform: "uppercase", lineHeight: 1.3 }}>{g.title}</div>
+            </div>
+            {/* Subtitle */}
+            <div style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.3, marginTop: 6, paddingLeft: 50 }}>{g.sub}</div>
+          </div>
+        ))}
       </div>
 
       {/* Mastered words modal */}
@@ -1447,45 +1470,6 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
           </div>
         </div>
       )}
-
-      {/* Game cards */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "0 16px" }}>
-        {games.map((g, i) => (
-          <div key={g.id} className="fadeIn" style={{
-            animationDelay: `${i * 0.03}s`, cursor: "pointer",
-            background: theme.surface, border: `1px solid ${theme.border}`,
-            borderRadius: 14, padding: "14px 18px", transition: "all 0.2s",
-            position: "relative", overflow: "hidden",
-            display: "flex", alignItems: "center", gap: 14,
-          }}
-            onClick={() => onSelect(g.id)}
-            onMouseEnter={e => { e.currentTarget.style.border = `1px solid ${g.color}66`; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 6px 24px ${g.color}18`; }}
-            onMouseLeave={e => { e.currentTarget.style.border = `1px solid ${theme.border}`; e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
-            {/* Subtle color bleed */}
-            <div style={{ position: "absolute", top: 0, left: 0, width: 3, height: "100%", background: g.color, borderRadius: "14px 0 0 14px", opacity: 0.8 }} />
-            <div style={{ fontSize: 28, flexShrink: 0, width: 52, textAlign: "center", display:'flex', alignItems:'center', justifyContent:'center' }}>
-              {g.id === 'chess'
-                ? <img src="https://lichess1.org/assets/piece/pixel/wN.svg" width={34} height={34} onLoad={()=>setLoadedIcons(prev=>({...prev,chess:true}))} style={{display:'block',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons['chess']?1:0,transition:'opacity 0.2s'}} alt="knight"/>
-                : ({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]
-                ? <img
-                    src={`https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/${({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]}.png`}
-                    width={g.id==='crossword'?34:44} height={g.id==='crossword'?34:44}
-                    onLoad={()=>setLoadedIcons(prev=>({...prev,[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]:true}))}
-                    style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 4px ${g.color}88)`,opacity:loadedIcons[({hangman:'hangman',crossword:'crossword',detective:'search',oddoneout:'oddoneout',eartrainer:'ear'})[g.id]]?1:0,transition:'opacity 0.2s'}}
-                    alt={g.title}/>
-                : g.icon}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: theme.fontMono, fontSize: 14, fontWeight: 700, color: g.color, letterSpacing: 1, textTransform: "uppercase" }}>{g.title}</div>
-              <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>{g.sub}</div>
-            </div>
-            {scores[g.id] > 0 && (
-              <Badge color={g.color}>{scores[g.id]}</Badge>
-            )}
-            <span style={{ color: theme.textMuted, fontSize: 14, flexShrink: 0 }}>›</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -6526,13 +6510,26 @@ function App() {
   const isMastered = (stats) => stats && stats.count >= 3 && stats.games.size >= 2;
   const mastered = new Set(Object.entries(wordStats).filter(([,v]) => isMastered(v)).map(([k]) => k));
 
+  const [masteryToast, setMasteryToast] = useState(null);
+  const toastTimer = React.useRef(null);
+
+  const showMasteryToast = (word) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setMasteryToast(word);
+    toastTimer.current = setTimeout(() => setMasteryToast(null), 3000);
+  };
+
   const markCorrect = (word, game) => {
     if (!word || !game) return;
     setWordStats(prev => {
       const entry = prev[word] || { count: 0, games: new Set() };
+      const wasMastered = isMastered(entry);
       const newGames = new Set(entry.games);
       newGames.add(game);
-      const next = { ...prev, [word]: { count: entry.count + 1, games: newGames } };
+      const newEntry = { count: entry.count + 1, games: newGames };
+      const nowMastered = isMastered(newEntry);
+      if (!wasMastered && nowMastered) setTimeout(() => showMasteryToast(word), 400);
+      const next = { ...prev, [word]: newEntry };
       // Persist — convert Sets to arrays for JSON
       try {
         const serializable = {};
@@ -6565,6 +6562,24 @@ function App() {
           {screen === "chess" && <VocabChess onBack={() => setScreen("home")} onScore={pts => addScore("chess", pts)} onCorrect={w => markCorrect(w, "chess")} />}
         </div>
       </div>
+      {/* Mastery toast */}
+      {masteryToast && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 9999, pointerEvents: 'none',
+          background: `linear-gradient(135deg, ${theme.accent}, ${theme.gold})`,
+          borderRadius: 16, padding: '14px 22px', boxShadow: `0 8px 32px ${theme.accent}66`,
+          display: 'flex', alignItems: 'center', gap: 12, minWidth: 240, maxWidth: 320,
+          animation: 'fadeIn 0.3s ease',
+        }}>
+          <span style={{ fontSize: 26 }}>🎓</span>
+          <div>
+            <div style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: '#fff', letterSpacing: 1 }}>{masteryToast} mastered!</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>Added to your mastered list</div>
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }

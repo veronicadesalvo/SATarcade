@@ -5762,6 +5762,50 @@ function unlockAudioContext() {
 document.addEventListener('touchstart', unlockAudioContext, { once: true });
 document.addEventListener('click', unlockAudioContext, { once: true });
 
+// ── Shared AudioContext (iOS-safe) ────────────────────────────────────────────
+let _audioCtx = null;
+
+function getAudioContext() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // iOS suspends the context until a user gesture — resume it
+  if (_audioCtx.state === 'suspended') {
+    _audioCtx.resume();
+  }
+  return _audioCtx;
+}
+
+// Call this once on any early user tap (start button, first keypress, etc.)
+function unlockAudioContext() {
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') ctx.resume();
+}
+document.addEventListener('touchstart', unlockAudioContext, { once: true });
+document.addEventListener('click', unlockAudioContext, { once: true });
+
+// ── Shared AudioContext (iOS-safe) ────────────────────────────────────────────
+let _audioCtx = null;
+
+function getAudioContext() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // iOS suspends the context until a user gesture — resume it
+  if (_audioCtx.state === 'suspended') {
+    _audioCtx.resume();
+  }
+  return _audioCtx;
+}
+
+// Call this once on any early user tap (start button, first keypress, etc.)
+function unlockAudioContext() {
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') ctx.resume();
+}
+document.addEventListener('touchstart', unlockAudioContext, { once: true });
+document.addEventListener('click', unlockAudioContext, { once: true });
+
 // ── Explosion Sound ───────────────────────────────────────────────────────────
 function playExplosionSound(isAiCapture = false) {
   try {

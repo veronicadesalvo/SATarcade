@@ -1352,15 +1352,17 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
 
         <div style={{ position: "relative", zIndex: 3, textAlign: 'center' }}>
           {/* Title */}
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85, marginBottom: 24 }}>-- INSERT COIN --</div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85 }}>-- INSERT COIN --</div>
+          <div style={{ margin: '44px 0 44px' }}>
           <span style={{
             fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(26px, 7vw, 42px)",
             letterSpacing: 4, lineHeight: 1.2, display: 'block',
             background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 14px rgba(155,48,217,0.6))",
-            transform: "scaleY(1.5)", transformOrigin: "center",
+            transform: "scaleY(1.7)", transformOrigin: "center",
           }}>SAT ARCADE</span>
+          </div>
           {/* Mastery count — centered below title */}
           <div style={{ marginTop: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
             <span style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 1 }}>{masteredCount} WORDS MASTERED / {total}</span>
@@ -1400,18 +1402,18 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
             <div style={{ position: 'absolute', height: '100%', width: `${pct}%`, background: '#00e5ff', borderRadius: 3, transition: 'width 0.6s ease' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-            <span style={{ fontSize: 9, color: theme.textMuted }}>{seenCount} seen</span>
+            <span style={{ fontSize: 11, color: theme.textMuted }}>{seenCount} seen</span>
             {masteredCount > 0 && (
-              <button onClick={() => setShowMastered(true)} style={{ background: 'none', border: 'none', color: theme.accentLight, fontSize: 9, fontFamily: theme.fontMono, padding: 0, cursor: 'pointer', letterSpacing: 1 }}>VIEW ALL ›</button>
+              <button onClick={() => setShowMastered(true)} style={{ background: 'none', border: 'none', color: theme.accentLight, fontSize: 11, fontFamily: theme.fontMono, padding: 0, cursor: 'pointer', letterSpacing: 1 }}>VIEW ALL ›</button>
             )}
-            <span style={{ fontSize: 9, color: theme.textMuted }}>{pct}% mastered</span>
+            <span style={{ fontSize: 11, color: theme.textMuted }}>{pct}% mastered</span>
           </div>
         </div>
       </div>
 
       {/* Tagline */}
       <div style={{ textAlign: 'center', padding: '8px 14px 0', flexShrink: 0 }}>
-        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff99', letterSpacing: 2 }}>6 GAMES. ONE GOAL: ACTUALLY LEARN THE WORDS.</span>
+        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2 }}>6 GAMES. ONE GOAL: ACTUALLY LEARN THE WORDS.</span>
       </div>
 
       {/* 2×3 game grid */}

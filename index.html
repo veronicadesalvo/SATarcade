@@ -5760,8 +5760,16 @@ function unlockAudioContext() {
   const ctx = getAudioContext();
   if (ctx.state === 'suspended') ctx.resume();
 }
-document.addEventListener('touchstart', unlockAudioContext, { once: true });
-document.addEventListener('click', unlockAudioContext, { once: true });
+    
+    if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('touchstart', unlockAudioContext, { once: true });
+    document.addEventListener('click', unlockAudioContext, { once: true });
+  });
+} else {
+  document.addEventListener('touchstart', unlockAudioContext, { once: true });
+  document.addEventListener('click', unlockAudioContext, { once: true });
+}
 
 // ── Explosion Sound ───────────────────────────────────────────────────────────
 function playExplosionSound(isAiCapture = false) {

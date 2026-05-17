@@ -1319,7 +1319,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
   ];
 
   // Arcade dot-grid + scanline SVG background as a data URI
-  const arcadeBg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='1.2' fill='%237c5cfc' opacity='0.18'/%3E%3C/svg%3E")`;
+  const arcadeBg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='1.8' fill='%237c5cfc' opacity='0.45'/%3E%3C/svg%3E")`;
 
   // Words close to mastery (count >= 1, not yet mastered) — find best game to play
   const closeToMastery = Object.entries(wordStats)
@@ -1338,38 +1338,63 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
   const suggestedGame = Object.entries(gameCounts).sort(([,a],[,b])=>b-a)[0]?.[0] || 'detective';
 
   return (
-    <div className="fadeIn" style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', padding: "0", overflow: 'hidden' }}>
+    <div className="fadeIn" style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', padding: "0", overflow: 'hidden', backgroundImage: arcadeBg, backgroundSize: "40px 40px" }}>
 
       {/* Compact header */}
       <div style={{
         position: "relative", overflow: "hidden", flexShrink: 0,
         padding: "32px 20px 22px",
-        backgroundImage: arcadeBg, backgroundSize: "40px 40px",
       }}>
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px)", zIndex: 2 }} />
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px)", zIndex: 2 }} />
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.55) 100%)", zIndex: 2 }} />
         <div style={{ position: "absolute", top: -40, left: -40, width: 180, height: 180, borderRadius: "50%", background: "#ff1a5e", opacity: 0.09, filter: "blur(50px)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: "#f5e000", opacity: 0.07, filter: "blur(50px)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", zIndex: 3, textAlign: 'center' }}>
           {/* Title */}
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85, marginBottom: 18 }}>-- INSERT COIN --</div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85, marginBottom: 24 }}>-- INSERT COIN --</div>
           <span style={{
             fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(26px, 7vw, 42px)",
             letterSpacing: 4, lineHeight: 1.2, display: 'block',
             background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 14px rgba(155,48,217,0.6))",
-            transform: "scaleY(1.3)", transformOrigin: "center",
+            transform: "scaleY(1.5)", transformOrigin: "center",
           }}>SAT ARCADE</span>
           {/* Mastery count — centered below title */}
-          <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+          <div style={{ marginTop: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
             <span style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 1 }}>{masteredCount} WORDS MASTERED / {total}</span>
           </div>
         </div>
 
+        {/* Mastery nudge */}
+        {closeCount > 0 && (
+          <div onClick={() => onSelect(suggestedGame)} style={{
+            flexShrink: 0, marginTop: 18, borderRadius: 12, cursor: 'pointer',
+            background: '#0a0a12',
+            position: 'relative', zIndex: 10,
+            border: `2px solid #00e5ffbb`, padding: '12px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            boxShadow: `0 0 18px #00e5ff33, inset 0 0 30px #00e5ff0a`,
+            transition: 'all 0.2s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 28px #00e5ff55, inset 0 0 30px #00e5ff14`; e.currentTarget.style.border = `2px solid #00e5ff`; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 0 18px #00e5ff33, inset 0 0 30px #00e5ff0a`; e.currentTarget.style.border = `2px solid #00e5ffbb`; }}
+          >
+            <span style={{ fontSize: 24 }}>⚡</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#00e5ff', fontFamily: theme.fontMono, letterSpacing: 0.5 }}>
+                {closeCount} word{closeCount > 1 ? 's' : ''} close to mastery
+              </div>
+              <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 3 }}>
+                Play {GAME_LABELS[suggestedGame]} to push them over →
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Compact progress bar */}
-        <div style={{ position: 'relative', zIndex: 3, marginTop: 10 }}>
+        <div style={{ position: 'relative', zIndex: 3, marginTop: 16 }}>
           <div style={{ height: 5, background: theme.border, borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
             <div style={{ position: 'absolute', height: '100%', width: `${Math.round(seenCount/total*100)}%`, background: '#007a8a', borderRadius: 3 }} />
             <div style={{ position: 'absolute', height: '100%', width: `${pct}%`, background: '#00e5ff', borderRadius: 3, transition: 'width 0.6s ease' }} />
@@ -1384,37 +1409,17 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
         </div>
       </div>
 
-      {/* Mastery nudge */}
-      {closeCount > 0 && (
-        <div onClick={() => onSelect(suggestedGame)} style={{
-          flexShrink: 0, margin: '10px 14px 0', borderRadius: 12, cursor: 'pointer',
-          background: `linear-gradient(135deg, #c9922a33, #c9922a1a)`,
-          border: `2px solid #c9922abb`, padding: '12px 16px',
-          display: 'flex', alignItems: 'center', gap: 12,
-          boxShadow: `0 0 18px #c9922a33`,
-          transition: 'all 0.2s',
-        }}
-          onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 28px #c9922a55`; e.currentTarget.style.border = `2px solid #c9922a`; }}
-          onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 0 18px #c9922a33`; e.currentTarget.style.border = `2px solid #c9922abb`; }}
-        >
-          <span style={{ fontSize: 24 }}>⚡</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#c9922a', fontFamily: theme.fontMono, letterSpacing: 0.5 }}>
-              {closeCount} word{closeCount > 1 ? 's' : ''} close to mastery
-            </div>
-            <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 3 }}>
-              Play {GAME_LABELS[suggestedGame]} to push them over →
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Tagline */}
+      <div style={{ textAlign: 'center', padding: '8px 14px 0', flexShrink: 0 }}>
+        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff99', letterSpacing: 2 }}>6 GAMES. ONE GOAL: ACTUALLY LEARN THE WORDS.</span>
+      </div>
 
       {/* 2×3 game grid */}
-      <div style={{ flex: 1, padding: closeCount > 0 ? "10px 14px 14px" : "14px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
+      <div style={{ flex: 1, padding: "14px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
             animationDelay: `${i * 0.03}s`, cursor: "pointer",
-            background: `${g.color}18`, border: `2px solid ${g.color}66`,
+            background: `color-mix(in srgb, ${g.color} 12%, #0a0a12)`, border: `2px solid ${g.color}66`,
             borderRadius: 14, transition: "all 0.2s",
             position: "relative", overflow: "hidden",
             display: "flex", flexDirection: 'row', alignItems: "center", gap: 10,

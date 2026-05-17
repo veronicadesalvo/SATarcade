@@ -1310,11 +1310,11 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
   const PIXEL_ICONS = { hangman: PixelHangman, crossword: PixelCrossword, detective: PixelDetective, oddoneout: PixelOddOneOut, eartrainer: PixelEarTrainer };
 
   const games = [
-    { id: "hangman", icon: "🪢", title: "Hangman", sub: "Definition as your only clue", color: "#ff1a5e" },
-    { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "Find the word that doesn't belong", color: "#00f5a0" },
     { id: "detective", icon: "🔍", title: "Word Detective", sub: "Choose the word that fits", color: "#f5e000" },
-    { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Capture pieces by knowing words", color: "#3d8ef5" },
+    { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "Find the word that doesn't belong", color: "#00f5a0" },
     { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Hear it. Pick the definition.", color: "#f700ff" },
+    { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Capture pieces by knowing words", color: "#3d8ef5" },
+    { id: "hangman", icon: "🪢", title: "Hangman", sub: "Definition as your only clue", color: "#ff1a5e" },
     { id: "crossword", icon: "🔠", title: "SAT Crossword", sub: "Fill the grid with words", color: "#9b30d9" },
   ];
 
@@ -1338,12 +1338,12 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
   const suggestedGame = Object.entries(gameCounts).sort(([,a],[,b])=>b-a)[0]?.[0] || 'detective';
 
   return (
-    <div className="fadeIn" style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', padding: "0", overflow: 'hidden', backgroundImage: arcadeBg, backgroundSize: "40px 40px" }}>
+    <div className="fadeIn" style={{ maxWidth: 1100, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', padding: "0", overflow: 'hidden', backgroundImage: arcadeBg, backgroundSize: "40px 40px" }}>
 
       {/* Compact header */}
       <div style={{
         position: "relative", overflow: "hidden", flexShrink: 0,
-        padding: "32px 20px 22px",
+        padding: "40px 32px 28px",
       }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px)", zIndex: 2 }} />
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.55) 100%)", zIndex: 2 }} />
@@ -1355,17 +1355,17 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
           <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85 }}>-- INSERT COIN --</div>
           <div style={{ margin: '44px 0 44px' }}>
           <span style={{
-            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(26px, 7vw, 42px)",
+            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(32px, 9vw, 58px)",
             letterSpacing: 4, lineHeight: 1.2, display: 'block',
             background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 14px rgba(155,48,217,0.6))",
-            transform: "scaleY(1.7)", transformOrigin: "center",
+            transform: "scaleY(1.5)", transformOrigin: "center",
           }}>SAT ARCADE</span>
           </div>
           {/* Mastery count — centered below title */}
           <div style={{ marginTop: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
-            <span style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 1 }}>{masteredCount} WORDS MASTERED / {total}</span>
+            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, fontWeight: 700, color: '#00e5ff', letterSpacing: 2 }}>{masteredCount} WORDS MASTERED / {total}</span>
           </div>
         </div>
 
@@ -1417,7 +1417,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
       </div>
 
       {/* 2×3 game grid */}
-      <div style={{ flex: 1, padding: "14px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
+      <div style={{ flex: 1, padding: "14px 24px 24px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 14, alignContent: 'start' }}>
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
             animationDelay: `${i * 0.03}s`, cursor: "pointer",
@@ -1445,8 +1445,8 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
             </div>
             {/* Title + Subtitle */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <div style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: g.color, letterSpacing: 0.5, textTransform: "uppercase", lineHeight: 1.3 }}>{g.title}</div>
-              <div style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.3 }}>{g.sub}</div>
+              <div style={{ fontFamily: theme.fontMono, fontSize: 13, fontWeight: 700, color: g.color, letterSpacing: 0.5, textTransform: "uppercase", lineHeight: 1.3 }}>{g.title}</div>
+              <div style={{ fontSize: 12, color: theme.textMuted, lineHeight: 1.3 }}>{g.sub}</div>
             </div>
           </div>
         ))}
@@ -1809,7 +1809,7 @@ function HangmanGame({ onBack, onScore, onCorrect }) {
           {(status === "won" || status === "lost") && (
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 12 }}>
               <Btn variant="primary" onClick={startNew}>Next Word →</Btn>
-              {status === "lost" && <Btn variant="ghost" small onClick={() => setReveal(true)}>Show Word</Btn>}
+              
             </div>
           )}
         </div>

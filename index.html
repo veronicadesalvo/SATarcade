@@ -1360,7 +1360,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
             background: "linear-gradient(135deg, #ff1a5e 0%, #9b30d9 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 14px rgba(155,48,217,0.6))",
-            transform: "scaleY(1.2)", transformOrigin: "center",
+            transform: "scaleY(1.3)", transformOrigin: "center",
           }}>SAT ARCADE</span>
           {/* Mastery count — centered below title */}
           <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
@@ -1388,16 +1388,21 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
       {closeCount > 0 && (
         <div onClick={() => onSelect(suggestedGame)} style={{
           flexShrink: 0, margin: '10px 14px 0', borderRadius: 12, cursor: 'pointer',
-          background: `linear-gradient(135deg, ${theme.accent}18, ${theme.gold}12)`,
-          border: `1px solid ${theme.gold}44`, padding: '10px 14px',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
-          <span style={{ fontSize: 20 }}>⚡</span>
+          background: `linear-gradient(135deg, #c9922a33, #c9922a1a)`,
+          border: `2px solid #c9922abb`, padding: '12px 16px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          boxShadow: `0 0 18px #c9922a33`,
+          transition: 'all 0.2s',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 28px #c9922a55`; e.currentTarget.style.border = `2px solid #c9922a`; }}
+          onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 0 18px #c9922a33`; e.currentTarget.style.border = `2px solid #c9922abb`; }}
+        >
+          <span style={{ fontSize: 24 }}>⚡</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: theme.gold, fontFamily: theme.fontMono, letterSpacing: 0.5 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#c9922a', fontFamily: theme.fontMono, letterSpacing: 0.5 }}>
               {closeCount} word{closeCount > 1 ? 's' : ''} close to mastery
             </div>
-            <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 1 }}>
+            <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 3 }}>
               Play {GAME_LABELS[suggestedGame]} to push them over →
             </div>
           </div>
@@ -1409,17 +1414,15 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
             animationDelay: `${i * 0.03}s`, cursor: "pointer",
-            background: theme.surface, border: `1px solid ${theme.border}`,
+            background: `${g.color}18`, border: `2px solid ${g.color}66`,
             borderRadius: 14, transition: "all 0.2s",
             position: "relative", overflow: "hidden",
             display: "flex", flexDirection: 'row', alignItems: "center", gap: 10,
-            padding: '10px 12px',
+            padding: '16px 12px',
           }}
             onClick={() => onSelect(g.id)}
-            onMouseEnter={e => { e.currentTarget.style.border = `1px solid ${g.color}66`; e.currentTarget.style.boxShadow = `0 4px 20px ${g.color}22`; }}
-            onMouseLeave={e => { e.currentTarget.style.border = `1px solid ${theme.border}`; e.currentTarget.style.boxShadow = ""; }}>
-            {/* Top color bar */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: g.color, opacity: 0.9 }} />
+            onMouseEnter={e => { e.currentTarget.style.border = `2px solid ${g.color}`; e.currentTarget.style.boxShadow = `0 4px 20px ${g.color}33`; }}
+            onMouseLeave={e => { e.currentTarget.style.border = `2px solid ${g.color}66`; e.currentTarget.style.boxShadow = ""; }}>
             {/* Icon */}
             <div style={{ fontSize: 28, width: 40, flexShrink: 0, display:'flex', alignItems:'center', justifyContent:'center' }}>
               {g.id === 'chess'

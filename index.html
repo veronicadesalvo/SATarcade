@@ -1064,7 +1064,7 @@ const theme = {
   accentGlow: "rgba(124,92,252,0.25)",
   gold: "#f4c430",
   goldGlow: "rgba(244,196,48,0.2)",
-  success: "#22d3a0",
+  success: "#22c55e",
   danger: "#ff5e7a",
   text: "#e2e2f0",
   textMuted: "#8888aa",
@@ -1312,10 +1312,10 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
 
   const games = [
     { id: "detective", icon: "🔍", title: "Word Detective", sub: "Choose the word that fits", color: "#f5e000" },
-    { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "Find the word that doesn't belong", color: "#00f5a0" },
+    { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "Find the word that doesn't belong", color: "#00c9a7" },
     { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Hear it. Pick the definition.", color: "#f700ff" },
     { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Capture pieces by knowing words", color: "#3d8ef5" },
-    { id: "hangman", icon: "🪢", title: "Hangman", sub: "Definition as your only clue", color: "#ff6b35" },
+    { id: "hangman", icon: "🪢", title: "Hangman", sub: "Definition as your only clue", color: "#ffa500" },
     { id: "crossword", icon: "🔠", title: "SAT Crossword", sub: "Fill the grid with words", color: "#9b30d9" },
   ];
 
@@ -1374,7 +1374,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
         {closeCount > 0 && (
           <div onClick={() => onSelect(suggestedGame)} style={{
             flexShrink: 0, marginTop: 18, borderRadius: 12, cursor: 'pointer',
-            background: '#0a0a12',
+            background: `color-mix(in srgb, #00e5ff 12%, #0a0a12)`,
             position: 'relative', zIndex: 10,
             border: `2px solid #00e5ffbb`, padding: '12px 16px',
             display: 'flex', alignItems: 'center', gap: 12,
@@ -1423,8 +1423,9 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
       </div>
 
       {/* Tagline */}
-      <div style={{ textAlign: 'center', padding: '4px 14px 0', flexShrink: 0 }}>
-        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2 }}>6 GAMES. ONE GOAL: ACTUALLY LEARN THE WORDS.</span>
+      <div style={{ textAlign: 'center', padding: '4px 14px 12px', flexShrink: 0 }}>
+        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block' }}>6 GAMES. ONE GOAL:</span>
+        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block', marginTop: 4 }}>ACTUALLY LEARN THE WORDS.</span>
       </div>
 
       {/* 2×3 game grid */}
@@ -1629,7 +1630,7 @@ function HangmanSVG({ wrong, figColor }) {
 }
 
 function HangmanGame({ onBack, onScore, onCorrect }) {
-  const C = "#ff6b35"; // game color
+  const C = "#ffa500"; // game color
   const [entry, setEntry] = useState(() => getNextWord('hangman_queue', WORD_BANK));
   const [guessed, setGuessed] = useState(new Set());
   const [wrong, setWrong] = useState(0);
@@ -1721,7 +1722,7 @@ function HangmanGame({ onBack, onScore, onCorrect }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, color: "#ff6b35" }}>HANGMAN</div>
+          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#ffa500" }}>HANGMAN</div>
         </div>
         {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
       </div>
@@ -3442,7 +3443,7 @@ function FreeformCrossword({ onBack, onScore, onCorrect }) {
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, fontWeight: 400, color: "#9b30d9" }}>SAT CROSSWORD</div>
+          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#9b30d9" }}>SAT CROSSWORD</div>
         </div>
         <div style={{ width: 60 }} />
       </div>
@@ -3755,7 +3756,7 @@ function WordDetective({ onBack, onScore, onCorrect }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, color: "#f5e000" }}>WORD DETECTIVE</div>
+          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#f5e000" }}>WORD DETECTIVE</div>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
@@ -3779,9 +3780,9 @@ function WordDetective({ onBack, onScore, onCorrect }) {
                   {part}
                   {i < arr.length - 1 && (
                     <span style={{
-                      display: "inline-block", minWidth: 140, borderBottom: `2.5px solid ${chosen ? (chosen === current.word ? theme.success : theme.danger) : theme.accentLight}`,
+                      display: "inline-block", minWidth: 140, borderBottom: `2.5px solid ${chosen ? (chosen === current.word ? theme.success : theme.danger) : theme.text}`,
                       textAlign: "center", marginHorizontal: 6, padding: "0 8px", fontFamily: theme.fontMono, fontWeight: 700, fontSize: 16,
-                      color: chosen ? (chosen === current.word ? theme.success : theme.danger) : theme.accentLight, transition: "all 0.3s"
+                      color: chosen ? (chosen === current.word ? theme.success : theme.danger) : theme.text, transition: "all 0.3s"
                     }}>
                       {chosen ? current.word : "  ?  "}
                     </span>
@@ -3853,10 +3854,9 @@ function WordDetective({ onBack, onScore, onCorrect }) {
       {/* Answer history */}
       {answered.length > 0 && !done && (
         <div style={{ marginTop: 24, borderTop: `1px solid ${theme.border}`, paddingTop: 16 }}>
-          <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 8 }}>History</div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {answered.map((a, i) => (
-              <div key={i} style={{ width: 10, height: 10, borderRadius: 3, background: a.correct ? theme.success : theme.danger, title: a.word }} />
+              <div key={i} style={{ width: 9, height: 9, borderRadius: 0, background: a.correct ? theme.success : theme.danger, title: a.word }} />
             ))}
           </div>
         </div>
@@ -4109,7 +4109,7 @@ function generateOddOneOutGroups(wordBank, count = 30) {
 
 // ─── ODD ONE OUT COMPONENT ────────────────────────────────────────────────────
 function OddOneOut({ onBack, onScore, onCorrect }) {
-  const C = "#00f5a0"; // game color
+  const C = "#00c9a7"; // game color
   const [pool] = useState(() => {
     // Mix: half hand-crafted (for quality), half auto-generated (for coverage)
     const handCrafted = shuffle([...ODD_ONE_OUT_GROUPS]).slice(0, 15);
@@ -4165,7 +4165,7 @@ function OddOneOut({ onBack, onScore, onCorrect }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, fontWeight: 400, color: "#00f5a0" }}>ODD ONE OUT</div>
+          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#00c9a7" }}>ODD ONE OUT</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
@@ -4260,38 +4260,20 @@ function OddOneOut({ onBack, onScore, onCorrect }) {
       {/* Result + Next */}
       {chosen && (
         <div className="fadeIn">
-          <div style={{
-            textAlign: "center", padding: "12px 16px", borderRadius: 12, marginBottom: 16,
-            background: chosen === current.odd ? theme.success + "18" : theme.danger + "18",
-            border: `1px solid ${chosen === current.odd ? theme.success + "44" : theme.danger + "44"}`,
-          }}>
-            {chosen === current.odd ? (
-              <span style={{ color: theme.success, fontWeight: 700, fontSize: 15 }}>
-                ✓ Correct!{streak > 1 ? ` (${streak}x streak)` : ''}
-              </span>
-            ) : (
-              <span style={{ color: theme.danger, fontWeight: 700, fontSize: 15 }}>
-                The odd one out was <span style={{ fontFamily: theme.fontMono }}>{current.odd}</span>
-              </span>
-            )}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 15, color: chosen === current.odd ? theme.success : theme.danger, fontWeight: 600 }}>
+              {chosen === current.odd
+                ? `🎯 Correct!${streak > 1 ? ` (${streak}x streak)` : ''}`
+                : `❌ The odd one out was ${current.odd}`}
+            </div>
+            {done
+              ? <Btn variant="primary" color={C} onClick={onBack}>Home</Btn>
+              : <Btn variant="primary" color={C} onClick={next}>Next →</Btn>
+            }
           </div>
-
-          {done ? (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: theme.fontDisplay, fontSize: 24, fontWeight: 900, color: theme.gold, marginBottom: 8 }}>All done! 🎉</div>
-              <div style={{ color: theme.textMuted, marginBottom: 16 }}>Round complete!</div>
-              <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                <Btn variant="primary" color={C} onClick={onBack}>Home</Btn>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <Btn variant="ghost" small color={C} onClick={() => setShowDefs(d => !d)} style={{ width: "100%" }}>
-                {showDefs ? "Hide definitions" : "Show definitions"}
-              </Btn>
-              <Btn variant="primary" color={C} onClick={next} style={{ width: "100%" }}>Next →</Btn>
-            </div>
-          )}
+          <Btn variant="ghost" small color={C} onClick={() => setShowDefs(d => !d)}>
+            {showDefs ? "Hide definitions" : "Show definitions"}
+          </Btn>
         </div>
       )}
 
@@ -4299,7 +4281,7 @@ function OddOneOut({ onBack, onScore, onCorrect }) {
       {history.length > 0 && (
         <div style={{ display: "flex", gap: 3, justifyContent: "flex-start", flexWrap: "wrap", marginTop: 16 }}>
           {history.map((h, i) => (
-            <div key={i} style={{ width: 8, height: 8, borderRadius: 1, background: h.correct ? theme.success : theme.danger }} />
+            <div key={i} style={{ width: 9, height: 9, borderRadius: 0, background: h.correct ? theme.success : theme.danger }} />
           ))}
         </div>
       )}
@@ -4443,7 +4425,7 @@ function EarTrainer({ onBack, onScore, onCorrect }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <Btn variant="ghost" small color={C} onClick={() => { window.speechSynthesis?.cancel(); onBack(); }}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 13, fontWeight: 400, color: "#f700ff" }}>EAR TRAINER</div>
+          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#f700ff" }}>EAR TRAINER</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
@@ -4459,30 +4441,30 @@ function EarTrainer({ onBack, onScore, onCorrect }) {
       </div>
 
       {/* Speak area */}
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 13, color: theme.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 20 }}>
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <div style={{ fontSize: 13, color: theme.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>
           Listen, then pick the definition
         </div>
 
         {/* Big speaker button */}
         <button onClick={speakWord} style={{
-          width: 90, height: 90, borderRadius: "50%",
+          width: 80, height: 80, borderRadius: "50%",
           background: speaking ? C + "44" : C + "22",
           border: `2px solid ${speaking ? C : C + "55"}`,
-          fontSize: 36, cursor: "pointer", transition: "all 0.2s",
+          fontSize: 32, cursor: "pointer", transition: "all 0.2s",
           display: "inline-flex", alignItems: "center", justifyContent: "center",
           boxShadow: speaking ? `0 0 24px ${C}66` : "none",
         }}>
           {speaking ? "🔊" : "🔉"}
         </button>
 
-        <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 10 }}>
+        <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>
           Tap to replay the word
         </div>
 
         {/* Revealed word */}
         {revealed && (
-          <div className="fadeIn" style={{ marginTop: 16 }}>
+          <div className="fadeIn" style={{ marginTop: 10 }}>
             <div style={{ fontFamily: theme.fontMono, fontWeight: 900, fontSize: 28, color: theme.accentLight, letterSpacing: 2 }}>
               {current.word}
             </div>
@@ -4551,30 +4533,20 @@ function EarTrainer({ onBack, onScore, onCorrect }) {
       {/* Result + next */}
       {chosen && (
         <div className="fadeIn">
-          <div style={{
-            textAlign: "center", padding: "10px", borderRadius: 10, marginBottom: 14,
-            background: chosen === current.word ? theme.success + "18" : theme.danger + "18",
-            border: `1px solid ${chosen === current.word ? theme.success + "33" : theme.danger + "33"}`,
-          }}>
-            {chosen === current.word ? (
-              <span style={{ color: theme.success, fontWeight: 700 }}>
-                ✓ Correct!{streak > 1 ? ` · ${streak}x streak` : ''}
-              </span>
-            ) : (
-              <span style={{ color: theme.danger, fontWeight: 700 }}>
-                ✗ Incorrect
-              </span>
-            )}
-          </div>
-
           {done ? (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: theme.fontDisplay, fontSize: 24, fontWeight: 900, color: theme.gold, marginBottom: 8 }}>All done! 🎉</div>
-              <div style={{ color: theme.textMuted, marginBottom: 16 }}>Round complete!</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: 15, color: chosen === current.word ? theme.success : theme.danger, fontWeight: 600 }}>
+                {chosen === current.word ? `🎯 Correct!${streak > 1 ? ` (${streak}x streak!)` : ''}` : '❌ Incorrect'}
+              </div>
               <Btn variant="primary" color={C} onClick={onBack}>Home</Btn>
             </div>
           ) : (
-            <Btn variant="primary" color={C} onClick={next} style={{ width: "100%" }}>Next →</Btn>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: 15, color: chosen === current.word ? theme.success : theme.danger, fontWeight: 600 }}>
+                {chosen === current.word ? `🎯 Correct!${streak > 1 ? ` (${streak}x streak!)` : ''}` : '❌ Incorrect'}
+              </div>
+              <Btn variant="primary" color={C} onClick={next}>Next →</Btn>
+            </div>
           )}
         </div>
       )}
@@ -4583,7 +4555,7 @@ function EarTrainer({ onBack, onScore, onCorrect }) {
       {history.length > 0 && (
         <div style={{ display: "flex", gap: 3, justifyContent: "flex-start", flexWrap: "wrap", marginTop: 16 }}>
           {history.map((h, i) => (
-            <div key={i} style={{ width: 8, height: 8, borderRadius: 1, background: h.correct ? theme.success : theme.danger }} />
+            <div key={i} style={{ width: 9, height: 9, borderRadius: 0, background: h.correct ? theme.success : theme.danger }} />
           ))}
         </div>
       )}
@@ -6340,7 +6312,7 @@ function VocabChess({ onBack, onScore, onCorrect }) {
       <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
         <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
         <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
-          <span style={{fontFamily:"'Press Start 2P', monospace",color:"#3d8ef5",fontSize:13}}>VOCAB CHESS</span>
+          <span style={{fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color:"#3d8ef5"}}>VOCAB CHESS</span>
         </div>
         <div style={{width:60}} />
       </div>

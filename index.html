@@ -1423,12 +1423,27 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
       </div>
 
       {/* Tagline */}
-      <div style={{ textAlign: 'center', padding: '4px 14px 12px', flexShrink: 0 }}>
-        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block' }}>6 GAMES. ONE GOAL:</span>
-        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block', marginTop: 4 }}>ACTUALLY LEARN THE WORDS.</span>
-      </div>
+      {allIconsLoaded && (
+        <div style={{ textAlign: 'center', padding: '4px 14px 12px', flexShrink: 0 }}>
+          <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block' }}>6 GAMES. ONE GOAL:</span>
+          <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block', marginTop: 4 }}>ACTUALLY LEARN THE WORDS.</span>
+        </div>
+      )}
 
-      {/* 2×3 game grid */}
+      {/* 2×3 game grid — or loading splash */}
+      {!allIconsLoaded ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+          <span style={{
+            fontFamily: "'Press Start 2P', monospace",
+            fontSize: "clamp(26px, 7vw, 42px)",
+            letterSpacing: 4, display: 'block',
+            color: '#00e5ff',
+            filter: "drop-shadow(0 0 14px rgba(0,229,255,0.6))",
+            transform: "scaleY(1.5)", transformOrigin: "center",
+          }}>SAT ARCADE</span>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff66', letterSpacing: 2 }}>LOADING...</div>
+        </div>
+      ) : (
       <div style={{ flex: 1, padding: "8px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
         {allIconsLoaded && games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
@@ -1463,6 +1478,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats }) {
           </div>
         ))}
       </div>
+      )}
 
       {/* Mastered words modal */}
       {showMastered && (

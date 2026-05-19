@@ -3532,7 +3532,7 @@ function WordDetective({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
             <button onClick={() => setShowDefs(s => !s)} style={{
               background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 8,
               color: theme.textMuted, fontSize: 12, padding: "4px 10px", cursor: "pointer",
-              fontFamily: theme.fontBody,
+              fontFamily: theme.fontMono,
             }}>
               {showDefs ? "Hide definitions" : "Show definitions"}
             </button>
@@ -3852,6 +3852,17 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         )}
       </div>
 
+      {/* Show definitions toggle — above answer grid, right-aligned */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <button onClick={() => setShowDefs(d => !d)} style={{
+          background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 8,
+          color: theme.textMuted, fontSize: 12, padding: "4px 10px", cursor: "pointer",
+          fontFamily: theme.fontBody,
+        }}>
+          {showDefs ? "Hide definitions" : "Show definitions"}
+        </button>
+      </div>
+
       {/* Word tiles */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
         {shuffledWords.map((word) => {
@@ -3928,9 +3939,6 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               : <Btn variant="primary" color={C} onClick={next}>Next →</Btn>
             }
           </div>
-          <Btn variant="ghost" small color={C} onClick={() => setShowDefs(d => !d)}>
-            {showDefs ? "Hide definitions" : "Show definitions"}
-          </Btn>
         </div>
       )}
 

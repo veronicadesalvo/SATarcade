@@ -812,11 +812,11 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
     localStorage.setItem('satarcade_profile', next);
   };
 
-  // Safety fallback: show all icons after 1.5s regardless of load state
+  // Safety fallback: show all icons after 2s regardless of load state
   React.useEffect(() => {
     const t = setTimeout(() => setLoadedIcons(prev => {
       const all = {}; ICON_KEYS.forEach(k => all[k] = true); return all;
-    }), 1500);
+    }), 2000);
     return () => clearTimeout(t);
   }, []);
   // Pixel art icons — 16x16 grid, each rect is one "pixel"
@@ -999,27 +999,37 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
       if (!v.games.has(g)) gameCounts[g] = (gameCounts[g]||0) + 1;
     });
   });
+  // Preload images via useEffect so they start loading immediately on mount
+  React.useEffect(() => {
+    const sources = [
+      ['chess', 'https://lichess1.org/assets/piece/pixel/wN.svg'],
+      ['hangman', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/hangman.png'],
+      ['crossword', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/crossword.png'],
+      ['search', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png'],
+      ['oddoneout', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png'],
+      ['ear', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png'],
+    ];
+    sources.forEach(([key, src]) => {
+      const img = new Image();
+      img.onload = () => setLoadedIcons(prev => ({...prev, [key]: true}));
+      img.onerror = () => setLoadedIcons(prev => ({...prev, [key]: true}));
+      img.src = src;
+    });
+  }, []);
+
   const suggestedGame = Object.entries(gameCounts).sort(([,a],[,b])=>b-a)[0]?.[0] || 'detective';
 
   if (!allIconsLoaded) return (
     <div style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, backgroundColor: theme.bg, backgroundImage: arcadeBg, backgroundSize: "40px 40px" }}>
       <span style={{
         fontFamily: "'Press Start 2P', monospace",
-        fontSize: "clamp(26px, 7vw, 42px)",
-        letterSpacing: 4, display: 'block',
+        fontSize: "clamp(18px, 5.5vw, 42px)",
+        letterSpacing: 2, display: 'block',
         color: '#00e5ff',
         filter: "drop-shadow(0 0 14px rgba(0,229,255,0.6))",
         transform: "scaleY(1.5)", transformOrigin: "center",
       }}>{profile === 'sat' ? 'SAT ARCADE' : 'VOCAB ARCADE'}</span>
       <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff66', letterSpacing: 2 }}>LOADING...</div>
-      <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
-        <img src="https://lichess1.org/assets/piece/pixel/wN.svg" onLoad={() => setLoadedIcons(prev => ({...prev, chess: true}))} onError={() => setLoadedIcons(prev => ({...prev, chess: true}))} alt="" />
-        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/hangman.png" onLoad={() => setLoadedIcons(prev => ({...prev, hangman: true}))} onError={() => setLoadedIcons(prev => ({...prev, hangman: true}))} alt="" />
-        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/crossword.png" onLoad={() => setLoadedIcons(prev => ({...prev, crossword: true}))} onError={() => setLoadedIcons(prev => ({...prev, crossword: true}))} alt="" />
-        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png" onLoad={() => setLoadedIcons(prev => ({...prev, search: true}))} onError={() => setLoadedIcons(prev => ({...prev, search: true}))} alt="" />
-        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png" onLoad={() => setLoadedIcons(prev => ({...prev, oddoneout: true}))} onError={() => setLoadedIcons(prev => ({...prev, oddoneout: true}))} alt="" />
-        <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png" onLoad={() => setLoadedIcons(prev => ({...prev, ear: true}))} onError={() => setLoadedIcons(prev => ({...prev, ear: true}))} alt="" />
-      </div>
     </div>
   );
 
@@ -1041,8 +1051,8 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
           <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85 }}>-- INSERT COIN --</div>
           <div style={{ margin: '44px 0 16px' }}>
           <span style={{
-            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(26px, 7vw, 42px)",
-            letterSpacing: 4, lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap',
+            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(18px, 5.5vw, 42px)",
+            letterSpacing: 2, lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap',
             background: "linear-gradient(135deg, #00e5ff 0%, #00e5ff 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 14px rgba(0,229,255,0.6))",
@@ -1114,16 +1124,14 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
       </div>
 
       {/* Tagline */}
-      {allIconsLoaded && (
-        <div style={{ textAlign: 'center', padding: '4px 14px 12px', flexShrink: 0 }}>
+      <div style={{ textAlign: 'center', padding: '4px 14px 12px', flexShrink: 0 }}>
           <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block' }}>6 GAMES. ONE GOAL:</span>
           <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block', marginTop: 4 }}>ACTUALLY LEARN THE WORDS.</span>
         </div>
-      )}
 
       {/* 2×3 game grid */}
       <div style={{ flex: 1, padding: "8px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
-        {allIconsLoaded && games.map((g, i) => (
+        {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
             animationDelay: `${i * 0.05}s`, cursor: "pointer",
             background: `color-mix(in srgb, ${g.color} 12%, #0a0a12)`, border: `2px solid ${g.color}99`,

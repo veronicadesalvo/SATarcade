@@ -976,8 +976,8 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
     { id: "detective", icon: "🔍", title: "Word Detective", sub: "The right word is hiding. Find it.", color: "#f5e000" },
     { id: "oddoneout", icon: "🚫", title: "Impostor", sub: "One of these words is lying.", color: "#00c9a7" },
     { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Do your ears know as much as your eyes?", color: "#f700ff" },
-    { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Know a word. Capture a piece.", color: "#3d8ef5" },
     { id: "hangman", icon: "🪢", title: "Hangman", sub: "Letters or death. Choose wisely.", color: "#ffa500" },
+    { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Know a word. Capture a piece.", color: "#3d8ef5" },
     { id: "crossword", icon: "🔠", title: "Crossword", sub: "Cryptic clues. Unforgiving grid.", color: "#9b30d9" },
   ];
 
@@ -1298,45 +1298,25 @@ function getNextWord(key, allWords, mastered) {
 const MAX_WRONG = 6;
 
 function HangmanSVG({ wrong, figColor }) {
-  const S = 5; // pixel block size
+  const S = 5;
   const c = figColor || theme.danger;
   const g = theme.border;
 
-  // Helper: draw a pixel block at grid coords
   const px = (x, y, color = g) => (
     <rect key={`${x}-${y}`} x={x * S} y={y * S} width={S} height={S} fill={color} />
   );
 
-  // Gallows pixels (always shown)
-  const base    = [[4,25],[5,25],[6,25],[7,25],[8,25],[9,25],[10,25],[11,25],[12,25],[13,25],[14,25],[15,25],[16,25]];
-  const post    = [[7,2],[7,3],[7,4],[7,5],[7,6],[7,7],[7,8],[7,9],[7,10],[7,11],[7,12],[7,13],[7,14],[7,15],[7,16],[7,17],[7,18],[7,19],[7,20],[7,21],[7,22],[7,23],[7,24]];
-  const beam    = [[7,2],[8,2],[9,2],[10,2],[11,2],[12,2],[13,2],[14,2],[15,2],[16,2],[17,2]];
-  const rope    = [[17,2],[17,3],[17,4],[17,5]];
-
-  // Head (wrong >= 1): pixel circle at column 17, row 6
-  const head = [
-    [16,6],[17,6],[18,6],
-    [15,7],[19,7],
-    [15,8],[19,8],
-    [16,9],[17,9],[18,9],
-  ];
-
-  // Body (wrong >= 2)
-  const body = [[17,10],[17,11],[17,12],[17,13],[17,14],[17,15]];
-
-  // Left arm (wrong >= 3)
-  const leftArm = [[16,11],[15,12],[14,13],[13,14]];
-
-  // Right arm (wrong >= 4)
+  const base     = [[4,25],[5,25],[6,25],[7,25],[8,25],[9,25],[10,25],[11,25],[12,25],[13,25],[14,25],[15,25],[16,25]];
+  const post     = [[7,2],[7,3],[7,4],[7,5],[7,6],[7,7],[7,8],[7,9],[7,10],[7,11],[7,12],[7,13],[7,14],[7,15],[7,16],[7,17],[7,18],[7,19],[7,20],[7,21],[7,22],[7,23],[7,24]];
+  const beam     = [[7,2],[8,2],[9,2],[10,2],[11,2],[12,2],[13,2],[14,2],[15,2],[16,2],[17,2]];
+  const rope     = [[17,2],[17,3],[17,4],[17,5]];
+  const head     = [[16,6],[17,6],[18,6],[15,7],[19,7],[15,8],[19,8],[16,9],[17,9],[18,9]];
+  const body     = [[17,10],[17,11],[17,12],[17,13],[17,14],[17,15]];
+  const leftArm  = [[16,11],[15,12],[14,13],[13,14]];
   const rightArm = [[18,11],[19,12],[20,13],[21,14]];
-
-  // Left leg (wrong >= 5)
-  const leftLeg = [[16,16],[15,17],[14,18],[13,19],[12,20]];
-
-  // Right leg (wrong >= 6)
+  const leftLeg  = [[16,16],[15,17],[14,18],[13,19],[12,20]];
   const rightLeg = [[18,16],[19,17],[20,18],[21,19],[22,20]];
-
-  const gallows = [...base, ...post, ...beam, ...rope];
+  const gallows  = [...base, ...post, ...beam, ...rope];
 
   return (
     <svg width="150" height="140" viewBox="0 0 140 135" style={{ display: "block", imageRendering: "pixelated" }}>
@@ -4078,6 +4058,9 @@ function EarTrainer({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   };
 
   const next = () => {
+    setChosen(null);
+    setUsedHint(false);
+    setRevealed(false);
     if (idx < pool.length - 1) setIdx(i => i + 1);
   };
 

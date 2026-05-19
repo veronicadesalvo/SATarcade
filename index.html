@@ -975,11 +975,11 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
 
   const games = [
     { id: "detective", icon: "🔍", title: "Word Detective", sub: "The right word is hiding. Find it.", color: "#f5e000" },
-    { id: "oddoneout", icon: "🚫", title: "Odd One Out", sub: "One of these words is lying.", color: "#00c9a7" },
+    { id: "oddoneout", icon: "🚫", title: "Impostor", sub: "One of these words is lying.", color: "#00c9a7" },
     { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Do your ears know as much as your eyes?", color: "#f700ff" },
     { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Know a word. Capture a piece.", color: "#3d8ef5" },
     { id: "hangman", icon: "🪢", title: "Hangman", sub: "Letters or death. Choose wisely.", color: "#ffa500" },
-    { id: "crossword", icon: "🔠", title: "Crossword", sub: "The clues are cryptic. The grid is unforgiving.", color: "#9b30d9" },
+    { id: "crossword", icon: "🔠", title: "Crossword", sub: "Cryptic clues. Unforgiving grid.", color: "#9b30d9" },
   ];
 
   // Arcade dot-grid + scanline SVG background as a data URI
@@ -992,7 +992,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
     .slice(0, 5);
   const closeCount = closeToMastery.length;
   // Suggest the game where close-to-mastery words haven't appeared yet
-  const GAME_LABELS = { hangman:'Hangman', detective:'Word Detective', oddoneout:'Odd One Out', eartrainer:'Ear Trainer', chess:'Vocab Chess', crossword:'Crossword' };
+  const GAME_LABELS = { hangman:'Hangman', detective:'Word Detective', oddoneout:'Impostor', eartrainer:'Ear Trainer', chess:'Vocab Chess', crossword:'Crossword' };
   const gameCounts = {};
   closeToMastery.forEach(([,v]) => {
     ['hangman','detective','oddoneout','eartrainer','chess','crossword'].forEach(g => {
@@ -1055,7 +1055,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
             letterSpacing: 2, lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap',
             background: "linear-gradient(135deg, #00e5ff 0%, #00e5ff 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            filter: "drop-shadow(0 0 14px rgba(0,229,255,0.6))",
+            filter: "drop-shadow(0 0 8px rgba(0,229,255,0.7))",
             transform: "scaleY(1.5)", transformOrigin: "center",
           }}>{profile === 'sat' ? 'SAT ARCADE' : 'VOCAB ARCADE'}</span>
           </div>
@@ -3818,7 +3818,7 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#00c9a7" }}>ODD ONE OUT</div>
+          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#00c9a7" }}>IMPOSTOR</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}

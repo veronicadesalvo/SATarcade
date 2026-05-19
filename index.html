@@ -4412,6 +4412,9 @@ function evaluate(B) {
   const wMinors = countMinorsOnBackRank(B,'w');
   const bMinors = countMinorsOnBackRank(B,'b');
 
+  let wMat = 0, bMat = 0;
+  let wKingR = 0, wKingC = 0, bKingR = 0, bKingC = 0;
+
   for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
     const p=B[r][c]; if (!p) continue;
     const v = (PIECE_VALUES[p.type]||0)*10;
@@ -4419,24 +4422,42 @@ function evaluate(B) {
     const bonus = PST[p.type] ? PST[p.type][pstRow][c] : 0;
     let extra = 0;
 
+    if (p.type==='k') {
+      if (p.color==='w') { wKingR=r; wKingC=c; }
+      else { bKingR=r; bKingC=c; }
+    }
+    if (p.type!=='k') {
+      if (p.color==='w') wMat += PIECE_VALUES[p.type]||0;
+      else bMat += PIECE_VALUES[p.type]||0;
+    }
+
     if (p.type==='r') {
       const backRank = p.color==='b' ? 0 : 7;
       const minors = p.color==='b' ? bMinors : wMinors;
-      // Penalize leaving back rank if ANY minor piece is still undeveloped
       if (r !== backRank && minors >= 1) extra -= 30;
-      // Open file bonus only after full development
       if (minors === 0) {
         const hasFriendlyPawn = Array.from({length:8},(_,row)=>B[row][c])
           .some(sq=>sq?.type==='p'&&sq?.color===p.color);
         if (!hasFriendlyPawn) extra += 8;
       }
     }
-
-    // Reward developing minor pieces off back rank
     if ((p.type==='n'||p.type==='b') && r !== (p.color==='b'?0:7)) extra += 5;
 
     s += p.color==='b' ? (v+bonus+extra) : -(v+bonus+extra);
   }
+
+  // King hunt: when black has large material advantage, push white king to corner
+  // and reward black king moving toward white king
+  const matDiff = bMat - wMat;
+  if (matDiff > 30) {
+    // Reward forcing white king to edge/corner
+    const wKingEdgeDist = Math.min(wKingR, 7-wKingR, wKingC, 7-wKingC);
+    s += (3 - wKingEdgeDist) * 15; // more bonus the closer to edge
+    // Reward black king moving toward white king
+    const kingDist = Math.abs(bKingR - wKingR) + Math.abs(bKingC - wKingC);
+    s += (14 - kingDist) * 5;
+  }
+
   return s;
 }
 
@@ -4536,7 +4557,7 @@ function gameInCheck(game) { return inCheck(game.board, game.turn); }
 function gameIsCheckmate(game) { return gameLegal(game).length===0 && inCheck(game.board,game.turn); }
 function gameIsDraw(game) { return gameLegal(game).length===0 && !inCheck(game.board,game.turn); }
 function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
-  const {move} = minimax(game.board, 3, -Infinity, Infinity, true, game, lastAiMove, lastAiMove);
+  const {move} = minimax(game.board, 4, -Infinity, Infinity, true, game, lastAiMove, lastAiMove);
   return move;
 }
 
@@ -5025,15 +5046,96 @@ function pstScore(type, r, c, color) {
 
 function evaluateBoard(B) {
   let score = 0;
+  let wMat = 0, bMat = 0;
+  let wKingR = 0, wKingC = 0, bKingR = 0, bKingC = 0;
+  let wPawns = [], bPawns = [];
+
+  // First pass: collect material and king positions
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const p = B[r][c];
       if (!p) continue;
       const mat = PIECE_VALUES[p.type] || 0;
-      const pos = pstScore(p.type, r, c, p.color);
-      score += p.color === 'w' ? (mat + pos) : -(mat + pos);
+      if (p.type === 'k') {
+        if (p.color === 'w') { wKingR = r; wKingC = c; }
+        else { bKingR = r; bKingC = c; }
+      } else {
+        if (p.color === 'w') wMat += mat;
+        else bMat += mat;
+      }
+      if (p.type === 'p') {
+        if (p.color === 'w') wPawns.push([r, c]);
+        else bPawns.push([r, c]);
+      }
+      score += p.color === 'w' ? mat : -mat;
     }
   }
+
+  const totalMat = wMat + bMat;
+  const isEndgame = totalMat < 130; // roughly when queens are gone or most pieces traded
+
+  // ── ENDGAME: King activity ──
+  if (isEndgame) {
+    // Reward active king (move toward center/opponent king)
+    const wKingCenter = Math.max(3-wKingR, wKingR-4, 0) + Math.max(3-wKingC, wKingC-4, 0);
+    const bKingCenter = Math.max(3-bKingR, bKingR-4, 0) + Math.max(3-bKingC, bKingC-4, 0);
+    score += (bKingCenter - wKingCenter) * 8;
+
+    // When winning (more material), push losing king to edge and bring your king close
+    const matAdv = score; // positive = white ahead
+    if (matAdv > 30) {
+      // White is winning — push black king to corner
+      const bEdgeDist = Math.min(bKingR, 7-bKingR, bKingC, 7-bKingC);
+      score += (3 - bEdgeDist) * 20;
+      // Bring white king close to black king
+      const kingDist = Math.abs(wKingR - bKingR) + Math.abs(wKingC - bKingC);
+      score += (14 - kingDist) * 6;
+    } else if (matAdv < -30) {
+      // Black is winning — push white king to corner
+      const wEdgeDist = Math.min(wKingR, 7-wKingR, wKingC, 7-wKingC);
+      score -= (3 - wEdgeDist) * 20;
+      const kingDist = Math.abs(wKingR - bKingR) + Math.abs(wKingC - bKingC);
+      score -= (14 - kingDist) * 6;
+    }
+  }
+
+  // ── PAWN STRUCTURE ──
+  // Passed pawns (no opposing pawn in front or adjacent files)
+  for (const [r, c] of wPawns) {
+    let passed = true;
+    for (const [br, bc] of bPawns) {
+      if (bc >= c-1 && bc <= c+1 && br < r) { passed = false; break; }
+    }
+    if (passed) score += (7 - r) * 6; // more advanced = more bonus
+  }
+  for (const [r, c] of bPawns) {
+    let passed = true;
+    for (const [wr, wc] of wPawns) {
+      if (wc >= c-1 && wc <= c+1 && wr > r) { passed = false; break; }
+    }
+    if (passed) score -= r * 6;
+  }
+
+  // Doubled pawns penalty
+  for (let c = 0; c < 8; c++) {
+    const wCol = wPawns.filter(([,pc]) => pc === c).length;
+    const bCol = bPawns.filter(([,pc]) => pc === c).length;
+    if (wCol > 1) score -= (wCol - 1) * 8;
+    if (bCol > 1) score += (bCol - 1) * 8;
+  }
+
+  // ── PIECE MOBILITY (simplified) ──
+  // Penalize pieces with no legal moves (trapped pieces)
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const p = B[r][c];
+      if (!p || p.type === 'k' || p.type === 'p') continue;
+      const moves = rawMoves(B, r, c, {ep: null, castle: {}}).length;
+      if (moves === 0) score += p.color === 'w' ? -15 : 15;
+      else score += p.color === 'w' ? moves * 0.5 : -moves * 0.5;
+    }
+  }
+
   return score;
 }
 
@@ -5374,7 +5476,7 @@ function getHintMove(game) {
   if (!moves.length) return null;
 
   const scoreBefore = evaluateBoard(game.board);
-  const DEPTH = 4; // 4-ply: we move, they reply, we move, they reply
+  const DEPTH = 6; // 6-ply: sees 3 moves ahead for each side
 
   let bestMove = null;
   let bestScore = -Infinity;
@@ -5393,16 +5495,25 @@ function getHintMove(game) {
 
   if (!bestMove) return null;
 
-  const reason = explainMove(game, bestMove, scoreBefore, bestScore);
+  // Check if the suggested move leaves a piece hanging
+  const { board: hintBoard } = applyMove(game.board, bestMove.from, bestMove.to, game);
+  const movedTo = bestMove.to;
+  const movedPieceType = hintBoard[movedTo[0]][movedTo[1]]?.type;
+  const leavesHanging = movedPieceType && movedPieceType !== 'k' && isHanging(hintBoard, movedTo[0], movedTo[1], 'w');
+
+  const reason = leavesHanging
+    ? `⚠ This moves your ${PIECE_NAMES[movedPieceType]} to ${toSq(movedTo[0], movedTo[1])} but it can be captured immediately — consider whether the trade is worth it.`
+    : explainMove(game, bestMove, scoreBefore, bestScore);
 
   // Label by score delta
   const delta = bestScore - scoreBefore;
-  const label = bestScore >= 9000  ? 'FORCED MATE'
-              : bestScore >= 500   ? 'WINNING TACTIC'
-              : delta   >= 200     ? 'WINNING TACTIC'
-              : delta   >= 50      ? 'GOOD MOVE'
-              : delta   >= -50     ? 'SOLID MOVE'
-              :                      'BEST AVAILABLE';
+  const label = leavesHanging       ? 'RISKY MOVE'
+              : bestScore >= 9000   ? 'FORCED MATE'
+              : bestScore >= 500    ? 'WINNING TACTIC'
+              : delta   >= 200      ? 'WINNING TACTIC'
+              : delta   >= 50       ? 'GOOD MOVE'
+              : delta   >= -50      ? 'SOLID MOVE'
+              :                       'BEST AVAILABLE';
 
   return { move: bestMove, score: bestScore, reason, label };
 }
@@ -6069,7 +6180,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         {turn==='w' && !gameOver && (
           <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
             {hint ? (() => {
-              const labelColors = { 'FORCED MATE':'#ff4488', 'WINNING TACTIC':theme.danger, 'GOOD MOVE':theme.success, 'SOLID MOVE':C, 'BEST AVAILABLE':theme.textMuted };
+              const labelColors = { 'FORCED MATE':'#ff4488', 'WINNING TACTIC':theme.danger, 'GOOD MOVE':theme.success, 'SOLID MOVE':C, 'BEST AVAILABLE':theme.textMuted, 'RISKY MOVE':theme.gold };
               const conceptLabel = { label: hint.label || 'SUGGESTION', color: labelColors[hint.label] || C };
               const fromSq = toSq(hint.move.from[0], hint.move.from[1]);
               const toSq2  = toSq(hint.move.to[0],   hint.move.to[1]);
@@ -6107,7 +6218,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           ):turn==='w'?'● YOUR TURN (WHITE)':turn==='winback'?'🛡️ WIN IT BACK!':'○ OPPONENT THINKING…'}
         </div>
         <div style={{fontSize:11,color:theme.textMuted+'99',textAlign:'center',maxWidth:300,lineHeight:1.7}}>
-          Capture → define a word to keep it{'\n'}AI captures → answer a harder word to win it back
+          Capture a piece → define the word to keep it.
         </div>
       </div>
       {quiz&&<ChessVocabQuiz word={quiz.word.word||quiz.word} context={quiz.context} timeLimit={quiz.timeLimit} onResult={quiz.onResult}/>}

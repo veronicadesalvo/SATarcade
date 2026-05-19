@@ -1023,7 +1023,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
     <div style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, backgroundColor: theme.bg, backgroundImage: arcadeBg, backgroundSize: "40px 40px" }}>
       <span style={{
         fontFamily: "'Press Start 2P', monospace",
-        fontSize: "clamp(18px, 5.5vw, 42px)",
+        fontSize: "min(7.2vw, 42px)",
         letterSpacing: 2, display: 'block',
         color: '#00e5ff',
         filter: "drop-shadow(0 0 14px rgba(0,229,255,0.6))",
@@ -1051,7 +1051,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
           <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, letterSpacing: 3, color: '#ffd700', opacity: 0.85 }}>-- INSERT COIN --</div>
           <div style={{ margin: '44px 0 16px' }}>
           <span style={{
-            fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(18px, 5.5vw, 42px)",
+            fontFamily: "'Press Start 2P', monospace", fontSize: "min(7.2vw, 42px)",
             letterSpacing: 2, lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap',
             background: "linear-gradient(135deg, #00e5ff 0%, #00e5ff 50%, #00e5ff 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",

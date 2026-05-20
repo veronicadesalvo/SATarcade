@@ -8,6 +8,52 @@
   <meta name="theme-color" content="#0a0a12" />
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/favicon.png" />
   <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/favicon.png" />
+  <script>
+    (function() {
+      const SRC = 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/favicon.png';
+      const SIZE = 180;
+      const PADDING = 36;
+      const BG = '#0a1a2e';
+      const GLOW = '#00e5ff';
+      function buildAppleTouchIcon() {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+          const c = document.createElement('canvas');
+          c.width = SIZE; c.height = SIZE;
+          const ctx = c.getContext('2d');
+          const r = SIZE * 0.22;
+          ctx.beginPath();
+          ctx.moveTo(r, 0); ctx.lineTo(SIZE-r, 0);
+          ctx.quadraticCurveTo(SIZE, 0, SIZE, r);
+          ctx.lineTo(SIZE, SIZE-r);
+          ctx.quadraticCurveTo(SIZE, SIZE, SIZE-r, SIZE);
+          ctx.lineTo(r, SIZE);
+          ctx.quadraticCurveTo(0, SIZE, 0, SIZE-r);
+          ctx.lineTo(0, r);
+          ctx.quadraticCurveTo(0, 0, r, 0);
+          ctx.closePath();
+          ctx.fillStyle = BG;
+          ctx.fill();
+          ctx.strokeStyle = GLOW;
+          ctx.lineWidth = 5;
+          ctx.shadowColor = GLOW;
+          ctx.shadowBlur = 18;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          const iconSize = SIZE - PADDING * 2;
+          ctx.drawImage(img, PADDING, PADDING, iconSize, iconSize);
+          const url = c.toDataURL('image/png');
+          // Only update apple-touch-icon, leave the tab favicon alone
+          document.querySelectorAll('link[rel="apple-touch-icon"]').forEach(el => el.href = url);
+        };
+        img.onerror = function() {};
+        img.src = SRC;
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildAppleTouchIcon);
+      else buildAppleTouchIcon();
+    })();
+  </script>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/hangman.png" as="image"/>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/crossword.png" as="image"/>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png" as="image"/>

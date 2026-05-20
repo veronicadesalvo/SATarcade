@@ -585,13 +585,13 @@ const globalStyle = `
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: ${theme.surface}; }
   ::-webkit-scrollbar-thumb { background: ${theme.border}; border-radius: 3px; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
   @keyframes glow { 0%,100% { box-shadow: 0 0 10px ${theme.accentGlow}; } 50% { box-shadow: 0 0 30px ${theme.accentGlow}, 0 0 60px ${theme.accentGlow}; } }
   @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .fadeIn { animation: fadeIn 0.25s ease both; }
+  .fadeIn { animation: fadeIn 0.4s ease both; }
   .shake { animation: shake 0.4s ease; }
   .pop { animation: pop 0.3s ease; }
   @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
@@ -1137,7 +1137,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
       <div style={{ flex: 1, padding: "8px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
-            animationDelay: '0.1s', cursor: "pointer",
+            animationDelay: `${i * 0.08}s`, cursor: "pointer",
             background: `color-mix(in srgb, ${g.color} 12%, #0a0a12)`, border: `2px solid ${g.color}99`,
             borderRadius: 14, transition: "all 0.2s",
             position: "relative", overflow: "hidden",
@@ -4434,14 +4434,17 @@ function evaluate(B) {
     if (p.type==='r') {
       const backRank = p.color==='b' ? 0 : 7;
       const minors = p.color==='b' ? bMinors : wMinors;
-      if (r !== backRank && minors >= 1) extra -= 30;
+      // Rook shouldn't leave back rank while minors are undeveloped
+      if (r !== backRank && minors >= 2) extra -= 60;
+      else if (r !== backRank && minors >= 1) extra -= 30;
       if (minors === 0) {
         const hasFriendlyPawn = Array.from({length:8},(_,row)=>B[row][c])
           .some(sq=>sq?.type==='p'&&sq?.color===p.color);
         if (!hasFriendlyPawn) extra += 8;
       }
     }
-    if ((p.type==='n'||p.type==='b') && r !== (p.color==='b'?0:7)) extra += 5;
+    // Reward minor pieces (knights/bishops) developing off back rank, but NOT rooks
+    if ((p.type==='n'||p.type==='b') && r !== (p.color==='b'?0:7)) extra += 8;
 
     s += p.color==='b' ? (v+bonus+extra) : -(v+bonus+extra);
   }
@@ -5154,7 +5157,8 @@ function orderMovesHint(B, moves, state) {
   }).sort((a, b) => b.priority - a.priority).map(x => x.m);
 }
 
-function minimaxHint(B, state, depth, alpha, beta, maximizing) {
+function minimaxHint(B, state, depth, alpha, beta, maximizing, deadline) {
+  if (deadline && performance.now() > deadline) return evaluateBoard(B);
   const color = maximizing ? 'w' : 'b';
   const moves = getLegal(B, color, state);
 
@@ -5172,7 +5176,7 @@ function minimaxHint(B, state, depth, alpha, beta, maximizing) {
     for (const m of ordered) {
       const { board: nb, newEp, newCastle } = applyMove(B, m.from, m.to, state);
       const nextState = { board: nb, turn: 'b', ep: newEp, castle: newCastle };
-      const score = minimaxHint(nb, nextState, depth - 1, alpha, beta, false);
+      const score = minimaxHint(nb, nextState, depth - 1, alpha, beta, false, deadline);
       if (score > best) best = score;
       if (score > alpha) alpha = score;
       if (beta <= alpha) break;
@@ -5183,7 +5187,7 @@ function minimaxHint(B, state, depth, alpha, beta, maximizing) {
     for (const m of ordered) {
       const { board: nb, newEp, newCastle } = applyMove(B, m.from, m.to, state);
       const nextState = { board: nb, turn: 'w', ep: newEp, castle: newCastle };
-      const score = minimaxHint(nb, nextState, depth - 1, alpha, beta, true);
+      const score = minimaxHint(nb, nextState, depth - 1, alpha, beta, true, deadline);
       if (score < best) best = score;
       if (score < beta) beta = score;
       if (beta <= alpha) break;
@@ -5471,26 +5475,116 @@ function explainMove(game, move, scoreBefore, scoreAfter) {
   return `${pName} to ${dst} — the best move in this position. It keeps your pieces coordinated and avoids giving the opponent any easy targets or tactics.`;
 }
 
+// ── Opening Book ──────────────────────────────────────────────────────────────
+// Format: "fromto,fromto,..." (white moves only, interleaved with black responses)
+// Each entry: { seq: full move sequence so far, hint: next WHITE move, name }
+const OPENING_BOOK = (() => {
+  const col = s => s.charCodeAt(0) - 97; // a=0
+  const sq = s => [8 - parseInt(s[1]), col(s[0])]; // "e2" -> [6,4]
+  const mv = s => { const f=s.slice(0,2),t=s.slice(2,4); return {from:sq(f),to:sq(t)}; };
+
+  // lines: [full sequence including black replies, hint move for white, label]
+  const lines = [
+    // ── e4 mainlines ──────────────────────────────────────────────────────────
+    ["", "e2e4", "Open Game — stake the center immediately"],
+    ["e2e4 e7e5", "g1f3", "Attack the e5 pawn and develop — the classic 2.Nf3"],
+    ["e2e4 e7e5 g1f3 b8c6", "f1c4", "Italian Game — bishop to c4 eyes the f7 weakness"],
+    ["e2e4 e7e5 g1f3 b8c6 f1c4 g8f6", "b1c3", "Develop the queen's knight — fight for center control"],
+    ["e2e4 e7e5 g1f3 b8c6 f1c4 f8c5", "c2c3", "Italian: prepare d4 to claim the center"],
+    ["e2e4 e7e5 g1f3 b8c6 f1b5", "e1g1", "Ruy Lopez — castle to safety and keep pressure on e5"],
+    ["e2e4 e7e5 g1f3 b8c6 f1b5 a7a6", "b5a4", "Ruy Lopez: retreat the bishop, maintain the pin"],
+    ["e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5a4 g8f6", "e1g1", "Ruy Lopez: castle before the center opens"],
+    // ── Sicilian ─────────────────────────────────────────────────────────────
+    ["e2e4 c7c5", "g1f3", "Sicilian Defense — develop and prepare d4"],
+    ["e2e4 c7c5 g1f3 d7d6", "d2d4", "Sicilian: open the center with d4"],
+    ["e2e4 c7c5 g1f3 b8c6", "d2d4", "Sicilian: strike the center now"],
+    ["e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6", "b1c3", "Sicilian Najdorf setup — develop the knight"],
+    ["e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6", "f1e2", "Sicilian: English Attack — f1e2 prepares f4"],
+    // ── French ───────────────────────────────────────────────────────────────
+    ["e2e4 e7e6", "d2d4", "French Defense — build a strong center with d4"],
+    ["e2e4 e7e6 d2d4 d7d5", "b1c3", "French: knight to c3 defends e4 and develops"],
+    ["e2e4 e7e6 d2d4 d7d5 b1c3 g8f6", "e4e5", "French Advance — push e5 to grab space"],
+    // ── Caro-Kann ────────────────────────────────────────────────────────────
+    ["e2e4 c7c6", "d2d4", "Caro-Kann — build the center with d4"],
+    ["e2e4 c7c6 d2d4 d7d5", "b1c3", "Caro-Kann: knight defends e4"],
+    ["e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4", "g1f3", "Caro-Kann Classical — develop the knight"],
+    // ── d4 mainlines ─────────────────────────────────────────────────────────
+    ["", "d2d4", "Queen's Pawn — solid central control"],
+    ["d2d4 d7d5", "c2c4", "Queen's Gambit — offer the c-pawn to fight for the center"],
+    ["d2d4 d7d5 c2c4 e7e6", "b1c3", "QGD — develop the knight, prepare e4"],
+    ["d2d4 d7d5 c2c4 c7c6", "g1f3", "Slav Defense — knight to f3, solid development"],
+    ["d2d4 d7d5 c2c4 d5c4", "e2e4", "QGA accepted — grab the center immediately"],
+    ["d2d4 g8f6", "c2c4", "Indian Defense — c4 fights for the center"],
+    ["d2d4 g8f6 c2c4 e7e6", "g1f3", "Queen's Indian setup — develop with Nf3"],
+    ["d2d4 g8f6 c2c4 g7g6", "b1c3", "King's Indian — knight to c3, allow g6 setup"],
+    ["d2d4 g8f6 c2c4 g7g6 b1c3 f8g7 e2e4", "g1f3", "King's Indian: Nf3 completes the center"],
+    // ── London ───────────────────────────────────────────────────────────────
+    ["d2d4 d7d5 g1f3", "c1f4", "London System — bishop to f4 before pawns block it"],
+    ["d2d4 d7d5 g1f3 g8f6 c1f4", "e2e3", "London: e3 solidifies the center"],
+    ["d2d4 d7d5 g1f3 g8f6 c1f4 e7e6 e2e3", "f1d3", "London: bishop to d3, aim at h7"],
+  ];
+
+  // Convert to lookup: key = white-move sequence string, value = array of {move, name}
+  const book = {};
+  for (const [seq, hintStr, name] of lines) {
+    const all = seq.trim() ? seq.trim().split(' ') : [];
+    const whiteMoves = all.filter((_,i) => i % 2 === 0).join(',');
+    if (!book[whiteMoves]) book[whiteMoves] = [];
+    book[whiteMoves].push({ move: mv(hintStr), name });
+  }
+  return book;
+})();
+
+function getOpeningHint(moveHistory, seed) {
+  const whiteMoves = moveHistory
+    .filter((_,i) => i % 2 === 0)
+    .map(m => 'abcdefgh'[m.from[1]] + (8-m.from[0]) + 'abcdefgh'[m.to[1]] + (8-m.to[0]))
+    .join(',');
+
+  const options = OPENING_BOOK[whiteMoves];
+  if (!options || !options.length) return null;
+
+  // seed picks a consistent option for this game
+  return options[Math.floor(seed * options.length)];
+}
+
 function getHintMove(game) {
   const moves = getLegal(game.board, 'w', game);
   if (!moves.length) return null;
 
-  const scoreBefore = evaluateBoard(game.board);
-  const DEPTH = 6; // 6-ply: sees 3 moves ahead for each side
+  // ── Opening book: instant, no search needed ──────────────────────────────
+  const mh = game.moveHistory || [];
+  if (mh.length <= 16) {
+    const ob = getOpeningHint(mh, game.bookSeed ?? 0);
+    if (ob) {
+      const isLegal = moves.some(m => m.from[0]===ob.move.from[0]&&m.from[1]===ob.move.from[1]&&m.to[0]===ob.move.to[0]&&m.to[1]===ob.move.to[1]);
+      if (isLegal) return { move: ob.move, score: 0, label: 'BOOK MOVE', reason: `📖 ${ob.name}` };
+    }
+  }
 
+  const scoreBefore = evaluateBoard(game.board);
+
+  // Time-limited iterative deepening — never exceeds 800ms
+  const DEADLINE = performance.now() + 800;
   let bestMove = null;
   let bestScore = -Infinity;
   const ordered = orderMovesHint(game.board, moves, game);
 
-  for (const m of ordered) {
-    const { board: nb, newEp, newCastle } = applyMove(game.board, m.from, m.to, game);
-    if (inCheck(nb, 'w')) continue; // skip illegal
-    const nextState = { board: nb, turn: 'b', ep: newEp, castle: newCastle };
-    const score = minimaxHint(nb, nextState, DEPTH - 1, -Infinity, Infinity, false);
-    if (score > bestScore) {
-      bestScore = score;
-      bestMove = m;
+  for (let depth = 2; depth <= 6; depth++) {
+    if (performance.now() > DEADLINE) break;
+    let iterBest = null;
+    let iterScore = -Infinity;
+    let fullDepthComplete = true;
+    for (const m of ordered) {
+      if (performance.now() > DEADLINE) { fullDepthComplete = false; break; }
+      const { board: nb, newEp, newCastle } = applyMove(game.board, m.from, m.to, game);
+      if (inCheck(nb, 'w')) continue;
+      const nextState = { board: nb, turn: 'b', ep: newEp, castle: newCastle };
+      const score = minimaxHint(nb, nextState, depth - 1, -Infinity, Infinity, false, DEADLINE);
+      if (score > iterScore) { iterScore = score; iterBest = m; }
     }
+    // Only commit result if entire move list was evaluated at this depth
+    if (fullDepthComplete && iterBest) { bestMove = iterBest; bestScore = iterScore; }
   }
 
   if (!bestMove) return null;
@@ -5854,11 +5948,12 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [lastWord, setLastWord] = useState(null); // { word, def, correct }
   const [blunderWarn, setBlunderWarn] = useState(null);
   const [reversing, setReversing] = useState(false);
-  const [hint, setHint] = useState(null); // { move, reason } — highlighted hint square
+  const [hint, setHint] = useState(null);
   const [hintLoading, setHintLoading] = useState(false);
-  const [hintsUsed, setHintsUsed] = useState(0); // [r,c] of dangerous dest
+  const [hintsUsed, setHintsUsed] = useState(0);
   const [showOverlays, setShowOverlays] = useState(true);
   const [showCoachTips, setShowCoachTips] = useState(true);
+  const [bookSeed, setBookSeed] = useState(() => Math.random());
   const boardRef = useRef(null);
   const { trigger: triggerExplosion, ExplodeSVG } = useExplosion();
   const { celebrate, CelebrationCanvas } = useWinCelebration();
@@ -6038,7 +6133,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     const g = createGame();
     setGame(g); setSelected(null); setLegalDests([]); setLastMove(null);
     setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
-    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0);
+    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random());
   };
 
   // Precompute which legal destinations are risky (piece would be under attack after moving there)
@@ -6180,7 +6275,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         {turn==='w' && !gameOver && (
           <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
             {hint ? (() => {
-              const labelColors = { 'FORCED MATE':'#ff4488', 'WINNING TACTIC':theme.danger, 'GOOD MOVE':theme.success, 'SOLID MOVE':C, 'BEST AVAILABLE':theme.textMuted, 'RISKY MOVE':theme.gold };
+              const labelColors = { 'FORCED MATE':'#ff4488', 'WINNING TACTIC':theme.danger, 'GOOD MOVE':theme.success, 'SOLID MOVE':C, 'BEST AVAILABLE':theme.textMuted, 'RISKY MOVE':theme.gold, 'BOOK MOVE':'#a78bfa' };
               const conceptLabel = { label: hint.label || 'SUGGESTION', color: labelColors[hint.label] || C };
               const fromSq = toSq(hint.move.from[0], hint.move.from[1]);
               const toSq2  = toSq(hint.move.to[0],   hint.move.to[1]);
@@ -6197,10 +6292,10 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               <button onClick={()=>{
                 setHintLoading(true);
                 setTimeout(()=>{
-                  const h = getHintMove(game);
+                  const h = getHintMove({...game, moveHistory, bookSeed});
                   if (h) { setHint(h); setHintsUsed(n=>n+1); setCoachMsg(''); }
                   setHintLoading(false);
-                }, 50);
+                }, 100);
               }} disabled={hintLoading} style={{background:hintLoading?C+'33':'none',border:`1px solid ${hintLoading?C+'99':C+'55'}`,borderRadius:8,color:hintLoading?C:C,fontFamily:theme.fontMono,fontSize:11,padding:'5px 14px',cursor:hintLoading?'wait':'pointer',letterSpacing:1,transition:'all 0.15s'}}>
                 {hintLoading ? '⏳ Computing...' : `💡 HINT ${hintsUsed>0?`(${hintsUsed} used)`:''}`}
               </button>

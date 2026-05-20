@@ -1339,6 +1339,7 @@ function HangmanGame({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [status, setStatus] = useState("playing");
   const [streak, setStreak] = useState(0);
   const [history, setHistory] = useState([]);
+  const [shakeKey, setShakeKey] = useState(0);
   const [reveal, setReveal] = useState(false);
   const [clueUsed, setClueUsed] = useState(false);
   const [showClueOffer, setShowClueOffer] = useState(false);
@@ -3488,9 +3489,7 @@ function WordDetective({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
 
       {current && !done && (
         <div className="fadeIn" key={idx}>
-          <div style={{ marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: theme.textMuted, fontSize: 14 }}>Question {idx + 1} of {pool.length}</span>
-            <ProgressBar value={idx} max={pool.length} color={theme.gold} />
+          <div style={{ marginBottom: 12 }}>
           </div>
 
           {/* Sentence */}
@@ -3818,9 +3817,6 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       </div>
 
       {/* Progress bar */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontFamily: theme.fontMono, fontSize: 11, color: theme.textMuted }}>{idx + 1} / {pool.length}</span>
-      </div>
       <div style={{ height: 3, background: theme.border, borderRadius: 2, marginBottom: 28, overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${progress * 100}%`, background: `linear-gradient(90deg, ${C}, ${theme.gold})`, borderRadius: 2, transition: "width 0.4s" }} />
       </div>
@@ -4089,9 +4085,6 @@ function EarTrainer({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       </div>
 
       {/* Progress */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontFamily: theme.fontMono, fontSize: 11, color: theme.textMuted }}>{idx + 1} / {pool.length}</span>
-      </div>
       <div style={{ height: 3, background: theme.border, borderRadius: 2, marginBottom: 32, overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${(idx / pool.length) * 100}%`, background: `linear-gradient(90deg, ${C}, ${theme.gold})`, borderRadius: 2, transition: "width 0.4s" }} />
       </div>
@@ -6503,7 +6496,7 @@ function App() {
   const showMasteryToast = (word) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setMasteryToast(word);
-    toastTimer.current = setTimeout(() => setMasteryToast(null), 3000);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
   };
 
   const markCorrect = (word, game) => {
@@ -6560,20 +6553,52 @@ function App() {
           {screen === "chess" && <VocabChess onBack={() => setScreen("home")} onScore={pts => addScore("chess", pts)} onCorrect={w => markCorrect(w, "chess")} wordBank={activeWords} />}
         </div>
       </div>
-      {/* Mastery toast */}
+      {/* Mastery popup */}
       {masteryToast && ReactDOM.createPortal(
         <div style={{
-          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 9999, pointerEvents: 'none',
-          background: `linear-gradient(135deg, ${theme.accent}, ${theme.gold})`,
-          borderRadius: 16, padding: '14px 22px', boxShadow: `0 8px 32px ${theme.accent}66`,
-          display: 'flex', alignItems: 'center', gap: 12, minWidth: 240, maxWidth: 320,
-          animation: 'fadeIn 0.3s ease',
-        }}>
-          <span style={{ fontSize: 26 }}>🎓</span>
-          <div>
-            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, fontWeight: 400, letterSpacing: 1, color: '#fff', letterSpacing: 1 }}>{masteryToast} mastered!</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>Added to your mastered list</div>
+          position: 'fixed', inset: 0, zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.75)',
+          animation: 'fadeIn 0.2s ease',
+        }} onClick={() => setMasteryToast(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#0a0a14',
+            border: '3px solid #ffd700',
+            boxShadow: '0 0 0 1px #0a0a14, 0 0 0 4px #ffd700, 0 0 40px #ffd70066, inset 0 0 30px rgba(255,215,0,0.05)',
+            borderRadius: 4,
+            padding: '32px 28px 24px',
+            maxWidth: 300, width: '85%',
+            textAlign: 'center',
+            position: 'relative',
+          }}>
+            {/* Corner pixels */}
+            {[[-1,-1],[1,-1],[-1,1],[1,1]].map(([x,y],i) => (
+              <div key={i} style={{ position:'absolute', width:6, height:6, background:'#ffd700',
+                top: y<0 ? -4 : 'auto', bottom: y>0 ? -4 : 'auto',
+                left: x<0 ? -4 : 'auto', right: x>0 ? -4 : 'auto' }} />
+            ))}
+            <div style={{ fontSize: 36, marginBottom: 8 }}>🎓</div>
+            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffd700', letterSpacing: 2, marginBottom: 16, textTransform: 'uppercase' }}>
+              WORD MASTERED!
+            </div>
+            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 12, color: '#fff', letterSpacing: 1, marginBottom: 8, wordBreak: 'break-word' }}>
+              {masteryToast}
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginBottom: 24, lineHeight: 1.5 }}>
+              Added to your mastered list
+            </div>
+            <button onClick={() => setMasteryToast(null)} style={{
+              fontFamily: "'Press Start 2P', monospace", fontSize: 9,
+              background: '#ffd700', color: '#0a0a14',
+              border: 'none', borderRadius: 2,
+              padding: '10px 24px', cursor: 'pointer',
+              letterSpacing: 1, textTransform: 'uppercase',
+              boxShadow: '0 3px 0 #a08800',
+              transition: 'transform 0.1s, box-shadow 0.1s',
+            }}
+            onMouseDown={e => e.currentTarget.style.transform='translateY(2px)'}
+            onMouseUp={e => e.currentTarget.style.transform=''}
+            >OK!</button>
           </div>
         </div>,
         document.body

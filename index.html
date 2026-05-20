@@ -697,6 +697,47 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
   const seenCount = Object.keys(wordStats).filter(w => activeWords.some(aw => aw.word === w)).length;
   const pct = Math.round((masteredCount / total) * 100);
   const [confirmReset, setConfirmReset] = React.useState(false);
+  const [backupStatus, setBackupStatus] = React.useState(null); // 'shared' | 'error'
+  const [restoreText, setRestoreText] = React.useState('');
+  const [restoreStatus, setRestoreStatus] = React.useState(null); // 'ok' | 'error'
+  const [showRestore, setShowRestore] = React.useState(false);
+
+  const BACKUP_KEYS = ['word_stats', 'satarcade_profile', 'satarcade_onboarded',
+    'hangman_queue', 'crossword_queue', 'detective_queue', 'eartrainer_queue'];
+
+  const handleBackup = async () => {
+    const data = {};
+    BACKUP_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v) data[k] = v; });
+    const json = JSON.stringify(data);
+    const text = `VOCAB ARCADE BACKUP\n${btoa(unescape(encodeURIComponent(json)))}`;
+    try {
+      await navigator.share({ title: 'Vocab Arcade Backup', text });
+      setBackupStatus('shared');
+    } catch(e) {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(text);
+        setBackupStatus('copied');
+      } catch(e2) {
+        setBackupStatus('error');
+      }
+    }
+    setTimeout(() => setBackupStatus(null), 3000);
+  };
+
+  const handleRestore = () => {
+    try {
+      const lines = restoreText.trim().split('\n');
+      const b64 = lines[lines.length - 1].trim();
+      const json = decodeURIComponent(escape(atob(b64)));
+      const data = JSON.parse(json);
+      Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, v));
+      setRestoreStatus('ok');
+      setTimeout(() => window.location.reload(), 1200);
+    } catch(e) {
+      setRestoreStatus('error');
+    }
+  };
 
   // Words close to mastery (seen but not mastered, sorted by count desc)
   const closeToMastery = Object.entries(wordStats)
@@ -811,6 +852,61 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
             </div>
           </div>
         )}
+
+        {/* Backup / Restore */}
+        <div style={{ marginTop: 32, padding: '18px 16px', background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12 }}>
+          <div style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: '#00e5ff', letterSpacing: 1, marginBottom: 14 }}>BACKUP & RESTORE</div>
+          <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 14, lineHeight: 1.6 }}>
+            Save your progress before switching shortcuts, or restore from a previous backup.
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button onClick={handleBackup} style={{
+              flex: 1, minWidth: 120, padding: '10px 14px', borderRadius: 9,
+              background: '#00e5ff22', border: `1px solid #00e5ff66`,
+              color: '#00e5ff', fontFamily: theme.fontMono, fontSize: 11,
+              fontWeight: 700, cursor: 'pointer', letterSpacing: 1,
+            }}>
+              {backupStatus === 'shared' ? '✓ SHARED!' : backupStatus === 'copied' ? '✓ COPIED!' : backupStatus === 'error' ? 'TRY AGAIN' : 'BACKUP'}
+            </button>
+            <button onClick={() => setShowRestore(r => !r)} style={{
+              flex: 1, minWidth: 120, padding: '10px 14px', borderRadius: 9,
+              background: showRestore ? theme.gold + '22' : 'none',
+              border: `1px solid ${theme.gold}66`,
+              color: theme.gold, fontFamily: theme.fontMono, fontSize: 11,
+              fontWeight: 700, cursor: 'pointer', letterSpacing: 1,
+            }}>RESTORE</button>
+          </div>
+          {showRestore && (
+            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <textarea
+                value={restoreText}
+                onChange={e => { setRestoreText(e.target.value); setRestoreStatus(null); }}
+                placeholder="Paste your backup text here…"
+                rows={4}
+                style={{
+                  width: '100%', boxSizing: 'border-box', padding: '10px 12px',
+                  background: theme.bg, border: `1px solid ${restoreStatus === 'error' ? theme.danger : theme.border}`,
+                  borderRadius: 8, color: theme.text, fontSize: 12, fontFamily: theme.fontBody,
+                  resize: 'vertical', outline: 'none',
+                }}
+              />
+              {restoreStatus === 'error' && (
+                <div style={{ fontSize: 12, color: theme.danger }}>⚠ Invalid backup — make sure you pasted the full text including the header line.</div>
+              )}
+              {restoreStatus === 'ok' && (
+                <div style={{ fontSize: 12, color: theme.success }}>✓ Restored! Reloading…</div>
+              )}
+              <button onClick={handleRestore} disabled={!restoreText.trim()} style={{
+                padding: '10px 14px', borderRadius: 9,
+                background: restoreText.trim() ? theme.gold + '22' : 'none',
+                border: `1px solid ${restoreText.trim() ? theme.gold : theme.border}`,
+                color: restoreText.trim() ? theme.gold : theme.textMuted,
+                fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700,
+                cursor: restoreText.trim() ? 'pointer' : 'default', letterSpacing: 1,
+              }}>RESTORE PROGRESS</button>
+            </div>
+          )}
+        </div>
 
         {/* Reset section */}
         <div style={{ marginTop: 40, paddingTop: 20, borderTop: `1px solid ${theme.border}` }}>

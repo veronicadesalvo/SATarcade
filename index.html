@@ -585,13 +585,13 @@ const globalStyle = `
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: ${theme.surface}; }
   ::-webkit-scrollbar-thumb { background: ${theme.border}; border-radius: 3px; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
   @keyframes glow { 0%,100% { box-shadow: 0 0 10px ${theme.accentGlow}; } 50% { box-shadow: 0 0 30px ${theme.accentGlow}, 0 0 60px ${theme.accentGlow}; } }
   @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .fadeIn { animation: fadeIn 0.4s ease both; }
+  .fadeIn { animation: fadeIn 0.25s ease both; }
   .shake { animation: shake 0.4s ease; }
   .pop { animation: pop 0.3s ease; }
   @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
@@ -1137,7 +1137,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
       <div style={{ flex: 1, padding: "8px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
-            animationDelay: `${i * 0.08}s`, cursor: "pointer",
+            animationDelay: '0.1s', cursor: "pointer",
             background: `color-mix(in srgb, ${g.color} 12%, #0a0a12)`, border: `2px solid ${g.color}99`,
             borderRadius: 14, transition: "all 0.2s",
             position: "relative", overflow: "hidden",

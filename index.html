@@ -12,7 +12,7 @@
     (function() {
       const SRC = 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/favicon.png';
       const SIZE = 180;
-      const PADDING = 36;
+      const PADDING = Math.round(SIZE * 0.1); // 10% padding = 80% icon
       const BG = '#0a1a2e';
       const GLOW = '#00e5ff';
       function buildAppleTouchIcon() {
@@ -22,6 +22,7 @@
           const c = document.createElement('canvas');
           c.width = SIZE; c.height = SIZE;
           const ctx = c.getContext('2d');
+          // Rounded rect background, no glow on it
           const r = SIZE * 0.22;
           ctx.beginPath();
           ctx.moveTo(r, 0); ctx.lineTo(SIZE-r, 0);
@@ -35,16 +36,16 @@
           ctx.closePath();
           ctx.fillStyle = BG;
           ctx.fill();
-          ctx.strokeStyle = GLOW;
-          ctx.lineWidth = 5;
-          ctx.shadowColor = GLOW;
-          ctx.shadowBlur = 18;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
+          // Draw icon with cyan glow around it
           const iconSize = SIZE - PADDING * 2;
+          ctx.shadowColor = GLOW;
+          ctx.shadowBlur = 22;
           ctx.drawImage(img, PADDING, PADDING, iconSize, iconSize);
+          // Second pass to intensify glow
+          ctx.shadowBlur = 12;
+          ctx.drawImage(img, PADDING, PADDING, iconSize, iconSize);
+          ctx.shadowBlur = 0;
           const url = c.toDataURL('image/png');
-          // Only update apple-touch-icon, leave the tab favicon alone
           document.querySelectorAll('link[rel="apple-touch-icon"]').forEach(el => el.href = url);
         };
         img.onerror = function() {};

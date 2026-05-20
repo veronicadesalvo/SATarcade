@@ -1338,7 +1338,7 @@ function HangmanGame({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [wrong, setWrong] = useState(0);
   const [status, setStatus] = useState("playing");
   const [streak, setStreak] = useState(0);
-  const [shakeKey, setShakeKey] = useState(0);
+  const [history, setHistory] = useState([]);
   const [reveal, setReveal] = useState(false);
   const [clueUsed, setClueUsed] = useState(false);
   const [showClueOffer, setShowClueOffer] = useState(false);
@@ -1366,12 +1366,14 @@ function HangmanGame({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       const pts = Math.max(10, (MAX_WRONG - wrong) * 20);
       setStatus("won");
       setStreak(s => s + 1);
+      setHistory(h => [...h, { correct: true, word: entry?.word }]);
       onScore(pts);
       onCorrect(entry?.word);
       setShowClueOffer(false);
     } else if (wrong >= MAX_WRONG && status === "playing") {
       setStatus("lost");
       setStreak(0);
+      setHistory(h => [...h, { correct: false, word: entry?.word }]);
       setShowClueOffer(false);
     }
   }, [guessed, wrong]);
@@ -1555,7 +1557,13 @@ function HangmanGame({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           {(status === "won" || status === "lost") && (
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 12 }}>
               <Btn variant="primary" color={C} onClick={startNew}>Next Word →</Btn>
-              
+            </div>
+          )}
+          {history.length > 0 && (
+            <div style={{ display: "flex", gap: 3, justifyContent: "flex-start", flexWrap: "wrap", marginTop: 16 }}>
+              {history.map((h, i) => (
+                <div key={i} style={{ width: 9, height: 9, borderRadius: 0, background: h.correct ? theme.success : theme.danger }} />
+              ))}
             </div>
           )}
         </div>
@@ -4559,7 +4567,48 @@ function gameLegal(game, fromSq) {
 function gameInCheck(game) { return inCheck(game.board, game.turn); }
 function gameIsCheckmate(game) { return gameLegal(game).length===0 && inCheck(game.board,game.turn); }
 function gameIsDraw(game) { return gameLegal(game).length===0 && !inCheck(game.board,game.turn); }
+// Black opening book — keyed by white's moves, value = array of black responses
+const BLACK_OPENING_BOOK = (() => {
+  const col = s => s.charCodeAt(0) - 97;
+  const sq = s => [8 - parseInt(s[1]), col(s[0])];
+  const mv = s => ({ from: sq(s.slice(0,2)), to: sq(s.slice(2,4)) });
+  // [white move sequence so far, black responses array]
+  const lines = [
+    ["e2e4", ["e7e5","c7c5","e7e6","c7c6","g8f6"]],
+    ["e2e4 e7e5 g1f3", ["b8c6","g8f6","d7d6"]],
+    ["e2e4 e7e5 g1f3 b8c6 f1c4", ["f8c5","g8f6","f7f5"]],
+    ["e2e4 e7e5 g1f3 b8c6 f1b5", ["a7a6","g8f6","f8c5"]],
+    ["e2e4 c7c5 g1f3", ["d7d6","b8c6","e7e6"]],
+    ["d2d4", ["d7d5","g8f6","f7f5","e7e6"]],
+    ["d2d4 d7d5 c2c4", ["e7e6","c7c6","d5c4","g8f6"]],
+    ["d2d4 g8f6 c2c4", ["e7e6","g7g6","c7c5"]],
+    ["d2d4 g8f6 c2c4 g7g6 b1c3", ["f8g7","d7d5","c7c5"]],
+  ];
+  const book = {};
+  for (const [seq, responses] of lines) {
+    book[seq] = responses.map(mv);
+  }
+  return book;
+})();
+
+let _aiGameSeed = Math.random();
+function resetAiSeed() { _aiGameSeed = Math.random(); }
+
 function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
+  // Try opening book for black (first 8 half-moves)
+  const mh = game.moveHistory || [];
+  if (mh.length <= 8) {
+    const whiteMoves = mh.filter((_,i)=>i%2===0)
+      .map(m=>'abcdefgh'[m.from[1]]+(8-m.from[0])+'abcdefgh'[m.to[1]]+(8-m.to[0]))
+      .join(' ');
+    const options = BLACK_OPENING_BOOK[whiteMoves];
+    if (options && options.length) {
+      const pick = options[Math.floor(_aiGameSeed * options.length)];
+      const legal = getLegal(game.board, 'b', game);
+      const isLegal = legal.some(m=>m.from[0]===pick.from[0]&&m.from[1]===pick.from[1]&&m.to[0]===pick.to[0]&&m.to[1]===pick.to[1]);
+      if (isLegal) return pick;
+    }
+  }
   const {move} = minimax(game.board, 4, -Infinity, Infinity, true, game, lastAiMove, lastAiMove);
   return move;
 }
@@ -5985,7 +6034,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setTimeout(() => {
       const current = g || gameRef.current;
       if (current.turn !== 'b') { setTurn('w'); return; }
-      const move = gameGetAiMove(current, null, lastAiMove);
+      const move = gameGetAiMove({...current, moveHistory}, null, lastAiMove);
       if (!move) { setTurn('w'); return; }
       const result = gameMove(current, move.from, move.to);
       const toPos = move.to;
@@ -6133,7 +6182,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     const g = createGame();
     setGame(g); setSelected(null); setLegalDests([]); setLastMove(null);
     setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
-    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random());
+    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
   };
 
   // Precompute which legal destinations are risky (piece would be under attack after moving there)
@@ -6296,7 +6345,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                   if (h) { setHint(h); setHintsUsed(n=>n+1); setCoachMsg(''); }
                   setHintLoading(false);
                 }, 100);
-              }} disabled={hintLoading} style={{background:hintLoading?C+'33':'none',border:`1px solid ${hintLoading?C+'99':C+'55'}`,borderRadius:8,color:hintLoading?C:C,fontFamily:theme.fontMono,fontSize:11,padding:'5px 14px',cursor:hintLoading?'wait':'pointer',letterSpacing:1,transition:'all 0.15s'}}>
+              }} disabled={hintLoading || turn !== 'w'} style={{background:hintLoading?C+'33':'none',border:`1px solid ${(hintLoading||turn!=='w')?C+'44':C+'55'}`,borderRadius:8,color:(hintLoading||turn!=='w')?C+'66':C,fontFamily:theme.fontMono,fontSize:11,padding:'5px 14px',cursor:(hintLoading||turn!=='w')?'not-allowed':'pointer',letterSpacing:1,transition:'all 0.15s'}}>
                 {hintLoading ? '⏳ Computing...' : `💡 HINT ${hintsUsed>0?`(${hintsUsed} used)`:''}`}
               </button>
             )}

@@ -4596,13 +4596,23 @@ function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
       .join(' ');
     const options = BLACK_OPENING_BOOK[whiteMoves];
     if (options && options.length) {
-      const pick = options[Math.floor(_aiGameSeed * options.length)];
+      // Use per-game seed combined with move index for varied but reproducible picking
+      const pickIdx = Math.floor((_aiGameSeed * 7919 + mh.length * 1013) % options.length);
+      const pick = options[Math.abs(pickIdx)];
       const legal = getLegal(game.board, 'b', game);
       const isLegal = legal.some(m=>m.from[0]===pick.from[0]&&m.from[1]===pick.from[1]&&m.to[0]===pick.to[0]&&m.to[1]===pick.to[1]);
       if (isLegal) return pick;
+      // If first pick isn't legal, try others
+      for (let i = 0; i < options.length; i++) {
+        const alt = options[(pickIdx + i + 1) % options.length];
+        const altLegal = legal.some(m=>m.from[0]===alt.from[0]&&m.from[1]===alt.from[1]&&m.to[0]===alt.to[0]&&m.to[1]===alt.to[1]);
+        if (altLegal) return alt;
+      }
     }
   }
-  const {move} = minimax(game.board, 4, -Infinity, Infinity, true, game, lastAiMove, lastAiMove);
+  // Add small noise to evaluation to prevent deterministic play each game
+  const noiseFactor = ((_aiGameSeed * 1000) | 0) % 15; // 0-14 cp noise per game
+  const {move} = minimax(game.board, 4, -Infinity + noiseFactor, Infinity, true, game, lastAiMove, lastAiMove);
   return move;
 }
 
@@ -5594,6 +5604,51 @@ function getHintMove(game) {
   const moves = getLegal(game.board, 'w', game);
   if (!moves.length) return null;
 
+  // ── PRIORITY 0: Save a hanging piece first ────────────────────────────────────
+  // If the player has a valuable piece under attack with no defender, warn immediately
+  const hangingPieces = [];
+  for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+    const p = game.board[r][c];
+    if (p?.color==='w' && p.type!=='k' && isHanging(game.board, r, c, 'w')) {
+      hangingPieces.push({ r, c, type: p.type, value: PIECE_VALUES[p.type]||0 });
+    }
+  }
+  // Sort by value descending — save most valuable first
+  hangingPieces.sort((a,b) => b.value - a.value);
+  if (hangingPieces.length > 0) {
+    const hp = hangingPieces[0];
+    const sq = toSq(hp.r, hp.c);
+    const pName = PIECE_NAMES[hp.type];
+    // Find a move that saves this piece
+    const saveMoves = moves.filter(m => {
+      if (m.from[0]===hp.r && m.from[1]===hp.c) {
+        // Moving the piece away — check if destination is safe
+        const {board:nb} = applyMove(game.board, m.from, m.to, game);
+        return !isHanging(nb, m.to[0], m.to[1], 'w');
+      }
+      // Capturing the attacker
+      const attacker = game.board[m.to[0]]?.[m.to[1]];
+      if (attacker?.color==='b') {
+        const {board:nb} = applyMove(game.board, m.from, m.to, game);
+        return !isHanging(nb, hp.r, hp.c, 'w');
+      }
+      // Blocking/defending
+      const {board:nb} = applyMove(game.board, m.from, m.to, game);
+      return !isHanging(nb, hp.r, hp.c, 'w');
+    });
+    if (saveMoves.length > 0) {
+      const saveMove = saveMoves[0];
+      const dst = toSq(saveMove.to[0], saveMove.to[1]);
+      const movingPiece = game.board[saveMove.from[0]][saveMove.from[1]];
+      const movingName = PIECE_NAMES[movingPiece.type];
+      const isMovingAway = saveMove.from[0]===hp.r && saveMove.from[1]===hp.c;
+      const reason = isMovingAway
+        ? `⚠️ Your ${pName} on ${sq} is hanging — the opponent can take it for free! Move it to ${dst} to safety.`
+        : `⚠️ Your ${pName} on ${sq} is under attack and undefended! ${movingName} to ${dst} resolves the threat.`;
+      return { move: saveMove, score: 0, label: 'SAVE YOUR PIECE', reason };
+    }
+  }
+
   // ── Opening book: instant, no search needed ──────────────────────────────
   const mh = game.moveHistory || [];
   if (mh.length <= 16) {
@@ -5936,22 +5991,28 @@ function useExplosion() {
     const aiColors    = ['#ff2200','#ff6600','#ff4400','#ffaa00','#ff0000','#ff8800','#ffffff','#ffcc00'];
     const palette = isAi ? aiColors : playerColors;
 
-    const pixels = Array.from({ length: 48 }, (_, i) => {
-      const angle = (i / 48) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-      const ring = Math.floor(i / 12);
+    // Detect low-end/mobile and reduce particles
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const outerCount = isMobile ? 24 : 48;
+    const innerCount = isMobile ? 10 : 20;
+    const explosionDuration = isMobile ? 380 : 520;
+
+    const pixels = Array.from({ length: outerCount }, (_, i) => {
+      const angle = (i / outerCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+      const ring = Math.floor(i / (outerCount / 4));
       const baseSpeed = (ring + 1) * 1.4 + Math.random() * 1.2;
       const sz = 5 + (ring === 0 ? 3 : ring === 1 ? 1 : 0);
       return { angle, baseSpeed, sz, color: palette[Math.floor(Math.random() * palette.length)], drift: (Math.random() - 0.5) * 0.3, delay: ring * 0.04 };
     });
-    const innerPixels = Array.from({ length: 20 }, (_, i) => ({
-      angle: (i / 20) * Math.PI * 2,
+    const innerPixels = Array.from({ length: innerCount }, (_, i) => ({
+      angle: (i / innerCount) * Math.PI * 2,
       baseSpeed: 0.8 + Math.random() * 1.2,
       sz: 4,
       color: i % 3 === 0 ? '#ffffff' : palette[Math.floor(Math.random() * palette.length)],
       drift: 0, delay: 0,
     }));
 
-    explosionsRef.current.push({ id: ++idRef.current, x, y, pixels: [...pixels, ...innerPixels], startTime: performance.now(), duration: 520 });
+    explosionsRef.current.push({ id: ++idRef.current, x, y, pixels: [...pixels, ...innerPixels], startTime: performance.now(), duration: explosionDuration });
 
     // Kick off loop if not already running
     if (!rafRef.current) {
@@ -5962,7 +6023,7 @@ function useExplosion() {
   const ExplodeSVG = useCallback(() => (
     <canvas
       ref={canvasRef}
-      style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999, imageRendering: 'pixelated' }}
+      style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999, imageRendering: 'pixelated', willChange: 'contents', transform: 'translateZ(0)' }}
     />
   ), []);
 
@@ -6024,6 +6085,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   };
 
   const doAiTurn = (g) => {
+    setTurn('b');
     setTimeout(() => {
       const current = g || gameRef.current;
       if (current.turn !== 'b') { setTurn('w'); return; }
@@ -6234,13 +6296,8 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           </div>
 
           {/* Board */}
-          <div style={{position:'relative',flexShrink:0}}>
-            {reversing && (
-              <div style={{position:'absolute',inset:0,zIndex:10,background:'#22d3a022',border:`3px solid ${theme.success}`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',animation:'pulse 0.5s ease-in-out infinite alternate'}}>
-                <span style={{fontFamily:theme.fontMono,fontSize:13,color:theme.success,letterSpacing:2,fontWeight:700,textShadow:`0 0 10px ${theme.success}`}}>↩ REVERSING</span>
-              </div>
-            )}
-          <div ref={boardRef} style={{display:'grid',gridTemplateColumns:`repeat(8,${cellSize}px)`,border:'2px solid #2a2a3a',borderRadius:6,overflow:'hidden',flexShrink:0}}>
+          <div style={{position:'relative',flexShrink:0,width:`${cellSize*8+4}px`,height:`${cellSize*8+4}px`}}>
+          <div ref={boardRef} style={{display:'grid',gridTemplateColumns:`repeat(8,${cellSize}px)`,border: turn==='w' ? '2px solid #00cc66' : turn==='b' ? '2px solid #ff4444' : '2px solid #2a2a3a',borderRadius:6,overflow:'hidden',flexShrink:0,boxShadow: turn==='w' ? '0 0 12px 3px #00cc6666, 0 0 4px 1px #00cc6688' : turn==='b' ? '0 0 12px 3px #ff444466, 0 0 4px 1px #ff444488' : 'none',transition:'border-color 0.3s,box-shadow 0.3s'}}>
             {Array.from({length:64}).map((_,i)=>{
               const r=Math.floor(i/8),c=i%8;
               const piece=game.board[r][c];
@@ -6278,6 +6335,11 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               );
             })}
           </div>
+            {reversing && (
+              <div style={{position:'absolute',inset:0,zIndex:20,background:'#3d8ef533',border:`3px solid #3d8ef5`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                <span style={{fontFamily:theme.fontMono,fontSize:13,color:'#3d8ef5',letterSpacing:2,fontWeight:700,textShadow:`0 0 10px #3d8ef5`,background:'#0a0a1299',padding:'4px 10px',borderRadius:4}}>↩ REVERSING</span>
+              </div>
+            )}
           </div>
 
           {/* Bottom tray: your captured (black pieces you took) */}
@@ -6577,8 +6639,8 @@ function App() {
                 top: y<0 ? -4 : 'auto', bottom: y>0 ? -4 : 'auto',
                 left: x<0 ? -4 : 'auto', right: x>0 ? -4 : 'auto' }} />
             ))}
-            <div style={{ fontSize: 36, marginBottom: 8 }}>🎓</div>
-            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffd700', letterSpacing: 2, marginBottom: 16, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}><img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/graduationcap.png" width={52} height={52} style={{display:'block',margin:'0 auto',objectFit:'contain'}} alt="🎓" onError={e=>{e.target.style.display='none';e.target.nextSibling&&(e.target.nextSibling.style.display='block');}}/><span style={{display:'none',fontSize:36}}>🎓</span></div>
+            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 11, color: '#ffd700', letterSpacing: 2, marginBottom: 16, textTransform: 'uppercase' }}>
               WORD MASTERED!
             </div>
             <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 12, color: '#fff', letterSpacing: 1, marginBottom: 8, wordBreak: 'break-word' }}>

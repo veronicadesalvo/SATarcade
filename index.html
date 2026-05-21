@@ -2095,559 +2095,78 @@ function makePuzzleBoard(fen) {
 
 const CHESS_PUZZLES = (() => {
   const raw = [
-  {id:'p1',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"White to move and checkmate in one.",fen:'7k/8/6K1/8/8/8/4R3/8',solution:[{from:[6,4],to:[0,4]}],
-    word:'ANTICIPATE',sentences:[
-      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p2',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'8/4r3/8/8/3N3k/8/8/5K2',solution:[{from:[4,3],to:[3,5]}],
-    word:'AMBIGUITY',sentences:[
-      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
-      {text:"A ___ bishop outpost provides long-term pressure without immediate threats.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p3',type:'Checkmate in 1',tactic:'Back Rank Mate',
-    desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'4r1k1/5ppp/8/8/8/8/8/4R1K1',solution:[{from:[7,4],to:[0,4]}],
-    word:'SCRUTINIZE',sentences:[
-      {text:"A ___ queen advance cornered the king with no way out.",correct:true},
-      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
-      {text:"A ___ negotiator secures deals that satisfy both parties involved.",correct:false},
-    ],},
-  {id:'p4',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"White to move and checkmate in one.",fen:'k1r5/8/KQ6/8/8/8/8/8',solution:[{from:[2,1],to:[1,1]}],
-    word:'TENACIOUS',sentences:[
-      {text:"A ___ queen advance cornered the king with no way out.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p5',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the single move that finishes the game instantly.",fen:'7k/8/6KQ/8/8/8/8/8',solution:[{from:[2,7],to:[1,7]}],
-    word:'INCISIVE',sentences:[
-      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p6',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'3k4/8/3K4/8/1Q6/8/8/8',solution:[{from:[4,1],to:[0,1]}],
-    word:'DETERMINED',sentences:[
-      {text:"A ___ strike left the king completely defenseless on the back rank.",correct:true},
-      {text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p7',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"White to move and checkmate in one.",fen:'4k3/8/3Q1K2/8/8/8/8/8',solution:[{from:[2,3],to:[1,4]}],
-    word:'PRAGMATIC',sentences:[
-      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p8',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'8/8/4N3/8/k7/1r6/8/3K4',solution:[{from:[2,4],to:[3,2]}],
-    word:'AMBIGUITY',sentences:[
-      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
-      {text:"A ___ approach favored slow maneuvering over sharp tactics.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p9',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'2k5/8/3K4/8/Q7/8/8/8',solution:[{from:[4,0],to:[0,0]}],
-    word:'ZEALOUS',sentences:[
-      {text:"A ___ final blow exploited the king's complete lack of escape squares.",correct:true},
-      {text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p10',type:'Fork',tactic:'Queen Fork',
-    desc:"One queen move checks the king and wins material. Find it.",fen:'7k/8/8/8/8/1r6/4K3/1Q6',solution:[{from:[7,1],to:[6,1]}],
-    word:'AMBIGUITY',sentences:[
-      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
-      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p11',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'k7/8/KQ6/8/8/8/8/8',solution:[{from:[2,1],to:[1,1]}],
-    word:'ZEALOUS',sentences:[
-      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
-      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p12',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'k7/2Q5/2K5/8/8/8/8/8',solution:[{from:[1,2],to:[1,1]}],
-    word:'COMPELLING',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p13',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'7k/8/6K1/8/8/8/Q7/8',solution:[{from:[6,0],to:[0,0]}],
-    word:'ANTICIPATE',sentences:[
-      {text:"A ___ strike left the king completely defenseless on the back rank.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p14',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'3k4/2N3r1/8/8/8/8/4K3/8',solution:[{from:[1,2],to:[2,4]}],
-    word:'SCRUTINIZE',sentences:[
-      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
-      {text:"A ___ bishop outpost provides long-term pressure without immediate threats.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p15',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'k7/3r4/8/3N4/8/8/8/4K3',solution:[{from:[3,3],to:[2,1]}],
-    word:'UNDERMINE',sentences:[
-      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p16',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'4k3/8/5K2/8/6Q1/8/8/8',solution:[{from:[4,6],to:[0,2]}],
-    word:'INEVITABLE',sentences:[
-      {text:"A ___ strike left the king completely defenseless on the back rank.",correct:true},
-      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p17',type:'Fork',tactic:'Queen Fork',
-    desc:"Your queen can check the king and attack another piece in one move.",fen:'k2r4/8/8/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[3,0]}],
-    word:'ASTUTE',sentences:[
-      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
-    ],},
-  {id:'p18',type:'Fork',tactic:'Queen Fork',
-    desc:"One queen move checks the king and wins material. Find it.",fen:'7k/1Q6/8/1r6/8/8/8/4K3',solution:[{from:[1,1],to:[0,1]}],
-    word:'ELUSIVE',sentences:[
-      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
-      {text:"A ___ bishop outpost provides long-term pressure without immediate threats.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p19',type:'Fork',tactic:'Queen Fork',
-    desc:"One queen move checks the king and wins material. Find it.",fen:'7k/8/8/8/8/1r6/8/1Q3K2',solution:[{from:[7,1],to:[6,1]}],
-    word:'UNDERMINE',sentences:[
-      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
-      {text:"A ___ bishop outpost provides long-term pressure without immediate threats.",correct:false},
-      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
-    ],},
-  {id:'p20',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the queen move that delivers immediate checkmate.",fen:'k7/5Q2/2K5/8/8/8/8/8',solution:[{from:[1,5],to:[1,1]}],
-    word:'STEADFAST',sentences:[
-      {text:"White demonstrated ___ play, finding the single move that ended the game.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
-    ],},
-  {id:'p21',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'7k/8/6K1/8/8/3Q4/8/8',solution:[{from:[5,3],to:[0,3]}],
-    word:'INEVITABLE',sentences:[
-      {text:"A ___ final blow exploited the king's complete lack of escape squares.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p22',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'2N1k3/8/8/1r6/8/8/8/4K3',solution:[{from:[0,2],to:[2,3]}],
-    word:'UNDERMINE',sentences:[
-      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
-      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p23',type:'Fork',tactic:'Queen Fork',
-    desc:"Your queen can check the king and attack another piece in one move.",fen:'4k3/8/8/8/1r6/8/7Q/3K4',solution:[{from:[6,7],to:[0,1]}],
-    word:'ASTUTE',sentences:[
-      {text:"The queen ___ the uncoordinated black pieces, forking king and rook in a single leap.",correct:true},
-      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p24',type:'Checkmate in 1',tactic:'Back Rank Mate',
-    desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'7k/6pp/8/6K1/8/8/8/R7',solution:[{from:[7,0],to:[0,0]}],
-    word:'FORMIDABLE',sentences:[
-      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
-    ],},
-  {id:'p25',type:'Fork',tactic:'Knight Fork',
-    desc:"A single knight move forks two pieces. Can you spot it?",fen:'2N1k3/1r6/8/8/8/8/8/4K3',solution:[{from:[0,2],to:[2,3]}],
-    word:'SCRUTINIZE',sentences:[
-      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
-      {text:"A ___ bishop outpost provides long-term pressure without immediate threats.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p26',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'5r1k/5ppp/7K/6Q1/8/8/8/8',solution:[{from:[3,6],to:[1,6]}],
-    word:'COMPELLING',sentences:[
-      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
-      {text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p27',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the single move that finishes the game instantly.",fen:'7k/8/6KQ/8/8/8/8/8',solution:[{from:[2,7],to:[1,6]}],
-    word:'INCISIVE',sentences:[
-      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p28',type:'Fork',tactic:'Queen Fork',
-    desc:"Your queen can check the king and attack another piece in one move.",fen:'k7/3r4/8/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[2,2]}],
-    word:'HINDER',sentences:[
-      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
-      {text:"A ___ approach favored slow maneuvering over sharp tactics.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p29',type:'Checkmate in 1',tactic:'Rook Ladder Mate',
-    desc:"The rooks can ladder the king to checkmate. Find the move.",fen:'7k/8/8/8/8/8/7R/6RK',solution:[{from:[6,6],to:[0,6]}],
-    word:'INEVITABLE',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p30',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the queen move that delivers immediate checkmate.",fen:'4k3/8/4K3/8/8/8/2Q5/8',solution:[{from:[6,2],to:[0,2]}],
-    word:'DECISIVE',sentences:[
-      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
-      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p31',type:'Fork',tactic:'Knight Fork',
-    desc:"The knight can jump to a square that attacks king and rook at once.",fen:'4k3/3r4/8/3N4/8/8/8/4K3',solution:[{from:[3,3],to:[2,5]}],
-    word:'ELUSIVE',sentences:[
-      {text:"A ___ fork attack threatened two pieces at once, forcing an immediate material loss.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p32',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"Use the rook and king to deliver checkmate in one move.",fen:'k7/8/1K6/8/6R1/8/8/8',solution:[{from:[4,6],to:[0,6]}],
-    word:'PREVAIL',sentences:[
-      {text:"A ___ queen advance cornered the king with no way out.",correct:true},
-      {text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p33',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"Use the rook and king to deliver checkmate in one move.",fen:'3k4/8/3K4/8/8/8/8/7R',solution:[{from:[7,7],to:[0,7]}],
-    word:'AGGRESSIVE',sentences:[
-      {text:"A ___ strike left the king completely defenseless on the back rank.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p34',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'3k4/8/8/N1r5/8/8/8/5K2',solution:[{from:[3,0],to:[1,1]}],
-    word:'EXPLOIT',sentences:[
-      {text:"The ___ player spotted the fork immediately \u2014 one move attacked king and rook together.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p35',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"The king is cornered. Find the rook move that ends the game.",fen:'4k3/8/4K3/8/8/8/R7/8',solution:[{from:[6,0],to:[0,0]}],
-    word:'AUDACIOUS',sentences:[
-      {text:"The checkmate was ___ \u2014 once the king was trapped, no defense was possible.",correct:true},
-      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
-      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
-    ],},
-  {id:'p36',type:'Fork',tactic:'Knight Fork',
-    desc:"The knight can jump to a square that attacks king and rook at once.",fen:'4k3/8/4r3/5N2/8/8/8/3K4',solution:[{from:[3,5],to:[1,6]}],
-    word:'SCRUTINIZE',sentences:[
-      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
-      {text:"A ___ bishop outpost provides long-term pressure without immediate threats.",correct:false},
-      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
-    ],},
-  {id:'p37',type:'Checkmate in 1',tactic:'Queen Checkmate',
+  {id:'p1',type:'Checkmate in 1',tactic:'Queen Checkmate',
     desc:"Find the queen move that delivers immediate checkmate.",fen:'6k1/8/5KQ1/8/8/8/8/8',solution:[{from:[2,6],to:[1,6]}],
-    word:'INCISIVE',sentences:[
-      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
-    ],},
-  {id:'p38',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'5k2/8/6K1/8/3Q4/8/8/8',solution:[{from:[4,3],to:[0,3]}],
-    word:'AGGRESSIVE',sentences:[
-      {text:"A ___ strike left the king completely defenseless on the back rank.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p39',type:'Fork',tactic:'Queen Fork',
-    desc:"One queen move checks the king and wins material. Find it.",fen:'4k3/8/8/8/1r6/8/4K3/3Q4',solution:[{from:[7,3],to:[4,0]}],
-    word:'UNDERMINE',sentences:[
-      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
-      {text:"A ___ approach favored slow maneuvering over sharp tactics.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p40',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the single move that finishes the game instantly.",fen:'6k1/5ppp/5Q2/6K1/8/8/8/8',solution:[{from:[2,5],to:[0,3]}],
-    word:'DECISIVE',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
-    ],},
-  {id:'p41',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'3k4/N7/8/8/1r6/8/8/3K4',solution:[{from:[1,0],to:[2,2]}],
-    word:'UNDERMINE',sentences:[
-      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
-    ],},
-  {id:'p42',type:'Fork',tactic:'Queen Fork',
+    word:'DECISIVE',sentences:[{text:"A ___ retreat saved the piece and stabilized the position.",correct:false},{text:"A ___ queen advance cornered the king with no way out.",correct:true},{text:"A ___ leader refuses to back down even when the odds are against them.",correct:false}],},
+  {id:'p2',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'5r1k/5ppp/7K/6Q1/8/8/8/8',solution:[{from:[3,6],to:[1,6]}],
+    word:'COMPELLING',sentences:[{text:"A ___ argument convinced the committee to delay the decision.",correct:false},{text:"A ___ exchange of queens simplified the game into a draw.",correct:false},{text:"The queen's advance made a ___ case \u2014 the king had nowhere left to go.",correct:true}],},
+  {id:'p3',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'6k1/5ppp/5Q2/6K1/8/8/8/8',solution:[{from:[2,5],to:[0,3]}],
+    word:'INEVITABLE',sentences:[{text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},{text:"The draw was ___ given how evenly matched both sides were.",correct:false},{text:"With the king hemmed in by its own pawns, checkmate was ___ \u2014 no defense was possible.",correct:true}],},
+  {id:'p4',type:'Checkmate in 1',tactic:'Back Rank Mate',
+    desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'4r1k1/5ppp/8/8/8/8/8/4R1K1',solution:[{from:[7,4],to:[0,4]}],
+    word:'PREVAIL',sentences:[{text:"A ___ knight outpost gave white long-term control of the center.",correct:false},{text:"Researchers must ___ data carefully before drawing any conclusions.",correct:false},{text:"White managed to ___ by exploiting the back rank weakness \u2014 the king had no escape.",correct:true}],},
+  {id:'p5',type:'Checkmate in 1',tactic:'Back Rank Mate',
+    desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'7k/6pp/8/6K1/8/8/8/R7',solution:[{from:[7,0],to:[0,0]}],
+    word:'STEADFAST',sentences:[{text:"A ___ bishop maneuver improved white's position without immediate threats.",correct:false},{text:"The ___ rook advanced relentlessly along the a-file, delivering the final blow.",correct:true},{text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false}],},
+  {id:'p6',type:'Checkmate in 1',tactic:'Back Rank Mate',
+    desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'r5k1/5ppp/8/8/8/8/8/R4K2',solution:[{from:[7,0],to:[0,0]}],
+    word:'INCISIVE',sentences:[{text:"The ___ rook maneuver cut straight to the heart of black's weakness \u2014 the undefended back rank.",correct:true},{text:"A ___ exchange of queens simplified the position into an endgame.",correct:false},{text:"His ___ questioning got to the truth faster than anyone expected.",correct:false}],},
+  {id:'p7',type:'Checkmate in 1',tactic:'Rook Ladder Mate',
+    desc:"Two rooks work together. Find the checkmate.",fen:'7k/8/8/8/8/8/7R/6RK',solution:[{from:[6,6],to:[0,6]}],
+    word:'PERSISTENT',sentences:[{text:"A ___ pawn advance slowly squeezed the opponent out of the game.",correct:false},{text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},{text:"The ___ rook claimed rank after rank until the king had nowhere left to run.",correct:true}],},
+  {id:'p8',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'k7/2Q5/2K5/8/8/8/8/8',solution:[{from:[1,2],to:[1,1]}],
+    word:'DECISIVE',sentences:[{text:"A ___ retreat saved the piece and stabilized the position.",correct:false},{text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},{text:"A ___ queen advance cornered the king with no way out.",correct:true}],},
+  {id:'p9',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'7k/8/6KQ/8/8/8/8/8',solution:[{from:[2,7],to:[1,7]}],
+    word:'AGGRESSIVE',sentences:[{text:"A ___ defensive setup placed all pieces on the back two ranks.",correct:false},{text:"Swapping queens was the ___ choice, eliminating the main attacking piece.",correct:false},{text:"The ___ queen march down the h-file drove the king into the corner.",correct:true}],},
+  {id:'p10',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"Use the rook and king to deliver checkmate in one move.",fen:'k7/8/2K5/8/8/8/8/R7',solution:[{from:[2,2],to:[1,2]}],
+    word:'PREVAIL',sentences:[{text:"A ___ knight outpost gave white long-term control of the center.",correct:false},{text:"White managed to ___ by exploiting the back rank weakness \u2014 the king had no escape.",correct:true},{text:"Researchers must ___ data carefully before drawing any conclusions.",correct:false}],},
+  {id:'p11',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'k7/8/KQ6/8/8/8/8/8',solution:[{from:[2,1],to:[1,1]}],
+    word:'FORMIDABLE',sentences:[{text:"The queen proved a ___ attacking weapon, driving the king to the corner and delivering checkmate.",correct:true},{text:"A ___ defensive wall of pawns made it impossible for white to break through.",correct:false},{text:"She faced a ___ opponent who had never lost a tournament match.",correct:false}],},
+  {id:'p12',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'1k6/2Q5/2K5/8/8/8/8/8',solution:[{from:[1,2],to:[1,1]}],
+    word:'PRAGMATIC',sentences:[{text:"A ___ approach to the problem yielded faster results than expected.",correct:false},{text:"A ___ defensive setup placed all pieces on the back two ranks.",correct:false},{text:"White took a ___ approach \u2014 a simple queen move to b7 ended the game immediately.",correct:true}],},
+  {id:'p13',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'k1r5/8/KQ6/8/8/8/8/8',solution:[{from:[2,1],to:[1,1]}],
+    word:'SCRUTINIZE',sentences:[{text:"Players who carefully ___ the position will spot the single move that delivers checkmate.",correct:true},{text:"White preferred to improve piece placement before launching any attack.",correct:false},{text:"Lawyers are trained to ___ every clause of a contract before signing.",correct:false}],},
+  {id:'p14',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'r5k1/6pp/7K/6Q1/8/8/8/8',solution:[{from:[3,6],to:[1,6]}],
+    word:'DETERMINED',sentences:[{text:"A ___ defender found a resource to escape what looked like certain checkmate.",correct:false},{text:"She was ___ not to let the setback derail her long-term plans.",correct:false},{text:"White was ___ to finish the game with the most efficient move \u2014 checkmate in one.",correct:true}],},
+  {id:'p15',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'7k/8/6KQ/8/8/8/8/8',solution:[{from:[2,7],to:[1,6]}],
+    word:'EXPLOIT',sentences:[{text:"White ___ the opponent's weak piece placement, forking both king and rook in a single move.",correct:true},{text:"White chose to advance pawns rather than seek an immediate tactical blow.",correct:false},{text:"An investor seeks to ___ market inefficiencies before others notice them.",correct:false}],},
+  {id:'p16',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'k7/3r4/8/3N4/8/8/8/4K3',solution:[{from:[3,3],to:[2,1]}],
+    word:'EXPLOIT',sentences:[{text:"White ___ the opponent's weak piece placement, forking both king and rook in a single move.",correct:true},{text:"An investor seeks to ___ market inefficiencies before others notice them.",correct:false},{text:"White chose to advance pawns rather than seek an immediate tactical blow.",correct:false}],},
+  {id:'p17',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'4k3/3r4/8/3N4/8/8/8/4K3',solution:[{from:[3,3],to:[2,5]}],
+    word:'AMBIGUITY',sentences:[{text:"White preferred slow maneuvering over sharp tactical combinations.",correct:false},{text:"The ___ in the contract terms led to a disagreement between the two parties.",correct:false},{text:"The ___ of the knight's position confused the opponent \u2014 it attacked both king and rook at once.",correct:true}],},
+  {id:'p18',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'3k4/8/3r4/4N3/8/8/8/4K3',solution:[{from:[3,4],to:[1,5]}],
+    word:'ASTUTE',sentences:[{text:"An ___ investor seizes opportunities that others overlook.",correct:false},{text:"The ___ player immediately spotted the fork \u2014 one move attacked king and rook together.",correct:true},{text:"White chose to advance pawns rather than seek an immediate tactical blow.",correct:false}],},
+  {id:'p19',type:'Fork',tactic:'Queen Fork',
+    desc:"Your queen can check the king and attack another piece in one move.",fen:'k2r4/8/8/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[3,0]}],
+    word:'HINDER',sentences:[{text:"Budget cuts threatened to ___ the team's ability to prepare for the season.",correct:false},{text:"A slow positional approach favored long-term pressure over sharp tactics.",correct:false},{text:"The queen fork ___ black's ability to coordinate \u2014 forced to save the king, the rook was lost.",correct:true}],},
+  {id:'p20',type:'Fork',tactic:'Queen Fork',
+    desc:"Your queen can check the king and attack another piece in one move.",fen:'k7/3r4/8/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[2,2]}],
+    word:'ELUSIVE',sentences:[{text:"Victory remained ___ for the team, who struggled to convert their chances.",correct:false},{text:"White preferred to improve piece placement before launching any attack.",correct:false},{text:"The winning move was ___ \u2014 most players miss that a single queen move attacks both pieces.",correct:true}],},
+  {id:'p21',type:'Fork',tactic:'Queen Fork',
     desc:"Your queen can check the king and attack another piece in one move.",fen:'k7/8/3r4/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[2,2]}],
-    word:'HINDER',sentences:[
-      {text:"A ___ fork attack threatened two pieces at once, forcing an immediate material loss.",correct:true},
-      {text:"A ___ approach favored slow maneuvering over sharp tactics.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p43',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the queen move that delivers immediate checkmate.",fen:'4k3/8/5K2/8/8/7Q/8/8',solution:[{from:[5,7],to:[0,2]}],
-    word:'AUDACIOUS',sentences:[
-      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p44',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"Use the rook and king to deliver checkmate in one move.",fen:'3k4/8/3K4/8/6R1/8/8/8',solution:[{from:[4,6],to:[0,6]}],
-    word:'DETERMINED',sentences:[
-      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
-      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p45',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"White to move and checkmate in one.",fen:'k7/8/1K6/8/8/8/8/4R3',solution:[{from:[7,4],to:[0,4]}],
-    word:'PREVAIL',sentences:[
-      {text:"A ___ final blow exploited the king's complete lack of escape squares.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
-    ],},
-  {id:'p46',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the single move that finishes the game instantly.",fen:'3k4/8/2K4Q/8/8/8/8/8',solution:[{from:[2,7],to:[0,5]}],
-    word:'AUDACIOUS',sentences:[
-      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
-      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p47',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"White to move and checkmate in one.",fen:'4k3/8/4K3/8/2R5/8/8/8',solution:[{from:[4,2],to:[0,2]}],
-    word:'PRAGMATIC',sentences:[
-      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p48',type:'Checkmate in 1',tactic:'Back Rank Mate',
-    desc:"A back rank weakness is fatal. One move ends the game.",fen:'r5k1/5ppp/8/8/8/8/8/R4K2',solution:[{from:[7,0],to:[0,0]}],
-    word:'PERSISTENT',sentences:[
-      {text:"White demonstrated ___ play, finding the single move that ended the game.",correct:true},
-      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p49',type:'Pin',tactic:'Absolute Pin',
-    desc:"Find the bishop move that pins the opponent's piece to its king.",fen:'4k3/3n4/8/8/8/8/2B5/4K3',solution:[{from:[6,2],to:[4,0]}],
-    word:'STYMIE',sentences:[
-      {text:"A ___ pin left the opponent's piece frozen, unable to participate in the defense.",correct:true},
-      {text:"A shortage of resources began to ___ the team's ability to compete.",correct:false},
-      {text:"Anxiety can ___ performance even in well-prepared competitors.",correct:false},
-    ],},
-  {id:'p50',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the queen move that delivers immediate checkmate.",fen:'7k/8/6K1/8/8/8/8/2Q5',solution:[{from:[7,2],to:[0,2]}],
-    word:'AGGRESSIVE',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p51',type:'Fork',tactic:'Knight Fork',
-    desc:"A single knight move forks two pieces. Can you spot it?",fen:'3k4/8/8/4N3/1r6/8/8/3K4',solution:[{from:[3,4],to:[2,2]}],
-    word:'ASTUTE',sentences:[
-      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
-      {text:"A ___ approach favored slow maneuvering over sharp tactics.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p52',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'5k2/8/5K2/4Q3/8/8/8/8',solution:[{from:[3,4],to:[0,1]}],
-    word:'DECISIVE',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
-      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
-    ],},
-  {id:'p53',type:'Fork',tactic:'Queen Fork',
-    desc:"One queen move checks the king and wins material. Find it.",fen:'k7/8/5Q2/8/8/1r6/8/4K3',solution:[{from:[2,5],to:[5,5]}],
-    word:'UNDERMINE',sentences:[
-      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
-      {text:"A ___ approach favored slow maneuvering over sharp tactics.",correct:false},
-      {text:"A ___ investor seizes opportunities that others overlook.",correct:false},
-    ],},
-  {id:'p54',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"The king is cornered. Find the rook move that ends the game.",fen:'k7/8/2K5/8/8/8/8/R7',solution:[{from:[2,2],to:[1,2]}],
-    word:'SCRUTINIZE',sentences:[
-      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
-      {text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p55',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"White to move and checkmate in one.",fen:'r5k1/6pp/7K/6Q1/8/8/8/8',solution:[{from:[3,6],to:[1,6]}],
-    word:'COMPELLING',sentences:[
-      {text:"A ___ rook maneuver sealed the king's fate on the back rank.",correct:true},
-      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p56',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the single move that finishes the game instantly.",fen:'7k/8/6K1/8/8/8/8/4Q3',solution:[{from:[7,4],to:[0,4]}],
-    word:'DECISIVE',sentences:[
-      {text:"The checkmate was ___ \u2014 once the king was trapped, no defense was possible.",correct:true},
-      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p57',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"The king is cornered. Find the rook move that ends the game.",fen:'7k/5R2/6K1/8/8/8/8/8',solution:[{from:[1,5],to:[0,5]}],
-    word:'PERSISTENT',sentences:[
-      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
-      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
-      {text:"A ___ negotiator secures deals that satisfy both parties involved.",correct:false},
-    ],},
-  {id:'p58',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the queen move that delivers immediate checkmate.",fen:'5k2/8/4K3/8/8/8/8/Q7',solution:[{from:[7,0],to:[0,7]}],
-    word:'PREVAIL',sentences:[
-      {text:"A ___ queen advance cornered the king with no way out.",correct:true},
-      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p59',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"Use the rook and king to deliver checkmate in one move.",fen:'7k/8/6K1/8/4R3/8/8/8',solution:[{from:[4,4],to:[0,4]}],
-    word:'PRAGMATIC',sentences:[
-      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p60',type:'Pin',tactic:'Absolute Pin',
-    desc:"Find the bishop move that pins the opponent's piece to its king.",fen:'4k3/8/8/2r5/B7/8/8/4K3',solution:[{from:[4,0],to:[1,3]}],
-    word:'CURTAIL',sentences:[
-      {text:"Moving the bishop to that square would ___ the knight, tying it to the king.",correct:true},
-      {text:"Doubled pawns can ___ the rook's activity along the c-file.",correct:false},
-      {text:"The law was designed to ___ harmful practices across the industry.",correct:false},
-    ],},
-  {id:'p61',type:'Fork',tactic:'Knight Fork',
-    desc:"A single knight move forks two pieces. Can you spot it?",fen:'8/8/3r4/8/3N3k/8/4K3/8',solution:[{from:[4,3],to:[3,5]}],
-    word:'HINDER',sentences:[
-      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"A ___ investor seizes opportunities that others overlook.",correct:false},
-    ],},
-  {id:'p62',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"White to move and checkmate in one.",fen:'4k3/8/4K3/R7/8/8/8/8',solution:[{from:[3,0],to:[0,0]}],
-    word:'EMPHATIC',sentences:[
-      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
-      {text:"A ___ pawn advance slowly squeezed the opponent's position.",correct:false},
-      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
-    ],},
-  {id:'p63',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"The king is cornered. Find the rook move that ends the game.",fen:'k7/8/1K6/8/2R5/8/8/8',solution:[{from:[4,2],to:[0,2]}],
-    word:'STEADFAST',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
-      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
-    ],},
-  {id:'p64',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the queen move that delivers immediate checkmate.",fen:'k7/8/2K5/8/8/1Q6/8/8',solution:[{from:[5,1],to:[1,1]}],
-    word:'ZEALOUS',sentences:[
-      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p65',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"The king is cornered. Find the rook move that ends the game.",fen:'3k4/8/3K4/8/8/8/8/1R6',solution:[{from:[7,1],to:[0,1]}],
-    word:'AGGRESSIVE',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
-      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
-    ],},
-  {id:'p66',type:'Fork',tactic:'Queen Fork',
-    desc:"A single queen move creates a fork. Find the winning square.",fen:'7k/1r6/8/1Q6/8/8/4K3/8',solution:[{from:[3,1],to:[6,1]}],
-    word:'EXPLOIT',sentences:[
-      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
-    ],},
-  {id:'p67',type:'Fork',tactic:'Knight Fork',
-    desc:"The knight can jump to a square that attacks king and rook at once.",fen:'5N1k/8/8/8/5r2/8/8/3K4',solution:[{from:[0,5],to:[2,6]}],
-    word:'HINDER',sentences:[
-      {text:"The queen ___ the uncoordinated black pieces, forking king and rook in a single leap.",correct:true},
-      {text:"A ___ bishop outpost provides long-term pressure without immediate threats.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p68',type:'Fork',tactic:'Queen Fork',
-    desc:"Your queen can check the king and attack another piece in one move.",fen:'k7/8/8/2Q5/1r6/8/8/4K3',solution:[{from:[3,2],to:[3,0]}],
-    word:'HINDER',sentences:[
-      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
-      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
-      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
-    ],},
-  {id:'p69',type:'Fork',tactic:'Knight Fork',
-    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'8/8/8/1r1N4/k7/8/8/4K3',solution:[{from:[3,3],to:[5,2]}],
-    word:'EXPLOIT',sentences:[
-      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
-      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
-      {text:"A ___ investor seizes opportunities that others overlook.",correct:false},
-    ],},
-  {id:'p70',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"Use the rook and king to deliver checkmate in one move.",fen:'4k3/8/4K3/8/R7/8/8/8',solution:[{from:[4,0],to:[0,0]}],
-    word:'AGGRESSIVE',sentences:[
-      {text:"A ___ queen advance cornered the king with no way out.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
-  {id:'p71',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"White to move and checkmate in one.",fen:'6k1/8/6K1/8/8/4Q3/8/8',solution:[{from:[5,4],to:[0,4]}],
-    word:'PREVAIL',sentences:[
-      {text:"A ___ final blow exploited the king's complete lack of escape squares.",correct:true},
-      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p72',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"White to move and checkmate in one.",fen:'1k6/2Q5/2K5/8/8/8/8/8',solution:[{from:[1,2],to:[1,1]}],
-    word:'SCRUTINIZE',sentences:[
-      {text:"A ___ final blow exploited the king's complete lack of escape squares.",correct:true},
-      {text:"A ___ retreat saved the piece and stabilized the position.",correct:false},
-      {text:"A ___ leader refuses to back down even when the odds are against them.",correct:false},
-    ],},
-  {id:'p73',type:'Fork',tactic:'Knight Fork',
-    desc:"A single knight move forks two pieces. Can you spot it?",fen:'3k4/8/3r4/4N3/8/8/8/4K3',solution:[{from:[3,4],to:[1,5]}],
-    word:'SCRUTINIZE',sentences:[
-      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
-      {text:"A ___ approach favored slow maneuvering over sharp tactics.",correct:false},
-      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
-    ],},
-  {id:'p74',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the single move that finishes the game instantly.",fen:'3k4/7Q/4K3/8/8/8/8/8',solution:[{from:[1,7],to:[1,3]}],
-    word:'INEVITABLE',sentences:[
-      {text:"A ___ move ended the game instantly, leaving the king with nowhere to flee.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"A ___ negotiator secures deals that satisfy both parties involved.",correct:false},
-    ],},
-  {id:'p75',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"Find the single move that finishes the game instantly.",fen:'4k3/8/4K3/8/8/8/Q7/8',solution:[{from:[6,0],to:[0,0]}],
-    word:'FORMIDABLE',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
-      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
-    ],},
-  {id:'p76',type:'Pin',tactic:'Relative Pin',
-    desc:"Use your bishop to create a pin that wins material.",fen:'4k3/8/2r5/8/B7/8/8/4K3',solution:[{from:[4,0],to:[3,1]}],
-    word:'CURTAIL',sentences:[
-      {text:"A well-placed bishop ___ the rook's movement \u2014 it was stuck until the king moved.",correct:true},
-      {text:"Such a rule would ___ certain aggressive opening systems from tournament play.",correct:false},
-      {text:"The law was designed to ___ harmful practices across the industry.",correct:false},
-    ],},
-  {id:'p77',type:'Checkmate in 1',tactic:'Queen Checkmate',
-    desc:"The king is exposed. One queen move ends the game.",fen:'5k2/8/5K2/8/8/8/8/Q7',solution:[{from:[7,0],to:[0,0]}],
-    word:'PREVAIL',sentences:[
-      {text:"A ___ rook maneuver sealed the king's fate on the back rank.",correct:true},
-      {text:"A ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
-      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
-    ],},
-  {id:'p78',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"Use the rook and king to deliver checkmate in one move.",fen:'7k/8/6K1/5R2/8/8/8/8',solution:[{from:[3,5],to:[0,5]}],
-    word:'PREVAIL',sentences:[
-      {text:"White demonstrated ___ play, finding the single move that ended the game.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
-    ],},
-  {id:'p79',type:'Checkmate in 1',tactic:'Rook Checkmate',
-    desc:"White to move and checkmate in one.",fen:'7k/8/4R1K1/8/8/8/8/8',solution:[{from:[2,4],to:[0,4]}],
-    word:'PERSISTENT',sentences:[
-      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
-      {text:"A ___ knight outpost gave white long-term control of the center.",correct:false},
-      {text:"A ___ approach to the problem yielded faster results than expected.",correct:false},
-    ],},
+    word:'UNDERMINE',sentences:[{text:"The queen fork served to ___ black's position \u2014 losing the rook made defense impossible.",correct:true},{text:"Constant criticism can ___ a person's confidence over time.",correct:false},{text:"White chose to improve piece placement rather than seek an immediate tactic.",correct:false}],},
+  {id:'p22',type:'Pin',tactic:'Absolute Pin',
+    desc:"Move your bishop to pin the piece to the king \u2014 it cannot move at all.",fen:'4k3/3n4/8/8/8/8/2B5/4K3',solution:[{from:[6,2],to:[4,0]}],
+    word:'INHIBIT',sentences:[{text:"Stress can ___ performance even in well-prepared competitors.",correct:false},{text:"Advancing pawns would restrict the rook's ability to control the open file.",correct:false},{text:"The bishop move ___ the knight's movement entirely \u2014 pinned to the king, it could not budge.",correct:true}],},
+  {id:'p23',type:'Pin',tactic:'Relative Pin',
+    desc:"Pin the rook to a more valuable piece behind it.",fen:'4k3/8/2r5/8/B7/8/8/4K3',solution:[{from:[4,0],to:[3,1]}],
+    word:'CONSTRAIN',sentences:[{text:"A shortage of resources began to limit the team's options heading into the final round.",correct:false},{text:"The bishop move ___ the rook completely \u2014 it could not leave the diagonal without exposing the king.",correct:true},{text:"A tight deadline can ___ both players' ability to find the best moves.",correct:false}],},
+  {id:'p24',type:'Pin',tactic:'Absolute Pin',
+    desc:"Move your bishop to pin the piece to the king \u2014 it cannot move at all.",fen:'4k3/8/8/2r5/B7/8/8/4K3',solution:[{from:[4,0],to:[1,3]}],
+    word:'PRECLUDE',sentences:[{text:"A lack of preparation can ___ success in high-level competition.",correct:false},{text:"The pin served to ___ any rook activity \u2014 moving it would expose the king to check.",correct:true},{text:"The weak back rank would limit black from ever castling safely.",correct:false}],},
   ];
   return raw.slice().sort(() => Math.random() - 0.5);
 })();
@@ -3230,6 +2749,7 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
     { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Do your ears know as much as your eyes?", color: "#f700ff" },
     { id: "hangman", icon: "🪢", title: "Hangman", sub: "Letters or death. Choose wisely.", color: "#ffa500" },
     { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Know a word. Capture a piece.", color: "#3d8ef5" },
+    { id: "chessf", icon: "⚡", title: "Vocab Chess SF", sub: "Stockfish-powered. Harder. Smarter.", color: "#a78bfa" },
     { id: "crossword", icon: "🔠", title: "Crossword", sub: "Cryptic clues. Unforgiving grid.", color: "#9b30d9" },
   ];
 
@@ -7545,6 +7065,8 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [legalDests, setLegalDests] = useState([]);
   const [status, setStatus] = useState('idle'); // idle | wrong | quiz | quizRight | quizWrong | done
   const [msg, setMsg] = useState('');
+  const [wrongGuesses, setWrongGuesses] = useState(0);
+  const MAX_GUESSES = 3;
   const [moveStep, setMoveStep] = useState(0);
   const [quizChoices, setQuizChoices] = useState([]); // shuffled sentences
   const [quizPicked, setQuizPicked] = useState(null); // index picked
@@ -7563,7 +7085,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   useEffect(() => {
     setUserBoard((puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => [...r]));
     setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
-    setMoveStep(0); setQuizPicked(null);
+    setMoveStep(0); setQuizPicked(null); setWrongGuesses(0);
     // Shuffle the sentences, remembering which is correct
     const shuffled = [...puzzle.sentences].sort(() => Math.random() - 0.5);
     setQuizChoices(shuffled);
@@ -7622,10 +7144,19 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
             }, 600);
           }
         } else {
-          setStatus('wrong');
-          setMsg('Not quite — try again.');
+          const newWrong = wrongGuesses + 1;
+          setWrongGuesses(newWrong);
           setSelected(null); setLegalDests([]);
-          setTimeout(() => { setStatus('idle'); setMsg(''); }, 1500);
+          if (newWrong >= MAX_GUESSES) {
+            // Show the correct move
+            const sol = puzzle.solution[moveStep];
+            setMsg(`The correct move was ${String.fromCharCode(97+sol.from[1])}${8-sol.from[0]} to ${String.fromCharCode(97+sol.to[1])}${8-sol.to[0]}.`);
+            setStatus('revealed');
+          } else {
+            setStatus('wrong');
+            setMsg(`Not quite — ${MAX_GUESSES - newWrong} guess${MAX_GUESSES - newWrong === 1 ? '' : 'es'} remaining.`);
+            setTimeout(() => { setStatus('idle'); setMsg(''); }, 1800);
+          }
         }
         return;
       }
@@ -7664,7 +7195,25 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                 <span style={{fontSize:11,color:theme.textMuted,fontStyle:'italic'}}>{puzzle.tactic}</span>
               </div>
               <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>{puzzle.desc}</div>
-              {msg && <div style={{marginTop:8,fontSize:13,fontWeight:700,color:theme.danger}}>{msg}</div>}
+              {/* Guess counter */}
+              {wrongGuesses > 0 && status !== 'revealed' && (
+                <div style={{marginTop:6,display:'flex',gap:4}}>
+                  {Array.from({length:MAX_GUESSES}).map((_,i) => (
+                    <div key={i} style={{width:10,height:10,borderRadius:'50%',
+                      background: i < wrongGuesses ? theme.danger : 'rgba(255,255,255,0.15)'}}/>
+                  ))}
+                </div>
+              )}
+              {msg && <div style={{marginTop:8,fontSize:13,fontWeight:600,
+                color: status==='revealed' ? theme.textMuted : theme.danger}}>{msg}</div>}
+              {status === 'revealed' && (
+                <button onClick={() => setPuzzleIdx(i => i + 1)} style={{
+                  marginTop:10, padding:'8px 20px', borderRadius:8,
+                  background:'#f59e0b', color:'#0a0a14', border:'none',
+                  fontFamily:theme.fontMono, fontSize:11, fontWeight:700,
+                  cursor:'pointer', letterSpacing:1,
+                }}>NEXT PUZZLE →</button>
+              )}
             </div>
 
             {userBoard && (
@@ -7854,6 +7403,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [threatArrows, setThreatArrows] = useState([]); // [{from:[r,c], to:[r,c]}] shown after AI move
   const [showThreatArrows, setShowThreatArrows] = useState(true);
+  const [showOverlays, setShowOverlays] = useState(true);
   const [showCoachTips, setShowCoachTips] = useState(true);
   const [bookSeed, setBookSeed] = useState(() => Math.random());
   const [correctStreak, setCorrectStreak] = useState(0); // #5 streak bonus
@@ -8842,11 +8392,722 @@ function MasteryToast({ word, onClose }) {
   );
 }
 
+// ─── STOCKFISH UTILITIES ──────────────────────────────────────────────────────
+
+function boardToFen(game) {
+  const B = game.board;
+  const typeMap = {p:'p',n:'n',b:'b',r:'r',q:'q',k:'k'};
+  let fen = '';
+  for (let r = 0; r < 8; r++) {
+    let empty = 0;
+    for (let c = 0; c < 8; c++) {
+      const p = B[r][c];
+      if (!p) { empty++; }
+      else {
+        if (empty) { fen += empty; empty = 0; }
+        const ch = typeMap[p.type];
+        fen += p.color === 'w' ? ch.toUpperCase() : ch;
+      }
+    }
+    if (empty) fen += empty;
+    if (r < 7) fen += '/';
+  }
+  // Turn
+  fen += ' ' + (game.turn === 'w' ? 'w' : 'b');
+  // Castling (simplified - use game.castle if available)
+  const ca = game.castle || {};
+  let castling = '';
+  if (ca.wK !== false) castling += 'K';
+  if (ca.wQ !== false) castling += 'Q';
+  if (ca.bK !== false) castling += 'k';
+  if (ca.bQ !== false) castling += 'q';
+  fen += ' ' + (castling || '-');
+  // En passant
+  if (game.ep) {
+    const [er, ec] = game.ep;
+    fen += ' ' + 'abcdefgh'[ec] + (8 - er);
+  } else {
+    fen += ' -';
+  }
+  fen += ' 0 1'; // halfmove clock, fullmove
+  return fen;
+}
+
+function uciToMove(uci, board) {
+  // Convert UCI string like "e2e4" or "e7e8q" to {from:[r,c], to:[r,c], promo?}
+  const files = 'abcdefgh';
+  const fc = files.indexOf(uci[0]);
+  const fr = 8 - parseInt(uci[1]);
+  const tc = files.indexOf(uci[2]);
+  const tr = 8 - parseInt(uci[3]);
+  return { from: [fr, fc], to: [tr, tc] };
+}
+
+function useStockfishWorker() {
+  const workerRef = React.useRef(null);
+  const resolveRef = React.useRef(null);
+  const [sfReady, setSfReady] = React.useState(false);
+  const [sfError, setSfError] = React.useState(null);
+
+  React.useEffect(() => {
+    try {
+      // Create worker via Blob to avoid cross-origin/sandbox restrictions
+      // The worker loads Stockfish via importScripts inside itself
+      const workerCode = `
+        let stockfishReady = false;
+        
+        // Try to load Stockfish
+        const URLS = [
+          'https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish-nnue-16-single.js',
+          'https://cdn.jsdelivr.net/npm/stockfish@15.0.0/src/stockfish.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js',
+        ];
+        
+        let sfLoaded = false;
+        for (const url of URLS) {
+          try {
+            importScripts(url);
+            sfLoaded = true;
+            break;
+          } catch(e) {}
+        }
+        
+        if (!sfLoaded) {
+          postMessage('error:Could not load Stockfish engine. Check internet connection.');
+        } else {
+          // Stockfish loaded — wire it up
+          // stockfish() may be a function or already running
+          if (typeof STOCKFISH === 'function') {
+            const sf = STOCKFISH();
+            sf.onmessage = function(event) { postMessage(event.data || event); };
+            self.onmessage = function(e) { sf.postMessage(e.data); };
+            postMessage('uciok');
+          } else {
+            // Direct stockfish global
+            self.onmessage = function(e) {
+              if (typeof stockfish !== 'undefined') stockfish(e.data);
+            };
+            postMessage('uciok');
+          }
+        }
+      `;
+      
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      const blobUrl = URL.createObjectURL(blob);
+      const worker = new Worker(blobUrl);
+      URL.revokeObjectURL(blobUrl);
+      workerRef.current = worker;
+
+      worker.onerror = (e) => {
+        setSfError('Engine failed to start. Try a different browser or check your connection.');
+      };
+
+      worker.onmessage = (e) => {
+        const msg = typeof e.data === 'string' ? e.data : String(e.data);
+        if (msg.startsWith('error:')) {
+          setSfError(msg.slice(6));
+          return;
+        }
+        if (msg.startsWith('id ') || msg.startsWith('option ')) {
+          // info messages during UCI init, ignore
+        } else if (msg === 'uciok') {
+          worker.postMessage('isready');
+        } else if (msg === 'readyok') {
+          setSfReady(true);
+        } else if (msg.startsWith('bestmove')) {
+          const parts = msg.split(' ');
+          const uci = parts[1];
+          if (resolveRef.current && uci && uci !== '(none)') {
+            resolveRef.current(uci);
+            resolveRef.current = null;
+          } else if (resolveRef.current) {
+            resolveRef.current(null);
+            resolveRef.current = null;
+          }
+        }
+      };
+
+      // Kick off UCI init
+      worker.postMessage('uci');
+    } catch(e) {
+      setSfError('Web Workers not available. Try opening the file directly in Chrome or Firefox.');
+    }
+
+    return () => {
+      if (workerRef.current) workerRef.current.terminate();
+    };
+  }, []);
+
+  const getBestMove = React.useCallback((fen, sfDifficulty) => {
+    return new Promise((resolve) => {
+      if (!workerRef.current) { resolve(null); return; }
+      resolveRef.current = resolve;
+      const w = workerRef.current;
+
+      if (sfDifficulty === 'sf-easy') {
+        w.postMessage('setoption name UCI_LimitStrength value true');
+        w.postMessage('setoption name UCI_Elo value 800');
+      } else if (sfDifficulty === 'sf-medium') {
+        w.postMessage('setoption name UCI_LimitStrength value true');
+        w.postMessage('setoption name UCI_Elo value 1300');
+      } else {
+        w.postMessage('setoption name UCI_LimitStrength value false');
+      }
+
+      w.postMessage('ucinewgame');
+      w.postMessage(`position fen ${fen}`);
+      const depth = sfDifficulty === 'sf-hard' ? 15 : 10;
+      w.postMessage(`go depth ${depth}`);
+    });
+  }, []);
+
+  const getBestMoveForHint = React.useCallback((fen) => {
+    return new Promise((resolve) => {
+      if (!workerRef.current) { resolve(null); return; }
+      resolveRef.current = resolve;
+      const w = workerRef.current;
+      w.postMessage('setoption name UCI_LimitStrength value false');
+      w.postMessage(`position fen ${fen}`);
+      w.postMessage('go depth 12');
+    });
+  }, []);
+
+  return { sfReady, sfError, getBestMove, getBestMoveForHint };
+}
+
+// ─── VOCAB CHESS STOCKFISH ────────────────────────────────────────────────────
+function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+  const C = "#a78bfa"; // purple to distinguish from classic blue
+  const { sfReady, sfError, getBestMove, getBestMoveForHint } = useStockfishWorker();
+
+  const [difficulty, setDifficulty] = useState(null);
+  const [game, setGame] = useState(() => createGame());
+  const [selected, setSelected] = useState(null);
+  const [legalDests, setLegalDests] = useState([]);
+  const [lastMove, setLastMove] = useState(null);
+  const [captured, setCaptured] = useState({w:[],b:[]});
+  const [turn, setTurn] = useState('w');
+  const [gameOver, setGameOver] = useState(null);
+  const [quiz, setQuiz] = useState(null);
+  const [winBackQuiz, setWinBackQuiz] = useState(null);
+  const [aiFlash, setAiFlash] = useState(null);
+  const [lastAiMove, setLastAiMove] = useState(null);
+  const [moveHistory, setMoveHistory] = useState([]);
+  const [shownTips, setShownTips] = useState(new Set());
+  const [score, setScore] = useState(0);
+  const [msg, setMsg] = useState('');
+  const [coachMsg, setCoachMsg] = useState('');
+  const [lastWord, setLastWord] = useState(null);
+  const [blunderWarn, setBlunderWarn] = useState(null);
+  const [reversing, setReversing] = useState(false);
+  const [hint, setHint] = useState(null);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [threatArrows, setThreatArrows] = useState([]);
+  const [showThreatArrows, setShowThreatArrows] = useState(true);
+  const [showOverlays, setShowOverlays] = useState(true);
+  const [showCoachTips, setShowCoachTips] = useState(true);
+  const [bookSeed, setBookSeed] = useState(() => Math.random());
+  const [correctStreak, setCorrectStreak] = useState(0);
+  const [streakFlash, setStreakFlash] = useState(false);
+  const [openingName, setOpeningName] = useState(null);
+  const [wordsThisGame, setWordsThisGame] = useState([]);
+  const [showWordReview, setShowWordReview] = useState(false);
+
+  const gameRef = useRef(game);
+  gameRef.current = game;
+  const boardRef = useRef(null);
+  const cellSizeRef = useRef(44);
+  const moveHistoryRef = useRef(moveHistory);
+  moveHistoryRef.current = moveHistory;
+  const lastAiMoveRef = useRef(lastAiMove);
+  lastAiMoveRef.current = lastAiMove;
+
+  const { triggerExplosion, ExplodeSVG } = useExplosion();
+  const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth, 500) - 32) / 8));
+  cellSizeRef.current = cellSize;
+
+  const showMsg = (m, dur=2000) => { setMsg(m); setTimeout(()=>setMsg(''),dur); };
+  const showCoach = (m) => { if (m && showCoachTips) { setCoachMsg(m); setTimeout(()=>setCoachMsg(''),4000); } };
+
+  const newGame = () => {
+    const g = createGame();
+    setGame(g); setSelected(null); setLegalDests([]); setLastMove(null);
+    setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
+    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null);
+    setLastAiMove(null); setMoveHistory([]); setShownTips(new Set());
+    setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null);
+    setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
+    setCorrectStreak(0); setStreakFlash(false); setOpeningName(null);
+    setWordsThisGame([]); setShowWordReview(false); setThreatArrows([]);
+  };
+
+  const checkOver = (g) => {
+    const lm = getLegal(g.board, 'w', g);
+    if (!lm.length) {
+      if (inCheck(g.board, 'w')) { setGameOver('lose'); return true; }
+      setGameOver('stalemate'); return true;
+    }
+    const lmb = getLegal(g.board, 'b', g);
+    if (!lmb.length) {
+      if (inCheck(g.board, 'b')) { setGameOver('win'); return true; }
+      setGameOver('stalemate'); return true;
+    }
+    if (gameIsDraw(g)) { setGameOver('draw'); return true; }
+    return false;
+  };
+
+  // ── Stockfish AI turn ────────────────────────────────────────────────────────
+  const doAiTurn = async (g) => {
+    setTurn('b');
+    const current = g || gameRef.current;
+    if (current.turn !== 'b') { setTurn('w'); return; }
+
+    const fen = boardToFen(current);
+    let uci = null;
+    try {
+      uci = await getBestMove(fen, difficulty);
+    } catch(e) {
+      console.error('Stockfish error:', e);
+    }
+
+    if (!uci) { setTurn('w'); return; }
+    const sfMove = uciToMove(uci, current.board);
+    if (!sfMove) { setTurn('w'); return; }
+
+    // Find matching legal move (handles promotion etc)
+    const legalMoves = getLegal(current.board, 'b', current);
+    const move = legalMoves.find(m =>
+      m.from[0]===sfMove.from[0] && m.from[1]===sfMove.from[1] &&
+      m.to[0]===sfMove.to[0] && m.to[1]===sfMove.to[1]
+    ) || sfMove;
+
+    if (!move) { setTurn('w'); return; }
+
+    const result = gameMove(current, move.from, move.to);
+    const toPos = move.to;
+    setLastAiMove(move);
+    setAiFlash(toPos);
+    setTimeout(()=>setAiFlash(null), 600);
+    setGame(result);
+    setLastMove({from:move.from, to:toPos});
+    setMoveHistory(h => [...h, {from:move.from, to:toPos}]);
+
+    // Threat arrows
+    if (showThreatArrows) {
+      const arrows = [];
+      for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        const p = result.board[r][c];
+        if (!p || p.color !== 'b') continue;
+        const atks = rawMoves(result.board, r, c, {ep:null, castle:{}});
+        for (const [ar, ac] of atks) {
+          const target = result.board[ar][ac];
+          if (target?.color === 'w' && target.type !== 'k' && isHanging(result.board, ar, ac, 'w')) {
+            if (!arrows.some(a => a.from[0]===r && a.from[1]===c && a.to[0]===ar && a.to[1]===ac)) {
+              arrows.push({ from: [r, c], to: [ar, ac], type: 'hanging' });
+            }
+          }
+        }
+      }
+      setThreatArrows(arrows);
+      if (arrows.length > 0) setTimeout(() => setThreatArrows([]), 4000);
+    }
+
+    if (result.captured) {
+      if (boardRef.current) {
+        const rect = boardRef.current.getBoundingClientRect();
+        triggerExplosion(rect.left + (toPos[1]+0.5)*cellSizeRef.current, rect.top + (toPos[0]+0.5)*cellSizeRef.current, true);
+        playExplosionSound(true);
+      }
+      const capType = result.captured.type;
+      showMsg(`Opponent captured your ${PIECE_NAMES[capType]}!`, 2000);
+      setCaptured(prev=>({...prev, b:[...prev.b, capType]}));
+    }
+    if (!checkOver(result)) setTurn('w');
+  };
+
+  // ── Stockfish hint ────────────────────────────────────────────────────────────
+  const getHintSF = async () => {
+    if (hintLoading || turn !== 'w') return;
+    setHintLoading(true);
+    setHint(null);
+    try {
+      // Flip turn to white for hint (Stockfish expects position from current player)
+      const fen = boardToFen({...gameRef.current, turn: 'w'});
+      const uci = await getBestMoveForHint(fen);
+      if (uci) {
+        const sfMove = uciToMove(uci, gameRef.current.board);
+        const legalMoves = getLegal(gameRef.current.board, 'w', gameRef.current);
+        const move = legalMoves.find(m =>
+          m.from[0]===sfMove.from[0] && m.from[1]===sfMove.from[1] &&
+          m.to[0]===sfMove.to[0] && m.to[1]===sfMove.to[1]
+        );
+        if (move) {
+          const from = toSq(move.from[0], move.from[1]);
+          const to = toSq(move.to[0], move.to[1]);
+          const piece = gameRef.current.board[move.from[0]][move.from[1]];
+          setHint({ move, label: 'STOCKFISH', reason: `⚡ ${PIECE_NAMES[piece?.type] || 'Piece'} from ${from} to ${to}` });
+          setHintsUsed(h => h+1);
+        }
+      }
+    } catch(e) { console.error('SF hint error:', e); }
+    setHintLoading(false);
+  };
+
+  const threatened = turn==='w' ? getThreatenedSquares(game.board, 'b') : new Set();
+
+  // ── Difficulty selector ───────────────────────────────────────────────────────
+  if (!difficulty) {
+    return (
+      <div style={{minHeight:'100vh',background:theme.bg,display:'flex',flexDirection:'column'}}>
+        <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
+          <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
+          <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
+            <span style={{fontFamily:theme.fontMono,fontSize:14,fontWeight:700,letterSpacing:2,color:C}}>⚡ VOCAB CHESS SF</span>
+          </div>
+          <div style={{width:60}}/>
+        </div>
+        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',gap:12}}>
+
+          {/* Stockfish status */}
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:sfError?theme.danger:sfReady?theme.success:'#f59e0b',
+              boxShadow:`0 0 6px ${sfError?theme.danger:sfReady?theme.success:'#f59e0b'}`}}/>
+            <span style={{fontSize:12,color:theme.textMuted,fontFamily:theme.fontMono}}>
+              {sfError ? 'Engine unavailable' : sfReady ? 'Stockfish ready' : 'Loading engine…'}
+            </span>
+          </div>
+          {sfError && <div style={{fontSize:12,color:theme.danger,textAlign:'center',maxWidth:300}}>{sfError}</div>}
+
+          <div style={{fontFamily:theme.fontMono,fontSize:13,color:'#fff',letterSpacing:2,marginBottom:4}}>SELECT MODE</div>
+
+          <button onClick={() => setDifficulty('puzzles')} style={{
+            width:'100%',maxWidth:320,padding:'18px 20px',borderRadius:12,
+            background:'#f59e0b18',border:`2px solid #f59e0b88`,cursor:'pointer',textAlign:'left',
+          }}>
+            <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:'#f59e0b',letterSpacing:2,marginBottom:4}}>PUZZLES</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>Stockfish-validated tactics + vocab</div>
+          </button>
+
+          <div style={{fontFamily:theme.fontMono,fontSize:10,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'4px 0'}}>── VS OPPONENT ──</div>
+
+          {[
+            {id:'sf-easy',   label:'EASY',   sub:'~800 Elo  (UCI_Elo limited)',  color:'#00cc66', disabled:!sfReady},
+            {id:'sf-medium', label:'MEDIUM', sub:'~1300 Elo (UCI_Elo limited)',  color:C,         disabled:!sfReady},
+            {id:'sf-hard',   label:'HARD',   sub:'~2000 Elo (full strength)',    color:'#ff4444', disabled:!sfReady},
+          ].map(d => (
+            <button key={d.id} onClick={() => !d.disabled && setDifficulty(d.id)} style={{
+              width:'100%',maxWidth:320,padding:'18px 20px',borderRadius:12,
+              background:d.color+'18',border:`2px solid ${d.disabled?theme.border:d.color+'66'}`,
+              cursor:d.disabled?'not-allowed':'pointer',textAlign:'left',opacity:d.disabled?0.5:1,
+            }}>
+              <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:d.disabled?theme.textMuted:d.color,letterSpacing:2,marginBottom:4}}>{d.label}</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>{d.disabled ? 'Waiting for engine…' : d.sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (difficulty === 'puzzles') {
+    return <ChessPuzzles onBack={() => setDifficulty(null)} onScore={onScore} onCorrect={onCorrect} wordBank={wordBank} />;
+  }
+
+  // ── Main game board (identical UI to VocabChess) ───────────────────────────
+  const handleSquare = (r, c) => {
+    if (turn!=='w'||gameOver) return;
+    if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
+    setThreatArrows([]);
+    const g = gameRef.current;
+
+    if (selected) {
+      const isLegal = legalDests.some(([lr,lc])=>lr===r&&lc===c);
+      if (isLegal) {
+        setBlunderWarn(null); setHint(null); setCoachMsg('');
+        const capPiece = g.board[r][c];
+
+        if (capPiece && capPiece.color==='b') {
+          if (boardRef.current) {
+            const rect = boardRef.current.getBoundingClientRect();
+            triggerExplosion(rect.left+(c+0.5)*cellSize, rect.top+(r+0.5)*cellSize, false);
+            playExplosionSound(false);
+          }
+          const result = gameMove(g, selected, [r,c]);
+          setGame(result); setLastMove({from:selected,to:[r,c]});
+          setSelected(null); setLegalDests([]);
+          const wordEntry = getWordForPiece(capPiece.type);
+          const timeLimit = PIECE_TIME[capPiece.type]||15;
+          setTimeout(()=>{
+            setTurn('quiz');
+            setQuiz({
+              word: wordEntry, timeLimit,
+              context: `⚔️ You captured the ${PIECE_NAMES[capPiece.type]}! Define this word to keep it:`,
+              onResult: (correct) => {
+                setQuiz(null);
+                if (correct) {
+                  setCaptured(prev=>({...prev,w:[...prev.w,capPiece.type]}));
+                  onCorrect(wordEntry.word);
+                  setLastWord({word:wordEntry.word,def:wordEntry.def,correct:true});
+                  const pts = PIECE_VALUES[capPiece.type]||10;
+                  setScore(s=>s+pts); onScore(pts);
+                  showMsg(`✓ ${PIECE_NAMES[capPiece.type]} claimed!`);
+                  setMoveHistory(h => {
+                    const nh=[...h,{from:selected,to:[r,c]}];
+                    const oName=getOpeningName(nh);
+                    if(oName) setOpeningName(oName);
+                    return nh;
+                  });
+                  setCorrectStreak(s=>{
+                    const ns=s+1;
+                    if(ns>0&&ns%3===0){setStreakFlash(true);setTimeout(()=>setStreakFlash(false),2000);}
+                    return ns;
+                  });
+                  setWordsThisGame(prev=>[...prev,{word:wordEntry.word,def:wordEntry.def,piece:capPiece.type,correct:true}]);
+                  if (!checkOver(result)) doAiTurn(result);
+                } else {
+                  setLastWord({word:wordEntry.word,def:wordEntry.def,correct:false});
+                  setCorrectStreak(0);
+                  setWordsThisGame(prev=>[...prev,{word:wordEntry.word,def:wordEntry.def,piece:capPiece.type,correct:false}]);
+                  const gameBefore = g;
+                  const restored={board:cloneB(gameBefore.board),turn:'b',ep:gameBefore.ep,castle:{...gameBefore.castle}};
+                  setGame(restored);
+                  showMsg(`✗ Wrong — piece escapes, opponent gets an extra turn!`, 3500);
+                  setTurn('b');
+                  setTimeout(async () => {
+                    const bonusGame = gameRef.current;
+                    if (bonusGame.turn !== 'b') { setTurn('w'); return; }
+                    const bonusFen = boardToFen(bonusGame);
+                    const bonusUci = await getBestMove(bonusFen, difficulty).catch(()=>null);
+                    if (!bonusUci) { setTurn('w'); return; }
+                    const bonusSfMove = uciToMove(bonusUci, bonusGame.board);
+                    const bonusMoves = getLegal(bonusGame.board,'b',bonusGame);
+                    const bonusMove = bonusMoves.find(m=>m.from[0]===bonusSfMove.from[0]&&m.from[1]===bonusSfMove.from[1]&&m.to[0]===bonusSfMove.to[0]&&m.to[1]===bonusSfMove.to[1])||bonusSfMove;
+                    if (!bonusMove) { setTurn('w'); return; }
+                    const bonusResult = gameMove(bonusGame,bonusMove.from,bonusMove.to);
+                    setLastAiMove(bonusMove); setAiFlash(bonusMove.to);
+                    setTimeout(()=>setAiFlash(null),600);
+                    setGame(bonusResult); setLastMove({from:bonusMove.from,to:bonusMove.to});
+                    if (bonusResult.captured) {
+                      if (boardRef.current) {
+                        const rect=boardRef.current.getBoundingClientRect();
+                        triggerExplosion(rect.left+(bonusMove.to[1]+0.5)*cellSizeRef.current,rect.top+(bonusMove.to[0]+0.5)*cellSizeRef.current,true);
+                        playExplosionSound(true);
+                      }
+                      setCaptured(prev=>({...prev,b:[...prev.b,bonusResult.captured.type]}));
+                    }
+                    if (!checkOver(bonusResult)) setTurn('w');
+                  }, 2200);
+                }
+              }
+            });
+          }, 300);
+        } else {
+          const result = gameMove(g, selected, [r,c]);
+          setGame(result); setLastMove({from:selected,to:[r,c]});
+          setSelected(null); setLegalDests([]);
+          setMoveHistory(h=>{
+            const nh=[...h,{from:selected,to:[r,c]}];
+            const oName=getOpeningName(nh);
+            if(oName) setOpeningName(oName);
+            return nh;
+          });
+          if (!checkOver(result)) doAiTurn(result);
+        }
+        return;
+      }
+      if (g.board[r][c]?.color==='w') {
+        setSelected([r,c]);
+        setLegalDests(getLegal(g.board,'w',g).filter(m=>m.from[0]===r&&m.from[1]===c).map(m=>m.to));
+      } else { setSelected(null); setLegalDests([]); }
+      return;
+    }
+    if (g.board[r][c]?.color==='w') {
+      setSelected([r,c]);
+      setLegalDests(getLegal(g.board,'w',g).filter(m=>m.from[0]===r&&m.from[1]===c).map(m=>m.to));
+    }
+  };
+
+  const diffColor = difficulty==='sf-easy'?'#00cc66':difficulty==='sf-hard'?'#ff4444':C;
+  const diffLabel = difficulty==='sf-easy'?'EASY':difficulty==='sf-hard'?'HARD':'MEDIUM';
+
+  return (
+    <div style={{minHeight:'100vh',background:theme.bg,display:'flex',flexDirection:'column'}}>
+      <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
+        <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
+        <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
+          <span style={{fontFamily:theme.fontMono,fontSize:14,fontWeight:700,letterSpacing:2,color:C}}>⚡ VOCAB CHESS SF</span>
+          <span style={{marginLeft:8,fontSize:10,color:diffColor,fontFamily:theme.fontMono,opacity:0.9}}>{diffLabel}</span>
+        </div>
+        <div style={{width:60}}/>
+      </div>
+
+      {/* Turn banner */}
+      {!gameOver && (
+        <div style={{textAlign:'center',padding:'8px 16px',
+          background:turn==='w'?theme.success+'18':turn==='b'?theme.danger+'18':theme.gold+'18',
+          borderBottom:`1px solid ${turn==='w'?theme.success+'44':turn==='b'?theme.danger+'44':theme.gold+'44'}`}}>
+          <span style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,letterSpacing:1,
+            color:turn==='w'?theme.success:turn==='b'?theme.danger:theme.gold}}>
+            {turn==='w'?'● YOUR TURN (WHITE)':turn==='b'?'○ OPPONENT THINKING…':turn==='quiz'?'📖 VOCAB CHALLENGE':''}
+          </span>
+          {turn==='b' && <span style={{marginLeft:8,fontSize:10,color:C,fontFamily:theme.fontMono}}>⚡ Stockfish</span>}
+          {correctStreak>=2&&<span style={{marginLeft:10,fontSize:11,color:theme.gold,fontFamily:theme.fontMono}}>🔥 {correctStreak} streak</span>}
+        </div>
+      )}
+      {openingName&&!gameOver&&(
+        <div style={{textAlign:'center',padding:'5px 16px',background:C+'18',borderBottom:`1px solid ${C}33`}}>
+          <span style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:1}}>📖 {openingName}</span>
+        </div>
+      )}
+
+      {/* Game over */}
+      {gameOver && (
+        <div style={{textAlign:'center',padding:'16px',background:gameOver==='win'?theme.success+'18':gameOver==='lose'?theme.danger+'18':theme.surface}}>
+          <div style={{fontFamily:theme.fontMono,fontSize:16,fontWeight:700,color:gameOver==='win'?theme.success:gameOver==='lose'?theme.danger:theme.textMuted,marginBottom:8}}>
+            {gameOver==='win'?'🏆 YOU WIN!':gameOver==='lose'?'💀 CHECKMATE':gameOver==='stalemate'?'🤝 STALEMATE':'🤝 DRAW'}
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:10,alignItems:'center'}}>
+            {wordsThisGame.length>0&&(
+              <button onClick={()=>setShowWordReview(true)} style={{background:C+'22',border:`1px solid ${C}55`,color:C,fontFamily:theme.fontMono,fontSize:11,padding:'8px 20px',cursor:'pointer',borderRadius:8,letterSpacing:1}}>
+                📖 REVIEW WORDS ({wordsThisGame.length})
+              </button>
+            )}
+            <button onClick={newGame} style={{background:C,border:'none',borderRadius:8,color:'#fff',fontFamily:theme.fontMono,fontSize:12,padding:'8px 24px',cursor:'pointer',letterSpacing:1}}>NEW GAME</button>
+          </div>
+        </div>
+      )}
+
+      {/* Score */}
+      {!gameOver && (
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 20px',borderBottom:`1px solid ${theme.border}22`}}>
+          <div style={{fontFamily:theme.fontMono,fontSize:13,color:theme.gold}}>⚡ {score} pts</div>
+          <div style={{display:'flex',gap:12,alignItems:'center'}}>
+            <div style={{fontSize:11,color:theme.textMuted}}>
+              ♙{captured.w.filter(p=>p==='p').length} ♘{captured.w.filter(p=>p==='n').length} ♗{captured.w.filter(p=>p==='b').length} ♖{captured.w.filter(p=>p==='r').length} ♕{captured.w.filter(p=>p==='q').length}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quiz overlay */}
+      {quiz && ReactDOM.createPortal(
+        <QuizOverlay quiz={quiz} wordBank={wordBank} />, document.body
+      )}
+
+      {/* Win-back quiz */}
+      {winBackQuiz && ReactDOM.createPortal(
+        <QuizOverlay quiz={winBackQuiz} wordBank={wordBank} />, document.body
+      )}
+
+      {/* Board */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'16px 16px 0',gap:8}}>
+        <div ref={boardRef} style={{position:'relative',display:'grid',gridTemplateColumns:`repeat(8,${cellSize}px)`,
+          border:`3px solid ${turn==='w'?theme.success:turn==='b'?theme.danger:'#555'}`,borderRadius:6,overflow:'visible',flexShrink:0,
+          transition:'border-color 0.3s',boxShadow:`0 0 20px ${turn==='w'?theme.success+'44':turn==='b'?theme.danger+'44':'transparent'}`}}>
+          {Array.from({length:64}).map((_,i)=>{
+            const r=Math.floor(i/8),c=i%8;
+            const piece=game.board[r][c];
+            const isLight=(r+c)%2===0;
+            const isSel=selected&&selected[0]===r&&selected[1]===c;
+            const isDest=legalDests.some(([lr,lc])=>lr===r&&lc===c);
+            const isLastFrom=lastMove&&lastMove.from[0]===r&&lastMove.from[1]===c;
+            const isLastTo=lastMove&&lastMove.to[0]===r&&lastMove.to[1]===c;
+            const isAiFlash=aiFlash&&aiFlash[0]===r&&aiFlash[1]===c;
+            const isThreatened=showOverlays&&threatened.has(`${r},${c}`)&&piece?.color==='w'&&!isSel;
+            let bg=isLight?'#b8d4e8':'#4a7fa5';
+            if(isLastFrom||isLastTo) bg=isLight?'#c8d870':'#8a9830';
+            if(isSel) bg='#ff5e9988';
+            if(isAiFlash) bg='#ff8c00';
+            return (
+              <div key={i} onClick={()=>handleSquare(r,c)} style={{width:cellSize,height:cellSize,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative',
+                outline:isThreatened?`2px solid ${theme.danger}88`:'none',outlineOffset:'-2px'}}>
+                {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff44'}}/>}
+                {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff55',pointerEvents:'none'}}/>}
+                {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize}/>}
+                {r===7&&<div style={{position:'absolute',bottom:1,right:3,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{'abcdefgh'[c]}</div>}
+                {c===0&&<div style={{position:'absolute',top:1,left:2,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{8-r}</div>}
+              </div>
+            );
+          })}
+          {reversing&&<div style={{position:'absolute',inset:0,zIndex:20,background:'#3d8ef533',border:'3px solid #3d8ef5',borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}><span style={{fontFamily:theme.fontMono,fontSize:13,color:'#3d8ef5',letterSpacing:2,fontWeight:700,background:'#0a0a1299',padding:'4px 10px',borderRadius:4}}>↩ REVERSING</span></div>}
+          {/* Threat arrows */}
+          {threatArrows.length>0&&(
+            <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:15}} viewBox={`0 0 ${cellSize*8} ${cellSize*8}`}>
+              <defs>
+                <marker id="arrowRedSF" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#ff4444cc"/></marker>
+                <marker id="arrowOrangeSF" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#ff9900cc"/></marker>
+              </defs>
+              {threatArrows.map((a,i)=>{
+                const fx=(a.from[1]+0.5)*cellSize,fy=(a.from[0]+0.5)*cellSize;
+                const tx=(a.to[1]+0.5)*cellSize,ty=(a.to[0]+0.5)*cellSize;
+                const dx=tx-fx,dy=ty-fy,len=Math.sqrt(dx*dx+dy*dy);
+                const ux=dx/len,uy=dy/len,pad=cellSize*0.3;
+                const color=a.type==='hanging'?'#ff9900cc':'#ff4444cc';
+                const marker=a.type==='hanging'?'url(#arrowOrangeSF)':'url(#arrowRedSF)';
+                return <line key={i} x1={fx+ux*pad} y1={fy+uy*pad} x2={tx-ux*pad} y2={ty-uy*pad} stroke={color} strokeWidth={cellSize*0.08} markerEnd={marker} strokeLinecap="round"/>;
+              })}
+            </svg>
+          )}
+        </div>
+
+        {/* Hint button */}
+        {turn==='w'&&!gameOver&&(
+          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'center',padding:'8px 0'}}>
+            <button onClick={getHintSF} disabled={hintLoading||!sfReady} style={{background:'none',border:`1px solid ${C}`,color:C,borderRadius:8,padding:'6px 14px',fontSize:12,cursor:hintLoading?'wait':'pointer',fontFamily:theme.fontBody,fontWeight:600,opacity:sfReady?1:0.5}}>
+              {hintLoading?'⚡ Thinking…':'⚡ Hint'}
+            </button>
+          </div>
+        )}
+        {hint&&<div style={{fontFamily:theme.fontMono,fontSize:11,color:C,textAlign:'center',padding:'4px 12px',background:C+'18',borderRadius:8,border:`1px solid ${C}33`}}>
+          <div style={{fontWeight:700,marginBottom:2}}>{hint.label}</div>
+          <div style={{opacity:0.85}}>{hint.reason}</div>
+        </div>}
+        {(msg||coachMsg)&&<div style={{textAlign:'center',fontFamily:theme.fontMono,fontSize:11,color:msg?theme.gold:C,padding:'4px 12px',background:'rgba(0,0,0,0.3)',borderRadius:8}}>{msg||coachMsg}</div>}
+        {streakFlash&&<div style={{position:'fixed',inset:0,zIndex:200,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{fontFamily:theme.fontMono,fontSize:22,fontWeight:700,color:theme.gold,letterSpacing:3,textShadow:`0 0 20px ${theme.gold}`,background:'rgba(0,0,0,0.6)',padding:'12px 24px',borderRadius:12,border:`2px solid ${theme.gold}66`}}>🔥 {correctStreak} WORD STREAK!</div></div>}
+      </div>
+
+      {/* Word review */}
+      {showWordReview&&ReactDOM.createPortal(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setShowWordReview(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:'16px 16px 0 0',border:`1.5px solid ${C}44`,borderBottom:'none',width:'100%',maxWidth:600,maxHeight:'80vh',display:'flex',flexDirection:'column'}}>
+            <div style={{padding:'18px 20px 12px',borderBottom:`1px solid ${theme.border}`,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+              <div>
+                <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:C,letterSpacing:2}}>📖 WORDS THIS GAME</div>
+                <div style={{fontSize:11,color:theme.textMuted,marginTop:3}}>{wordsThisGame.length} words</div>
+              </div>
+              <div style={{display:'flex',gap:8}}>
+                <button onClick={newGame} style={{background:C+'22',border:`1px solid ${C}55`,color:C,borderRadius:8,padding:'7px 14px',fontSize:12,cursor:'pointer',fontFamily:theme.fontBody,fontWeight:600}}>New Game</button>
+                <button onClick={()=>setShowWordReview(false)} style={{background:'none',border:`1px solid ${theme.border}`,color:theme.textMuted,borderRadius:8,padding:'7px 12px',fontSize:13,cursor:'pointer'}}>✕</button>
+              </div>
+            </div>
+            <div style={{overflowY:'auto',padding:'12px 20px 24px',display:'flex',flexDirection:'column',gap:10}}>
+              {wordsThisGame.map(({word,def,piece,correct},i)=>(
+                <div key={i} style={{background:theme.bg,borderRadius:10,padding:'12px 14px',border:`1px solid ${correct?theme.success+'44':theme.danger+'44'}`}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <span style={{fontFamily:theme.fontMono,fontWeight:700,fontSize:14,color:correct?theme.success:'#fff',letterSpacing:1}}>{word}</span>
+                    <span style={{fontSize:10,color:theme.textMuted}}>captured {PIECE_NAMES[piece]}</span>
+                    <span style={{marginLeft:'auto',fontSize:12}}>{correct?'✓':'✗'}</span>
+                  </div>
+                  <div style={{fontSize:12,color:theme.textMuted,lineHeight:1.5}}>{def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      <ExplodeSVG />
+    </div>
+  );
+}
+
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 function App() {
   const [screen, setScreen] = useState("home");
   const [onboarded, setOnboarded] = React.useState(() => !!localStorage.getItem('satarcade_onboarded'));
-  const [scores, setScores] = useState({ hangman: 0, crossword: 0, detective: 0, oddoneout: 0, eartrainer: 0, chess: 0, total: 0 });
+  const [scores, setScores] = useState({ hangman: 0, crossword: 0, detective: 0, oddoneout: 0, eartrainer: 0, chess: 0, chessf: 0, total: 0 });
   const [profile, setProfile] = useState(() => localStorage.getItem('satarcade_profile') || 'sat');
   const activeWords = WORD_BANK.filter(w => profile === 'sat' ? w.tier <= 3 : true);
 
@@ -8959,6 +9220,7 @@ function App() {
           {screen === "oddoneout" && <OddOneOut onBack={() => setScreen("home")} onScore={pts => addScore("oddoneout", pts)} onCorrect={w => markCorrect(w, "oddoneout")} wordBank={activeWords} />}
           {screen === "eartrainer" && <EarTrainer onBack={() => setScreen("home")} onScore={pts => addScore("eartrainer", pts)} onCorrect={w => markCorrect(w, "eartrainer")} wordBank={activeWords} />}
           {screen === "chess" && <VocabChess onBack={() => setScreen("home")} onScore={pts => addScore("chess", pts)} onCorrect={w => markCorrect(w, "chess")} wordBank={activeWords} />}
+          {screen === "chessf" && <VocabChessStockfish onBack={() => setScreen("home")} onScore={pts => addScore("chessf", pts)} onCorrect={w => markCorrect(w, "chessf")} wordBank={activeWords} />}
         </div>
       </div>
       {/* Final Boss modal */}

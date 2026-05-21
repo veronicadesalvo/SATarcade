@@ -2070,6 +2070,588 @@ const CLUE_BANK = {
   "ZEPHYR": ["The breeze that barely exists", "What curtains respond to on still days", "The gentlest wind", "A breath from the west"],};
 
 
+
+
+
+
+function makePuzzleBoard(fen) {
+  // Simple FEN parser for piece placement only
+  const B = Array(8).fill(null).map(() => Array(8).fill(null));
+  const typeMap = {p:'p',n:'n',b:'b',r:'r',q:'q',k:'k'};
+  const rows = fen.split('/');
+  for (let r = 0; r < 8; r++) {
+    let c = 0;
+    for (const ch of rows[r]) {
+      if ('12345678'.includes(ch)) { c += parseInt(ch); }
+      else {
+        const color = ch === ch.toUpperCase() ? 'w' : 'b';
+        B[r][c] = { color, type: typeMap[ch.toLowerCase()] };
+        c++;
+      }
+    }
+  }
+  return B;
+}
+
+const CHESS_PUZZLES = (() => {
+  const raw = [
+  {id:'p1',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"White to move and checkmate in one.",fen:'7k/8/6K1/8/8/8/4R3/8',solution:[{from:[6,4],to:[0,4]}],
+    word:'ANTICIPATE',sentences:[
+      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p2',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'8/4r3/8/8/3N3k/8/8/5K2',solution:[{from:[4,3],to:[3,5]}],
+    word:'AMBIGUITY',sentences:[
+      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
+      {text:"The ___ bishop outpost gave long-term pressure without immediate tactical threats.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p3',type:'Checkmate in 1',tactic:'Back Rank Mate',
+    desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'4r1k1/5ppp/8/8/8/8/8/4R1K1',solution:[{from:[7,4],to:[0,4]}],
+    word:'SCRUTINIZE',sentences:[
+      {text:"The ___ queen advance cornered the king with no way out.",correct:true},
+      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
+      {text:"The ___ negotiator secured a deal that satisfied both parties.",correct:false},
+    ],},
+  {id:'p4',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"White to move and checkmate in one.",fen:'k1r5/8/KQ6/8/8/8/8/8',solution:[{from:[2,1],to:[1,1]}],
+    word:'TENACIOUS',sentences:[
+      {text:"The ___ queen advance cornered the king with no way out.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p5',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the single move that finishes the game instantly.",fen:'7k/8/6KQ/8/8/8/8/8',solution:[{from:[2,7],to:[1,7]}],
+    word:'INCISIVE',sentences:[
+      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p6',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'3k4/8/3K4/8/1Q6/8/8/8',solution:[{from:[4,1],to:[0,1]}],
+    word:'DETERMINED',sentences:[
+      {text:"The ___ strike left the king completely defenseless on the back rank.",correct:true},
+      {text:"The ___ pawn advance slowly squeezed black's position.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p7',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"White to move and checkmate in one.",fen:'4k3/8/3Q1K2/8/8/8/8/8',solution:[{from:[2,3],to:[1,4]}],
+    word:'PRAGMATIC',sentences:[
+      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p8',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'8/8/4N3/8/k7/1r6/8/3K4',solution:[{from:[2,4],to:[3,2]}],
+    word:'AMBIGUITY',sentences:[
+      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
+      {text:"The ___ approach favored slow maneuvering over sharp tactical combinations.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p9',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'2k5/8/3K4/8/Q7/8/8/8',solution:[{from:[4,0],to:[0,0]}],
+    word:'ZEALOUS',sentences:[
+      {text:"The ___ final blow exploited the king's lack of escape squares.",correct:true},
+      {text:"The ___ pawn advance slowly squeezed black's position.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p10',type:'Fork',tactic:'Queen Fork',
+    desc:"One queen move checks the king and wins material. Find it.",fen:'7k/8/8/8/8/1r6/4K3/1Q6',solution:[{from:[7,1],to:[6,1]}],
+    word:'AMBIGUITY',sentences:[
+      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
+      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p11',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'k7/8/KQ6/8/8/8/8/8',solution:[{from:[2,1],to:[1,1]}],
+    word:'ZEALOUS',sentences:[
+      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
+      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p12',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'k7/2Q5/2K5/8/8/8/8/8',solution:[{from:[1,2],to:[1,1]}],
+    word:'COMPELLING',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"The ___ pawn advance slowly squeezed black's position.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p13',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'7k/8/6K1/8/8/8/Q7/8',solution:[{from:[6,0],to:[0,0]}],
+    word:'ANTICIPATE',sentences:[
+      {text:"The ___ strike left the king completely defenseless on the back rank.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p14',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'3k4/2N3r1/8/8/8/8/4K3/8',solution:[{from:[1,2],to:[2,4]}],
+    word:'SCRUTINIZE',sentences:[
+      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
+      {text:"The ___ bishop outpost gave long-term pressure without immediate tactical threats.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p15',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'k7/3r4/8/3N4/8/8/8/4K3',solution:[{from:[3,3],to:[2,1]}],
+    word:'UNDERMINE',sentences:[
+      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p16',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'4k3/8/5K2/8/6Q1/8/8/8',solution:[{from:[4,6],to:[0,2]}],
+    word:'INEVITABLE',sentences:[
+      {text:"The ___ strike left the king completely defenseless on the back rank.",correct:true},
+      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p17',type:'Fork',tactic:'Queen Fork',
+    desc:"Your queen can check the king and attack another piece in one move.",fen:'k2r4/8/8/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[3,0]}],
+    word:'ASTUTE',sentences:[
+      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
+    ],},
+  {id:'p18',type:'Fork',tactic:'Queen Fork',
+    desc:"One queen move checks the king and wins material. Find it.",fen:'7k/1Q6/8/1r6/8/8/8/4K3',solution:[{from:[1,1],to:[0,1]}],
+    word:'ELUSIVE',sentences:[
+      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
+      {text:"The ___ bishop outpost gave long-term pressure without immediate tactical threats.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p19',type:'Fork',tactic:'Queen Fork',
+    desc:"One queen move checks the king and wins material. Find it.",fen:'7k/8/8/8/8/1r6/8/1Q3K2',solution:[{from:[7,1],to:[6,1]}],
+    word:'UNDERMINE',sentences:[
+      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
+      {text:"The ___ bishop outpost gave long-term pressure without immediate tactical threats.",correct:false},
+      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
+    ],},
+  {id:'p20',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'k7/5Q2/2K5/8/8/8/8/8',solution:[{from:[1,5],to:[1,1]}],
+    word:'STEADFAST',sentences:[
+      {text:"White demonstrated ___ play, finding the single move that ended the game.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
+    ],},
+  {id:'p21',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'7k/8/6K1/8/8/3Q4/8/8',solution:[{from:[5,3],to:[0,3]}],
+    word:'INEVITABLE',sentences:[
+      {text:"The ___ final blow exploited the king's lack of escape squares.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p22',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'2N1k3/8/8/1r6/8/8/8/4K3',solution:[{from:[0,2],to:[2,3]}],
+    word:'UNDERMINE',sentences:[
+      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
+      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p23',type:'Fork',tactic:'Queen Fork',
+    desc:"Your queen can check the king and attack another piece in one move.",fen:'4k3/8/8/8/1r6/8/7Q/3K4',solution:[{from:[6,7],to:[0,1]}],
+    word:'ASTUTE',sentences:[
+      {text:"The queen ___ the uncoordinated black pieces, forking king and rook in a single leap.",correct:true},
+      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p24',type:'Checkmate in 1',tactic:'Back Rank Mate',
+    desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'7k/6pp/8/6K1/8/8/8/R7',solution:[{from:[7,0],to:[0,0]}],
+    word:'FORMIDABLE',sentences:[
+      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
+    ],},
+  {id:'p25',type:'Fork',tactic:'Knight Fork',
+    desc:"A single knight move forks two pieces. Can you spot it?",fen:'2N1k3/1r6/8/8/8/8/8/4K3',solution:[{from:[0,2],to:[2,3]}],
+    word:'SCRUTINIZE',sentences:[
+      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
+      {text:"The ___ bishop outpost gave long-term pressure without immediate tactical threats.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p26',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'5r1k/5ppp/7K/6Q1/8/8/8/8',solution:[{from:[3,6],to:[1,6]}],
+    word:'COMPELLING',sentences:[
+      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
+      {text:"The ___ pawn advance slowly squeezed black's position.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p27',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the single move that finishes the game instantly.",fen:'7k/8/6KQ/8/8/8/8/8',solution:[{from:[2,7],to:[1,6]}],
+    word:'INCISIVE',sentences:[
+      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p28',type:'Fork',tactic:'Queen Fork',
+    desc:"Your queen can check the king and attack another piece in one move.",fen:'k7/3r4/8/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[2,2]}],
+    word:'HINDER',sentences:[
+      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
+      {text:"The ___ approach favored slow maneuvering over sharp tactical combinations.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p29',type:'Checkmate in 1',tactic:'Rook Ladder Mate',
+    desc:"The rooks can ladder the king to checkmate. Find the move.",fen:'7k/8/8/8/8/8/7R/6RK',solution:[{from:[6,6],to:[0,6]}],
+    word:'INEVITABLE',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p30',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'4k3/8/4K3/8/8/8/2Q5/8',solution:[{from:[6,2],to:[0,2]}],
+    word:'DECISIVE',sentences:[
+      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
+      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p31',type:'Fork',tactic:'Knight Fork',
+    desc:"The knight can jump to a square that attacks king and rook at once.",fen:'4k3/3r4/8/3N4/8/8/8/4K3',solution:[{from:[3,3],to:[2,5]}],
+    word:'ELUSIVE',sentences:[
+      {text:"A ___ fork attack threatened two pieces at once, forcing an immediate material loss.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p32',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"Use the rook and king to deliver checkmate in one move.",fen:'k7/8/1K6/8/6R1/8/8/8',solution:[{from:[4,6],to:[0,6]}],
+    word:'PREVAIL',sentences:[
+      {text:"The ___ queen advance cornered the king with no way out.",correct:true},
+      {text:"The ___ pawn advance slowly squeezed black's position.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p33',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"Use the rook and king to deliver checkmate in one move.",fen:'3k4/8/3K4/8/8/8/8/7R',solution:[{from:[7,7],to:[0,7]}],
+    word:'AGGRESSIVE',sentences:[
+      {text:"The ___ strike left the king completely defenseless on the back rank.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p34',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'3k4/8/8/N1r5/8/8/8/5K2',solution:[{from:[3,0],to:[1,1]}],
+    word:'EXPLOIT',sentences:[
+      {text:"The ___ player spotted the fork immediately \u2014 one move attacked king and rook together.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p35',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"The king is cornered. Find the rook move that ends the game.",fen:'4k3/8/4K3/8/8/8/R7/8',solution:[{from:[6,0],to:[0,0]}],
+    word:'AUDACIOUS',sentences:[
+      {text:"The checkmate was ___ \u2014 once the king was trapped, no defense was possible.",correct:true},
+      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
+      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
+    ],},
+  {id:'p36',type:'Fork',tactic:'Knight Fork',
+    desc:"The knight can jump to a square that attacks king and rook at once.",fen:'4k3/8/4r3/5N2/8/8/8/3K4',solution:[{from:[3,5],to:[1,6]}],
+    word:'SCRUTINIZE',sentences:[
+      {text:"White chose to ___ the loose piece arrangement, landing a fork that won material.",correct:true},
+      {text:"The ___ bishop outpost gave long-term pressure without immediate tactical threats.",correct:false},
+      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
+    ],},
+  {id:'p37',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'6k1/8/5KQ1/8/8/8/8/8',solution:[{from:[2,6],to:[1,6]}],
+    word:'INCISIVE',sentences:[
+      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
+    ],},
+  {id:'p38',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'5k2/8/6K1/8/3Q4/8/8/8',solution:[{from:[4,3],to:[0,3]}],
+    word:'AGGRESSIVE',sentences:[
+      {text:"The ___ strike left the king completely defenseless on the back rank.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p39',type:'Fork',tactic:'Queen Fork',
+    desc:"One queen move checks the king and wins material. Find it.",fen:'4k3/8/8/8/1r6/8/4K3/3Q4',solution:[{from:[7,3],to:[4,0]}],
+    word:'UNDERMINE',sentences:[
+      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
+      {text:"The ___ approach favored slow maneuvering over sharp tactical combinations.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p40',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the single move that finishes the game instantly.",fen:'6k1/5ppp/5Q2/6K1/8/8/8/8',solution:[{from:[2,5],to:[0,3]}],
+    word:'DECISIVE',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
+    ],},
+  {id:'p41',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'3k4/N7/8/8/1r6/8/8/3K4',solution:[{from:[1,0],to:[2,2]}],
+    word:'UNDERMINE',sentences:[
+      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"The journalist sought to ___ every loophole in the company's statements.",correct:false},
+    ],},
+  {id:'p42',type:'Fork',tactic:'Queen Fork',
+    desc:"Your queen can check the king and attack another piece in one move.",fen:'k7/8/3r4/3Q4/8/8/8/4K3',solution:[{from:[3,3],to:[2,2]}],
+    word:'HINDER',sentences:[
+      {text:"A ___ fork attack threatened two pieces at once, forcing an immediate material loss.",correct:true},
+      {text:"The ___ approach favored slow maneuvering over sharp tactical combinations.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p43',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'4k3/8/5K2/8/8/7Q/8/8',solution:[{from:[5,7],to:[0,2]}],
+    word:'AUDACIOUS',sentences:[
+      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p44',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"Use the rook and king to deliver checkmate in one move.",fen:'3k4/8/3K4/8/6R1/8/8/8',solution:[{from:[4,6],to:[0,6]}],
+    word:'DETERMINED',sentences:[
+      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
+      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p45',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"White to move and checkmate in one.",fen:'k7/8/1K6/8/8/8/8/4R3',solution:[{from:[7,4],to:[0,4]}],
+    word:'PREVAIL',sentences:[
+      {text:"The ___ final blow exploited the king's lack of escape squares.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},
+    ],},
+  {id:'p46',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the single move that finishes the game instantly.",fen:'3k4/8/2K4Q/8/8/8/8/8',solution:[{from:[2,7],to:[0,5]}],
+    word:'AUDACIOUS',sentences:[
+      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
+      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p47',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"White to move and checkmate in one.",fen:'4k3/8/4K3/8/2R5/8/8/8',solution:[{from:[4,2],to:[0,2]}],
+    word:'PRAGMATIC',sentences:[
+      {text:"A ___ queen move delivered checkmate before the opponent could reorganize.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p48',type:'Checkmate in 1',tactic:'Back Rank Mate',
+    desc:"A back rank weakness is fatal. One move ends the game.",fen:'r5k1/5ppp/8/8/8/8/8/R4K2',solution:[{from:[7,0],to:[0,0]}],
+    word:'PERSISTENT',sentences:[
+      {text:"White demonstrated ___ play, finding the single move that ended the game.",correct:true},
+      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p49',type:'Pin',tactic:'Absolute Pin',
+    desc:"Find the bishop move that pins the opponent's piece to its king.",fen:'4k3/3n4/8/8/8/8/2B5/4K3',solution:[{from:[6,2],to:[4,0]}],
+    word:'STYMIE',sentences:[
+      {text:"The ___ pin left the opponent's piece frozen, unable to participate in the defense.",correct:true},
+      {text:"A shortage of resources began to ___ the team's ability to compete.",correct:false},
+      {text:"Anxiety can ___ performance even in well-prepared competitors.",correct:false},
+    ],},
+  {id:'p50',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'7k/8/6K1/8/8/8/8/2Q5',solution:[{from:[7,2],to:[0,2]}],
+    word:'AGGRESSIVE',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p51',type:'Fork',tactic:'Knight Fork',
+    desc:"A single knight move forks two pieces. Can you spot it?",fen:'3k4/8/8/4N3/1r6/8/8/3K4',solution:[{from:[3,4],to:[2,2]}],
+    word:'ASTUTE',sentences:[
+      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
+      {text:"The ___ approach favored slow maneuvering over sharp tactical combinations.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p52',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'5k2/8/5K2/4Q3/8/8/8/8',solution:[{from:[3,4],to:[0,1]}],
+    word:'DECISIVE',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
+      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
+    ],},
+  {id:'p53',type:'Fork',tactic:'Queen Fork',
+    desc:"One queen move checks the king and wins material. Find it.",fen:'k7/8/5Q2/8/8/1r6/8/4K3',solution:[{from:[2,5],to:[5,5]}],
+    word:'UNDERMINE',sentences:[
+      {text:"The knight ___ the opponent's weak piece placement, attacking both king and rook at once.",correct:true},
+      {text:"The ___ approach favored slow maneuvering over sharp tactical combinations.",correct:false},
+      {text:"A ___ investor seizes opportunities that others overlook.",correct:false},
+    ],},
+  {id:'p54',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"The king is cornered. Find the rook move that ends the game.",fen:'k7/8/2K5/8/8/8/8/R7',solution:[{from:[2,2],to:[1,2]}],
+    word:'SCRUTINIZE',sentences:[
+      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
+      {text:"The ___ pawn advance slowly squeezed black's position.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p55',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"White to move and checkmate in one.",fen:'r5k1/6pp/7K/6Q1/8/8/8/8',solution:[{from:[3,6],to:[1,6]}],
+    word:'COMPELLING',sentences:[
+      {text:"The ___ rook swung to the back rank, sealing the king's fate instantly.",correct:true},
+      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p56',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the single move that finishes the game instantly.",fen:'7k/8/6K1/8/8/8/8/4Q3',solution:[{from:[7,4],to:[0,4]}],
+    word:'DECISIVE',sentences:[
+      {text:"The checkmate was ___ \u2014 once the king was trapped, no defense was possible.",correct:true},
+      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p57',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"The king is cornered. Find the rook move that ends the game.",fen:'7k/5R2/6K1/8/8/8/8/8',solution:[{from:[1,5],to:[0,5]}],
+    word:'PERSISTENT',sentences:[
+      {text:"With ___ precision, white found the only move that forced immediate checkmate.",correct:true},
+      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
+      {text:"The ___ negotiator secured a deal that satisfied both parties.",correct:false},
+    ],},
+  {id:'p58',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'5k2/8/4K3/8/8/8/8/Q7',solution:[{from:[7,0],to:[0,7]}],
+    word:'PREVAIL',sentences:[
+      {text:"The ___ queen advance cornered the king with no way out.",correct:true},
+      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p59',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"Use the rook and king to deliver checkmate in one move.",fen:'7k/8/6K1/8/4R3/8/8/8',solution:[{from:[4,4],to:[0,4]}],
+    word:'PRAGMATIC',sentences:[
+      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p60',type:'Pin',tactic:'Absolute Pin',
+    desc:"Find the bishop move that pins the opponent's piece to its king.",fen:'4k3/8/8/2r5/B7/8/8/4K3',solution:[{from:[4,0],to:[1,3]}],
+    word:'CURTAIL',sentences:[
+      {text:"Moving the bishop to that square would ___ the knight, tying it to the king.",correct:true},
+      {text:"The doubled pawns would ___ the rook's activity on the c-file.",correct:false},
+      {text:"The law was designed to ___ harmful practices across the industry.",correct:false},
+    ],},
+  {id:'p61',type:'Fork',tactic:'Knight Fork',
+    desc:"A single knight move forks two pieces. Can you spot it?",fen:'8/8/3r4/8/3N3k/8/4K3/8',solution:[{from:[4,3],to:[3,5]}],
+    word:'HINDER',sentences:[
+      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"A ___ investor seizes opportunities that others overlook.",correct:false},
+    ],},
+  {id:'p62',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"White to move and checkmate in one.",fen:'4k3/8/4K3/R7/8/8/8/8',solution:[{from:[3,0],to:[0,0]}],
+    word:'EMPHATIC',sentences:[
+      {text:"White's ___ finish cornered the king before it could find a safe square.",correct:true},
+      {text:"The ___ pawn advance slowly squeezed black's position.",correct:false},
+      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
+    ],},
+  {id:'p63',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"The king is cornered. Find the rook move that ends the game.",fen:'k7/8/1K6/8/2R5/8/8/8',solution:[{from:[4,2],to:[0,2]}],
+    word:'STEADFAST',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"Black's ___ defense held firm despite constant pressure.",correct:false},
+      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
+    ],},
+  {id:'p64',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the queen move that delivers immediate checkmate.",fen:'k7/8/2K5/8/8/1Q6/8/8',solution:[{from:[5,1],to:[1,1]}],
+    word:'ZEALOUS',sentences:[
+      {text:"The ___ attack left the king with no legal escape \u2014 checkmate was immediate.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p65',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"The king is cornered. Find the rook move that ends the game.",fen:'3k4/8/3K4/8/8/8/8/1R6',solution:[{from:[7,1],to:[0,1]}],
+    word:'AGGRESSIVE',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
+      {text:"She was ___ in her commitment, never wavering despite repeated setbacks.",correct:false},
+    ],},
+  {id:'p66',type:'Fork',tactic:'Queen Fork',
+    desc:"A single queen move creates a fork. Find the winning square.",fen:'7k/1r6/8/1Q6/8/8/4K3/8',solution:[{from:[3,1],to:[6,1]}],
+    word:'EXPLOIT',sentences:[
+      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
+    ],},
+  {id:'p67',type:'Fork',tactic:'Knight Fork',
+    desc:"The knight can jump to a square that attacks king and rook at once.",fen:'5N1k/8/8/8/5r2/8/8/3K4',solution:[{from:[0,5],to:[2,6]}],
+    word:'HINDER',sentences:[
+      {text:"The queen ___ the uncoordinated black pieces, forking king and rook in a single leap.",correct:true},
+      {text:"The ___ bishop outpost gave long-term pressure without immediate tactical threats.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p68',type:'Fork',tactic:'Queen Fork',
+    desc:"Your queen can check the king and attack another piece in one move.",fen:'k7/8/8/2Q5/1r6/8/8/4K3',solution:[{from:[3,2],to:[3,0]}],
+    word:'HINDER',sentences:[
+      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
+      {text:"White tried to ___ the queenside pawn majority rather than launch a tactical attack.",correct:false},
+      {text:"She was ___ enough to spot the opening before anyone else in the room.",correct:false},
+    ],},
+  {id:'p69',type:'Fork',tactic:'Knight Fork',
+    desc:"One knight move attacks two pieces simultaneously. Find the fork.",fen:'8/8/8/1r1N4/k7/8/8/4K3',solution:[{from:[3,3],to:[5,2]}],
+    word:'EXPLOIT',sentences:[
+      {text:"Seeing the undefended pieces, white moved to ___ both the king and rook in one strike.",correct:true},
+      {text:"White chose to ___ the open file rather than seek an immediate tactical blow.",correct:false},
+      {text:"A ___ investor seizes opportunities that others overlook.",correct:false},
+    ],},
+  {id:'p70',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"Use the rook and king to deliver checkmate in one move.",fen:'4k3/8/4K3/8/R7/8/8/8',solution:[{from:[4,0],to:[0,0]}],
+    word:'AGGRESSIVE',sentences:[
+      {text:"The ___ queen advance cornered the king with no way out.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  {id:'p71',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"White to move and checkmate in one.",fen:'6k1/8/6K1/8/8/4Q3/8/8',solution:[{from:[5,4],to:[0,4]}],
+    word:'PREVAIL',sentences:[
+      {text:"The ___ final blow exploited the king's lack of escape squares.",correct:true},
+      {text:"White adopted a ___ strategy, preferring slow positional pressure.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p72',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"White to move and checkmate in one.",fen:'1k6/2Q5/2K5/8/8/8/8/8',solution:[{from:[1,2],to:[1,1]}],
+    word:'SCRUTINIZE',sentences:[
+      {text:"The ___ final blow exploited the king's lack of escape squares.",correct:true},
+      {text:"The ___ retreat saved the piece and stabilized the position.",correct:false},
+      {text:"The ___ leader refused to back down even when the odds were against them.",correct:false},
+    ],},
+  {id:'p73',type:'Fork',tactic:'Knight Fork',
+    desc:"A single knight move forks two pieces. Can you spot it?",fen:'3k4/8/3r4/4N3/8/8/8/4K3',solution:[{from:[3,4],to:[1,5]}],
+    word:'SCRUTINIZE',sentences:[
+      {text:"White ___ a tactical opportunity, using one move to threaten two pieces simultaneously.",correct:true},
+      {text:"The ___ approach favored slow maneuvering over sharp tactical combinations.",correct:false},
+      {text:"The coach advised the team to ___ every weakness in the opponent's defense.",correct:false},
+    ],},
+  {id:'p74',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the single move that finishes the game instantly.",fen:'3k4/7Q/4K3/8/8/8/8/8',solution:[{from:[1,7],to:[1,3]}],
+    word:'INEVITABLE',sentences:[
+      {text:"A ___ move ended the game instantly, leaving the king with nowhere to flee.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"The ___ negotiator secured a deal that satisfied both parties.",correct:false},
+    ],},
+  {id:'p75',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"Find the single move that finishes the game instantly.",fen:'4k3/8/4K3/8/8/8/Q7/8',solution:[{from:[6,0],to:[0,0]}],
+    word:'FORMIDABLE',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"White's ___ approach relied on grinding down the opponent's position.",correct:false},
+      {text:"The ___ scientist published results only after exhaustive verification.",correct:false},
+    ],},
+  {id:'p76',type:'Pin',tactic:'Relative Pin',
+    desc:"Use your bishop to create a pin that wins material.",fen:'4k3/8/2r5/8/B7/8/8/4K3',solution:[{from:[4,0],to:[3,1]}],
+    word:'CURTAIL',sentences:[
+      {text:"A well-placed bishop ___ the rook's movement \u2014 it was stuck until the king moved.",correct:true},
+      {text:"The new rule would ___ certain aggressive opening systems entirely.",correct:false},
+      {text:"The law was designed to ___ harmful practices across the industry.",correct:false},
+    ],},
+  {id:'p77',type:'Checkmate in 1',tactic:'Queen Checkmate',
+    desc:"The king is exposed. One queen move ends the game.",fen:'5k2/8/5K2/8/8/8/8/Q7',solution:[{from:[7,0],to:[0,0]}],
+    word:'PREVAIL',sentences:[
+      {text:"The ___ rook swung to the back rank, sealing the king's fate instantly.",correct:true},
+      {text:"The ___ exchange of queens simplified the game into a drawn endgame.",correct:false},
+      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
+    ],},
+  {id:'p78',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"Use the rook and king to deliver checkmate in one move.",fen:'7k/8/6K1/5R2/8/8/8/8',solution:[{from:[3,5],to:[0,5]}],
+    word:'PREVAIL',sentences:[
+      {text:"White demonstrated ___ play, finding the single move that ended the game.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"Her ___ response to criticism showed she was willing to listen and improve.",correct:false},
+    ],},
+  {id:'p79',type:'Checkmate in 1',tactic:'Rook Checkmate',
+    desc:"White to move and checkmate in one.",fen:'7k/8/4R1K1/8/8/8/8/8',solution:[{from:[2,4],to:[0,4]}],
+    word:'PERSISTENT',sentences:[
+      {text:"Recognizing the ___ nature of the position, white delivered checkmate in one.",correct:true},
+      {text:"The ___ knight outpost gave white long-term control.",correct:false},
+      {text:"The ___ approach to the problem yielded results faster than expected.",correct:false},
+    ],},
+  ];
+  return raw.slice().sort(() => Math.random() - 0.5);
+})();
+
 </script>
 <script type="text/babel">
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
@@ -4563,7 +5145,7 @@ function generateOddOneOutGroups(wordBank, count = 30) {
 
     groups.push({
       theme: `All mean or relate to: ${tag}`,
-      words: [...three.map(e => e.word), odd.word],
+      words: [...new Set([...three.map(e => e.word), odd.word])], // dedupe just in case
       odd: odd.word,
     });
   }
@@ -4592,9 +5174,12 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
 
   useEffect(() => {
     if (current) {
-      setShuffledWords([...current.words].sort(() => Math.random() - 0.5));
+      // Dedupe words in case of any bad data
+      const unique = [...new Set(current.words)];
+      setShuffledWords(unique.sort(() => Math.random() - 0.5));
     }
     setChosen(null);
+    setShowDefs(false);
   }, [idx]);
 
   const pick = (word) => {
@@ -5308,6 +5893,73 @@ function quiesce(B, alpha, beta, maxing, depth=0) {
   return maxing ? alpha : beta;
 }
 
+// ── Search enhancements ───────────────────────────────────────────────────────
+
+// Transposition table — cache (board hash → {score, depth, flag, move})
+// flag: 'exact' | 'lower' | 'upper'
+const TT = new Map();
+const TT_MAX = 1 << 17; // ~130k entries — fits in ~10MB
+
+function boardHash(B) {
+  // Zobrist-lite: FNV-style hash over piece positions
+  let h = 0x811c9dc5;
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const p = B[r][c];
+    if (!p) continue;
+    const v = (r * 8 + c) * 13 + 'pnbrqk'.indexOf(p.type) * 2 + (p.color === 'w' ? 1 : 0);
+    h = Math.imul(h ^ v, 0x01000193) >>> 0;
+  }
+  return h;
+}
+
+function ttClear() { TT.clear(); }
+
+// Killer moves — 2 slots per depth (moves that caused beta cutoffs without capturing)
+const KILLERS = Array.from({length: 12}, () => [null, null]);
+
+function killerStore(depth, move) {
+  if (!move || move.capture) return;
+  if (KILLERS[depth] && KILLERS[depth][0] &&
+      KILLERS[depth][0].from[0] === move.from[0] && KILLERS[depth][0].from[1] === move.from[1] &&
+      KILLERS[depth][0].to[0] === move.to[0] && KILLERS[depth][0].to[1] === move.to[1]) return;
+  KILLERS[depth] = [move, KILLERS[depth][0]];
+}
+
+function isKiller(depth, move) {
+  if (!KILLERS[depth]) return false;
+  return KILLERS[depth].some(k => k &&
+    k.from[0] === move.from[0] && k.from[1] === move.from[1] &&
+    k.to[0] === move.to[0] && k.to[1] === move.to[1]);
+}
+
+// History heuristic — reward moves that repeatedly cause alpha-beta cutoffs
+const HISTORY = new Float32Array(2 * 8 * 8 * 8 * 8); // [color][from][to]
+function histIdx(move, color) {
+  return (color === 'b' ? 0 : 1) * 4096 + move.from[0] * 512 + move.from[1] * 64 + move.to[0] * 8 + move.to[1];
+}
+function historyGet(move, color) { return HISTORY[histIdx(move, color)]; }
+function historyAdd(move, color, depth) { HISTORY[histIdx(move, color)] += depth * depth; }
+function historyClear() { HISTORY.fill(0); }
+
+// Enhanced move ordering: captures (MVV-LVA) > killers > history > quiet
+function orderMovesEnhanced(B, moves, depth, color) {
+  return moves.map(m => {
+    const cap = B[m.to[0]][m.to[1]];
+    const atk = B[m.from[0]][m.from[1]];
+    let score = 0;
+    if (cap) {
+      // MVV-LVA
+      score = 100000 + (PIECE_VALUES[cap.type]||0) * 10 - (PIECE_VALUES[atk?.type]||0);
+    } else if (isKiller(depth, m)) {
+      score = 90000; // killer moves just below captures
+    } else {
+      score = historyGet(m, color); // history score for quiet moves
+    }
+    if (atk?.type==='p' && (m.to[0]===0||m.to[0]===7)) score += 80000; // promotions
+    return {m, score};
+  }).sort((a,b) => b.score - a.score).map(x => x.m);
+}
+
 // MVV-LVA move ordering — search captures first for better alpha-beta pruning
 function orderMoves(B, moves) {
   return moves.map(m => {
@@ -5321,15 +5973,46 @@ function orderMoves(B, moves) {
 }
 
 function minimax(B, depth, alpha, beta, maxing, state, lastMove, prevLastMove) {
-  const color = maxing?'b':'w';
-  const moves = getLegal(B, color, state);
-  if (!moves.length) return {score:evaluate(B),move:null};
-  if (depth===0) return {score:quiesce(B,alpha,beta,maxing),move:null};
+  const color = maxing ? 'b' : 'w';
 
-  const ordered = orderMoves(B, moves);
-  let best = maxing?-Infinity:Infinity, bestMove = ordered[0];
+  // Transposition table lookup
+  const hash = boardHash(B);
+  const tt = TT.get(hash);
+  if (tt && tt.depth >= depth) {
+    if (tt.flag === 'exact') return { score: tt.score, move: tt.move };
+    if (tt.flag === 'lower' && tt.score >= beta) return { score: tt.score, move: tt.move };
+    if (tt.flag === 'upper' && tt.score <= alpha) return { score: tt.score, move: tt.move };
+  }
+
+  const moves = getLegal(B, color, state);
+  if (!moves.length) return { score: evaluate(B), move: null };
+  if (depth === 0) return { score: quiesce(B, alpha, beta, maxing), move: null };
+
+  // Null move pruning — skip a turn to get a quick bound
+  // Only in non-check positions with enough material, and not at root
+  if (depth >= 3 && lastMove !== null) {
+    const canNull = (() => {
+      for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        const p = B[r][c];
+        if (p?.color === color && (p.type === 'r' || p.type === 'q' || p.type === 'n' || p.type === 'b')) return true;
+      }
+      return false;
+    })();
+    if (canNull && !inCheck(B, color)) {
+      const nullState = { ...state, turn: maxing ? 'w' : 'b' };
+      const R = 2; // reduction
+      const { score: nullScore } = minimax(B, depth - 1 - R, alpha, beta, !maxing, nullState, null, null);
+      if (maxing && nullScore >= beta) return { score: beta, move: null };
+      if (!maxing && nullScore <= alpha) return { score: alpha, move: null };
+    }
+  }
+
+  const ordered = orderMovesEnhanced(B, moves, depth, color);
+  const origAlpha = alpha;
+  let best = maxing ? -Infinity : Infinity, bestMove = ordered[0];
+
   for (const m of ordered) {
-    const {board:nb,newEp,newCastle} = applyMove(B,m.from,m.to,state);
+    const {board:nb, newEp, newCastle} = applyMove(B, m.from, m.to, state);
 
     // Penalize reversing the previous move
     let reversalPenalty = 0;
@@ -5339,15 +6022,27 @@ function minimax(B, depth, alpha, beta, maxing, state, lastMove, prevLastMove) {
       reversalPenalty = 30;
     }
 
-    const {score:rawScore} = minimax(nb,depth-1,alpha,beta,!maxing,{ep:newEp,castle:newCastle},m,lastMove);
+    const {score: rawScore} = minimax(nb, depth-1, alpha, beta, !maxing, {ep:newEp, castle:newCastle}, m, lastMove);
     const score = rawScore + (maxing ? -reversalPenalty : reversalPenalty);
 
-    if (maxing?score>best:score<best) { best=score; bestMove=m; }
-    if (maxing) alpha=Math.max(alpha,best); else beta=Math.min(beta,best);
-    if (beta<=alpha) break;
+    if (maxing ? score > best : score < best) { best = score; bestMove = m; }
+    if (maxing) alpha = Math.max(alpha, best); else beta = Math.min(beta, best);
+    if (beta <= alpha) {
+      // Beta cutoff — store killer and update history
+      killerStore(depth, m);
+      if (!B[m.to[0]][m.to[1]]) historyAdd(m, color, depth);
+      break;
+    }
   }
-  return {score:best,move:bestMove};
+
+  // Store in transposition table
+  if (TT.size >= TT_MAX) TT.clear(); // simple replacement: clear when full
+  const flag = best <= origAlpha ? 'upper' : best >= beta ? 'lower' : 'exact';
+  TT.set(hash, { score: best, depth, flag, move: bestMove });
+
+  return { score: best, move: bestMove };
 }
+
 
 // ── Chess Game State Object ───────────────────────────────────────────────────
 function createGame() {
@@ -5408,6 +6103,10 @@ let _aiGameSeed = Math.random();
 function resetAiSeed() { _aiGameSeed = Math.random(); }
 
 function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
+  // Clear search tables for a fresh search
+  ttClear();
+  historyClear();
+  KILLERS.forEach(k => { k[0] = null; k[1] = null; });
   // Try opening book for black (first 8 half-moves)
   const mh = game.moveHistory || [];
   if (mh.length <= 8) {
@@ -5432,7 +6131,8 @@ function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
   }
   // Add small noise to evaluation to prevent deterministic play each game
   const noiseFactor = ((_aiGameSeed * 1000) | 0) % 15; // 0-14 cp noise per game
-  const {move} = minimax(game.board, 4, -Infinity + noiseFactor, Infinity, true, game, lastAiMove, lastAiMove);
+  const depth = game.difficulty === 'hard' ? 5 : game.difficulty === 'easy' ? 3 : 4;
+  const {move} = minimax(game.board, depth, -Infinity + noiseFactor, Infinity, true, game, lastAiMove, lastAiMove);
   return move;
 }
 
@@ -5627,7 +6327,7 @@ const CHESS_VOCAB_MAP = {
   mistake:      ['IMPRUDENT','RECKLESS','NEGLIGENT','REMISS','CULPABLE','INADVERTENT'],
   losing:       ['CAPITULATE','ACQUIESCE','SUCCUMB','DESPONDENT'],
   winning:      ['PREVAIL','INDOMITABLE','EXULTANT','LAUDABLE'],
-  tricky:       ['DEVIOUS','DUPLICITOUS','INSIDIOUS','SURREPTITIOUS','FURTIVE','PERFIDIOUS'],
+  tricky:       ['ASTUTE','DUPLICITOUS','INSIDIOUS','SURREPTITIOUS','FURTIVE','PERFIDIOUS'],
   coordinated:  ['COHESIVE','HARMONIOUS','COMPLEMENTARY'],
 };
 
@@ -6425,7 +7125,6 @@ function getHintMove(game) {
   if (!moves.length) return null;
 
   // ── PRIORITY 0: Save a hanging piece first ────────────────────────────────────
-  // If the player has a valuable piece under attack with no defender, warn immediately
   const hangingPieces = [];
   for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
     const p = game.board[r][c];
@@ -6433,76 +7132,56 @@ function getHintMove(game) {
       hangingPieces.push({ r, c, type: p.type, value: PIECE_VALUES[p.type]||0 });
     }
   }
-  // Sort by value descending — save most valuable first
   hangingPieces.sort((a,b) => b.value - a.value);
   if (hangingPieces.length > 0) {
     const hp = hangingPieces[0];
     const sq = toSq(hp.r, hp.c);
     const pName = PIECE_NAMES[hp.type];
-    // Find a move that saves this piece
     const saveMoves = moves.filter(m => {
       if (m.from[0]===hp.r && m.from[1]===hp.c) {
-        // Moving the piece away — check if destination is safe
         const {board:nb} = applyMove(game.board, m.from, m.to, game);
         return !isHanging(nb, m.to[0], m.to[1], 'w');
       }
-      // Capturing the attacker
-      const attacker = game.board[m.to[0]]?.[m.to[1]];
-      if (attacker?.color==='b') {
-        const {board:nb} = applyMove(game.board, m.from, m.to, game);
-        return !isHanging(nb, hp.r, hp.c, 'w');
-      }
-      // Blocking/defending
       const {board:nb} = applyMove(game.board, m.from, m.to, game);
       return !isHanging(nb, hp.r, hp.c, 'w');
     });
     if (saveMoves.length > 0) {
-      const saveMove = saveMoves[0];
-      const dst = toSq(saveMove.to[0], saveMove.to[1]);
-      const movingPiece = game.board[saveMove.from[0]][saveMove.from[1]];
-      const movingName = PIECE_NAMES[movingPiece.type];
-      const isMovingAway = saveMove.from[0]===hp.r && saveMove.from[1]===hp.c;
+      // Among save moves, pick the one the main engine rates highest
+      let bestSave = saveMoves[0], bestSaveScore = -Infinity;
+      for (const m of saveMoves) {
+        const { board: nb, newEp, newCastle } = applyMove(game.board, m.from, m.to, game);
+        if (inCheck(nb, 'w')) continue;
+        const nextState = { board: nb, turn: 'b', ep: newEp, castle: newCastle };
+        const s = minimax(nb, 2, -Infinity, Infinity, false, nextState, null, null).score;
+        if (s > bestSaveScore) { bestSaveScore = s; bestSave = m; }
+      }
+      const dst = toSq(bestSave.to[0], bestSave.to[1]);
+      const movingName = PIECE_NAMES[game.board[bestSave.from[0]][bestSave.from[1]].type];
+      const isMovingAway = bestSave.from[0]===hp.r && bestSave.from[1]===hp.c;
       const reason = isMovingAway
-        ? `⚠️ Your ${pName} on ${sq} is hanging — the opponent can take it for free! Move it to ${dst} to safety.`
-        : `⚠️ Your ${pName} on ${sq} is under attack and undefended! ${movingName} to ${dst} resolves the threat.`;
-      return { move: saveMove, score: 0, label: 'SAVE YOUR PIECE', reason };
-    }
-  }
-
-  // ── Opening book: instant, no search needed ──────────────────────────────
-  const mh = game.moveHistory || [];
-  if (mh.length <= 16) {
-    const ob = getOpeningHint(mh, game.bookSeed ?? 0);
-    if (ob) {
-      const isLegal = moves.some(m => m.from[0]===ob.move.from[0]&&m.from[1]===ob.move.from[1]&&m.to[0]===ob.move.to[0]&&m.to[1]===ob.move.to[1]);
-      if (isLegal) return { move: ob.move, score: 0, label: 'BOOK MOVE', reason: `📖 ${ob.name}` };
+        ? `⚠️ Your ${pName} on ${sq} is hanging — move it to ${dst} to safety.`
+        : `⚠️ Your ${pName} on ${sq} is under attack! ${movingName} to ${dst} resolves the threat.`;
+      return { move: bestSave, score: bestSaveScore, label: 'SAVE YOUR PIECE', reason };
     }
   }
 
   const scoreBefore = evaluateBoard(game.board);
 
-  // Time-limited iterative deepening — never exceeds 800ms
-  const DEADLINE = performance.now() + 800;
-  let bestMove = null;
-  let bestScore = -Infinity;
-  const ordered = orderMovesHint(game.board, moves, game);
-
-  for (let depth = 2; depth <= 6; depth++) {
-    if (performance.now() > DEADLINE) break;
-    let iterBest = null;
-    let iterScore = -Infinity;
-    let fullDepthComplete = true;
-    for (const m of ordered) {
-      if (performance.now() > DEADLINE) { fullDepthComplete = false; break; }
-      const { board: nb, newEp, newCastle } = applyMove(game.board, m.from, m.to, game);
-      if (inCheck(nb, 'w')) continue;
-      const nextState = { board: nb, turn: 'b', ep: newEp, castle: newCastle };
-      const score = minimaxHint(nb, nextState, depth - 1, -Infinity, Infinity, false, DEADLINE);
-      if (score > iterScore) { iterScore = score; iterBest = m; }
-    }
-    // Only commit result if entire move list was evaluated at this depth
-    if (fullDepthComplete && iterBest) { bestMove = iterBest; bestScore = iterScore; }
+  // ── Use the SAME minimax engine as the AI ────────────────────────────────────
+  const hintDepth = (game.difficulty === 'hard') ? 4 : 3;
+  const moves2 = getLegal(game.board, 'w', game);
+  let bestMove2 = null, bestScore2 = -Infinity;
+  for (const m of orderMovesHint(game.board, moves2, game)) {
+    const { board: nb, newEp, newCastle } = applyMove(game.board, m.from, m.to, game);
+    if (inCheck(nb, 'w')) continue;
+    const nextState = { board: nb, turn: 'b', ep: newEp, castle: newCastle };
+    const { score } = minimax(nb, hintDepth, -Infinity, Infinity, true, nextState, null, null);
+    // minimax returns black-maximizing score; for white we want the MINIMUM black score
+    const whiteScore = -score;
+    if (whiteScore > bestScore2) { bestScore2 = whiteScore; bestMove2 = m; }
   }
+  const bestMove = bestMove2;
+  const bestScore = bestScore2;
 
   if (!bestMove) return null;
 
@@ -6513,10 +7192,9 @@ function getHintMove(game) {
   const leavesHanging = movedPieceType && movedPieceType !== 'k' && isHanging(hintBoard, movedTo[0], movedTo[1], 'w');
 
   const reason = leavesHanging
-    ? `⚠ This moves your ${PIECE_NAMES[movedPieceType]} to ${toSq(movedTo[0], movedTo[1])} but it can be captured immediately — consider whether the trade is worth it.`
+    ? `⚠ This moves your ${PIECE_NAMES[movedPieceType]} to ${toSq(movedTo[0], movedTo[1])} but it can be captured — consider whether the trade is worth it.`
     : explainMove(game, bestMove, scoreBefore, bestScore);
 
-  // Label by score delta
   const delta = bestScore - scoreBefore;
   const label = leavesHanging       ? 'RISKY MOVE'
               : bestScore >= 9000   ? 'FORCED MATE'
@@ -6850,8 +7528,299 @@ function useExplosion() {
   return { trigger, ExplodeSVG };
 }
 
+// #8 Opening name detection — match move sequences to known openings
+// ─── CHESS PUZZLES ────────────────────────────────────────────────────────────
+// Each puzzle: FEN-like board setup, solution move(s), tactic type, word to define
+// Board is 8x8 array: null or {color:'w'|'b', type:'p'|'n'|'b'|'r'|'q'|'k'}
+// solution: array of moves [{from:[r,c],to:[r,c]}] — player plays odd indices (0,2,...), AI plays even
+// For checkmate-in-1: just one move
+// For fork puzzles: one move that forks two pieces
+
+
+function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+  const C = '#f59e0b'; // amber for puzzles
+  const [puzzleIdx, setPuzzleIdx] = useState(0);
+  const [userBoard, setUserBoard] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [legalDests, setLegalDests] = useState([]);
+  const [status, setStatus] = useState('idle'); // idle | wrong | quiz | quizRight | quizWrong | done
+  const [msg, setMsg] = useState('');
+  const [moveStep, setMoveStep] = useState(0);
+  const [quizChoices, setQuizChoices] = useState([]); // shuffled sentences
+  const [quizPicked, setQuizPicked] = useState(null); // index picked
+  const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth, 420) - 32 - 64) / 8));
+
+  const puzzle = CHESS_PUZZLES[puzzleIdx % CHESS_PUZZLES.length];
+  const wordEntry = wordBank.find(w => w.word === puzzle.word);
+
+  useEffect(() => {
+    setUserBoard((puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => [...r]));
+    setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
+    setMoveStep(0); setQuizPicked(null);
+    // Shuffle the sentences, remembering which is correct
+    const shuffled = [...puzzle.sentences].sort(() => Math.random() - 0.5);
+    setQuizChoices(shuffled);
+  }, [puzzleIdx]);
+
+  const launchQuiz = () => {
+    setStatus('quiz');
+    setMsg('');
+  };
+
+  const handleQuizPick = (idx) => {
+    if (quizPicked !== null) return;
+    setQuizPicked(idx);
+    if (quizChoices[idx].correct) {
+      setStatus('quizRight');
+      onScore(30);
+      onCorrect(puzzle.word);
+    } else {
+      setStatus('quizWrong');
+      onScore(10); // partial credit for solving the chess part
+    }
+  };
+
+  const handleSquare = (r, c) => {
+    if (status !== 'idle' && status !== 'wrong') return;
+    if (!userBoard) return;
+
+    if (selected) {
+      const isLegal = legalDests.some(([lr, lc]) => lr === r && lc === c);
+      if (isLegal) {
+        const sol = puzzle.solution[moveStep];
+        const isCorrect = selected[0] === sol.from[0] && selected[1] === sol.from[1] &&
+                          r === sol.to[0] && c === sol.to[1];
+
+        if (isCorrect) {
+          const nb = userBoard.map(row => [...row]);
+          nb[r][c] = nb[selected[0]][selected[1]];
+          if (nb[r][c]?.type === 'p' && (r === 0 || r === 7)) nb[r][c] = { ...nb[r][c], type: 'q' };
+          nb[selected[0]][selected[1]] = null;
+          setUserBoard(nb);
+          setSelected(null); setLegalDests([]);
+
+          if (moveStep + 1 >= puzzle.solution.length) {
+            // Chess solved — now launch the vocab quiz
+            setTimeout(launchQuiz, 400);
+          } else {
+            setMoveStep(s => s + 1);
+            setTimeout(() => {
+              const aiSol = puzzle.solution[moveStep + 1];
+              if (aiSol) {
+                const nb2 = nb.map(row => [...row]);
+                nb2[aiSol.to[0]][aiSol.to[1]] = nb2[aiSol.from[0]][aiSol.from[1]];
+                nb2[aiSol.from[0]][aiSol.from[1]] = null;
+                setUserBoard(nb2); setMoveStep(s => s + 1);
+              }
+            }, 600);
+          }
+        } else {
+          setStatus('wrong');
+          setMsg('Not quite — try again.');
+          setSelected(null); setLegalDests([]);
+          setTimeout(() => { setStatus('idle'); setMsg(''); }, 1500);
+        }
+        return;
+      }
+      if (userBoard[r][c]?.color === 'w') {
+        setSelected([r, c]);
+        const g = { board: userBoard, ep: null, castle: {wK:false,wQ:false,bK:false,bQ:false} };
+        setLegalDests(getLegal(userBoard, 'w', g).filter(m => m.from[0]===r&&m.from[1]===c).map(m=>m.to));
+      } else { setSelected(null); setLegalDests([]); }
+      return;
+    }
+    if (userBoard[r][c]?.color === 'w') {
+      setSelected([r, c]);
+      const g = { board: userBoard, ep: null, castle: {wK:false,wQ:false,bK:false,bQ:false} };
+      setLegalDests(getLegal(userBoard, 'w', g).filter(m => m.from[0]===r&&m.from[1]===c).map(m=>m.to));
+    }
+  };
+
+  return (
+    <div style={{minHeight:'100vh',background:theme.bg,display:'flex',flexDirection:'column'}}>
+      <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
+        <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
+        <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
+          <span style={{fontFamily:theme.fontMono,fontSize:15,fontWeight:700,letterSpacing:2,color:C}}>CHESS PUZZLES</span>
+        </div>
+        <div style={{fontFamily:theme.fontMono,fontSize:11,color:theme.textMuted}}>{puzzleIdx % CHESS_PUZZLES.length + 1}/{CHESS_PUZZLES.length}</div>
+      </div>
+
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'16px 16px 24px',gap:12}}>
+
+        {/* Phase 1: Chess puzzle */}
+        {status !== 'quiz' && status !== 'quizRight' && status !== 'quizWrong' && (
+          <>
+            <div style={{width:'100%',maxWidth:`${cellSize*8+4}px`,background:theme.surface,borderRadius:10,padding:'12px 14px',border:`1px solid ${C}44`}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:1,fontWeight:700}}>{puzzle.type}</span>
+                <span style={{fontSize:11,color:theme.textMuted,fontStyle:'italic'}}>{puzzle.tactic}</span>
+              </div>
+              <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>{puzzle.desc}</div>
+              {msg && <div style={{marginTop:8,fontSize:13,fontWeight:700,color:theme.danger}}>{msg}</div>}
+            </div>
+
+            {userBoard && (
+              <div style={{display:'grid',gridTemplateColumns:`repeat(8,${cellSize}px)`,border:`2px solid ${C}66`,borderRadius:6,overflow:'hidden',flexShrink:0}}>
+                {Array.from({length:64}).map((_,i) => {
+                  const r=Math.floor(i/8), c=i%8;
+                  const piece=userBoard[r][c];
+                  const isLight=(r+c)%2===0;
+                  const isSel=selected&&selected[0]===r&&selected[1]===c;
+                  const isDest=legalDests.some(([lr,lc])=>lr===r&&lc===c);
+                  let bg=isLight?'#00aaff':'#1a5cbf';
+                  if (isSel) bg='#ff5e9988';
+                  return (
+                    <div key={i} onClick={()=>handleSquare(r,c)}
+                      style={{width:cellSize,height:cellSize,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative'}}>
+                      {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff33'}}/>}
+                      {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff44',pointerEvents:'none'}}/>}
+                      {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize}/>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <button onClick={() => setPuzzleIdx(i => i)} style={{
+              padding:'8px 20px', borderRadius:8, background:'none',
+              border:`1px solid ${theme.border}`, color:theme.textMuted,
+              fontSize:12, cursor:'pointer', fontFamily:theme.fontBody,
+            }}>Reset puzzle</button>
+          </>
+        )}
+
+        {/* Phase 2: Vocab sentence quiz */}
+        {(status === 'quiz' || status === 'quizRight' || status === 'quizWrong') && (
+          <div style={{width:'100%',maxWidth:`${cellSize*8+4}px`,display:'flex',flexDirection:'column',gap:12,animation:'fadeIn 0.3s ease'}}>
+
+            {/* Header */}
+            <div style={{background:theme.surface,borderRadius:10,padding:'14px',border:`1px solid ${C}44`}}>
+              <div style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:1,marginBottom:6}}>
+                ✓ {puzzle.tactic} — NOW THE VOCAB CHALLENGE
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontFamily:theme.fontMono,fontSize:16,fontWeight:700,color:'#fff',letterSpacing:2}}>{puzzle.word}</span>
+                {wordEntry && <span style={{fontSize:11,color:C+'aa',fontStyle:'italic',background:C+'22',borderRadius:4,padding:'1px 7px'}}>
+                  {wordEntry.pos==='v'?'verb':wordEntry.pos==='n'?'noun':wordEntry.pos==='adj'?'adjective':wordEntry.pos}
+                </span>}
+              </div>
+              <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>
+                Which sentence uses <strong>{puzzle.word}</strong> in a way that matches what just happened on the board?
+              </div>
+            </div>
+
+            {/* Sentence choices */}
+            {quizChoices.map((choice, i) => {
+              let bg = 'transparent', border = 'rgba(255,255,255,0.12)', color = 'rgba(255,255,255,0.85)';
+              if (quizPicked !== null) {
+                if (choice.correct) { bg = theme.success+'22'; border = theme.success; color = theme.success; }
+                else if (i === quizPicked) { bg = theme.danger+'22'; border = theme.danger; color = theme.danger; }
+                else { color = 'rgba(255,255,255,0.3)'; }
+              }
+              const displayText = choice.text.replace('___', puzzle.word.charAt(0).toUpperCase() + puzzle.word.slice(1).toLowerCase());
+              return (
+                <button key={i} onClick={() => handleQuizPick(i)} disabled={quizPicked !== null} style={{
+                  background:bg, border:`1.5px solid ${border}`, borderRadius:10,
+                  padding:'14px', color, fontSize:13, lineHeight:1.6,
+                  textAlign:'left', cursor: quizPicked===null ? 'pointer' : 'default',
+                  fontFamily:theme.fontBody, transition:'all 0.15s',
+                }}>
+                  <span style={{fontFamily:theme.fontMono,fontSize:9,marginRight:8,opacity:0.5}}>
+                    {String.fromCharCode(65+i)}.
+                  </span>
+                  {displayText}
+                  {quizPicked !== null && choice.correct && <span style={{marginLeft:8}}>✓</span>}
+                  {quizPicked !== null && i === quizPicked && !choice.correct && <span style={{marginLeft:8}}>✗</span>}
+                </button>
+              );
+            })}
+
+            {/* Result */}
+            {quizPicked !== null && (
+              <div style={{animation:'fadeIn 0.2s ease'}}>
+                {status === 'quizRight' ? (
+                  <div style={{background:theme.success+'18',borderRadius:10,padding:'12px 14px',border:`1px solid ${theme.success}44`,marginBottom:8}}>
+                    <div style={{fontSize:13,fontWeight:700,color:theme.success,marginBottom:4}}>Correct! +30 pts</div>
+                    {wordEntry?.example && (
+                      <div style={{fontSize:12,color:theme.textMuted,fontStyle:'italic'}}>
+                        "{wordEntry.example.replace('___', puzzle.word)}"
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{background:theme.danger+'18',borderRadius:10,padding:'12px 14px',border:`1px solid ${theme.danger}44`,marginBottom:8}}>
+                    <div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.5}}>
+                      Not quite — the correct sentence is highlighted above. +10 pts for solving the chess puzzle.
+                    </div>
+                    {wordEntry && <div style={{marginTop:6,fontSize:12,color:theme.textMuted}}>{wordEntry.def}</div>}
+                  </div>
+                )}
+                <button onClick={() => setPuzzleIdx(i => i + 1)} style={{
+                  width:'100%', padding:'14px', borderRadius:10,
+                  background:C, color:'#0a0a14', border:'none',
+                  fontFamily:theme.fontMono, fontSize:12, fontWeight:700,
+                  cursor:'pointer', letterSpacing:1, boxShadow:`0 3px 0 #a06800`,
+                }}>NEXT PUZZLE →</button>
+              </div>
+            )}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+function getOpeningName(history) {
+  if (!history || history.length < 2) return null;
+  const mvs = history.map(m =>
+    'abcdefgh'[m.from[1]] + (8-m.from[0]) + 'abcdefgh'[m.to[1]] + (8-m.to[0])
+  ).join(' ');
+  const openings = [
+    // e4 openings
+    { seq: 'e2e4 e7e5 g1f3 b8c6 f1b5', name: "Ruy López" },
+    { seq: 'e2e4 e7e5 g1f3 b8c6 f1c4', name: "Italian Game" },
+    { seq: 'e2e4 e7e5 g1f3 b8c6 d2d4', name: "Scotch Game" },
+    { seq: 'e2e4 e7e5 f2f4', name: "King's Gambit" },
+    { seq: 'e2e4 c7c5', name: "Sicilian Defence" },
+    { seq: 'e2e4 c7c5 g1f3 d7d6 d2d4', name: "Sicilian — Open Variation" },
+    { seq: 'e2e4 e7e6', name: "French Defence" },
+    { seq: 'e2e4 c7c6', name: "Caro-Kann Defence" },
+    { seq: 'e2e4 d7d5', name: "Scandinavian Defence" },
+    { seq: 'e2e4 g8f6', name: "Alekhine's Defence" },
+    { seq: 'e2e4 e7e5 g1f3 g8f6', name: "Petrov's Defence" },
+    { seq: 'e2e4 e7e5 b1c3', name: "Vienna Game" },
+    // d4 openings
+    { seq: 'd2d4 d7d5 c2c4', name: "Queen's Gambit" },
+    { seq: 'd2d4 d7d5 c2c4 e7e6', name: "Queen's Gambit Declined" },
+    { seq: 'd2d4 d7d5 c2c4 c7c6', name: "Slav Defence" },
+    { seq: 'd2d4 g8f6 c2c4 g7g6', name: "King's Indian Defence" },
+    { seq: 'd2d4 g8f6 c2c4 e7e6', name: "Nimzo/Queen's Indian" },
+    { seq: 'd2d4 g8f6', name: "Indian Defence" },
+    { seq: 'd2d4 d7d5', name: "Closed Game" },
+    // Flank
+    { seq: 'c2c4', name: "English Opening" },
+    { seq: 'g1f3', name: "Réti Opening" },
+    { seq: 'g2g3', name: "King's Fianchetto" },
+    // Basic
+    { seq: 'e2e4 e7e5 g1f3 b8c6', name: "Four Knights / Three Knights" },
+    { seq: 'e2e4 e7e5', name: "Open Game (e4 e5)" },
+    { seq: 'd2d4 d7d5 c2c4 d5c4', name: "Queen's Gambit Accepted" },
+  ];
+  // Find longest matching prefix
+  let best = null;
+  for (const o of openings) {
+    if (mvs.startsWith(o.seq) && (!best || o.seq.length > best.seq.length)) {
+      best = o;
+    }
+  }
+  return best ? best.name : null;
+}
+
 function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const C = "#3d8ef5"; // game color
+  const [difficulty, setDifficulty] = useState(null); // null = not chosen yet
   const [game, setGame] = useState(() => createGame());
   const [selected, setSelected] = useState(null);
   const [legalDests, setLegalDests] = useState([]);
@@ -6874,10 +7843,20 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [hint, setHint] = useState(null);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [showOverlays, setShowOverlays] = useState(true);
+  const [threatArrows, setThreatArrows] = useState([]); // [{from:[r,c], to:[r,c]}] shown after AI move
+  const [showThreatArrows, setShowThreatArrows] = useState(true);
   const [showCoachTips, setShowCoachTips] = useState(true);
   const [bookSeed, setBookSeed] = useState(() => Math.random());
+  const [correctStreak, setCorrectStreak] = useState(0); // #5 streak bonus
+  const [streakFlash, setStreakFlash] = useState(false);
+  const [openingName, setOpeningName] = useState(null); // #8 opening name banner
+  const [wordsThisGame, setWordsThisGame] = useState([]); // #6 post-game review
+  const [showWordReview, setShowWordReview] = useState(false);
   const boardRef = useRef(null);
+  const moveHistoryRef = useRef(moveHistory);
+  moveHistoryRef.current = moveHistory;
+  const lastAiMoveRef = useRef(lastAiMove);
+  lastAiMoveRef.current = lastAiMove;
   const { trigger: triggerExplosion, ExplodeSVG } = useExplosion();
   const { celebrate, CelebrationCanvas } = useWinCelebration();
   const gameRef = useRef(game);
@@ -6909,7 +7888,31 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setTimeout(() => {
       const current = g || gameRef.current;
       if (current.turn !== 'b') { setTurn('w'); return; }
-      const move = gameGetAiMove({...current, moveHistory}, null, lastAiMove);
+      const currentMoveHistory = moveHistoryRef.current;
+      const currentLastAiMove = lastAiMoveRef.current;
+
+      // Pass difficulty into game object for gameGetAiMove
+      const gameWithDiff = {...current, moveHistory: currentMoveHistory, difficulty};
+
+      let move = gameGetAiMove(gameWithDiff, null, currentLastAiMove);
+
+      // Easy mode: 50% chance of a random legal move, occasionally hang a piece
+      if (difficulty === 'easy') {
+        const rand = Math.random();
+        const legalMoves = getLegal(current.board, 'b', current);
+        if (rand < 0.50 && legalMoves.length) {
+          // 50% pure random
+          move = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+        } else if (rand < 0.65 && legalMoves.length) {
+          // Extra 15%: pick a move that leaves a piece hanging (intentional blunder)
+          const blunders = legalMoves.filter(m => {
+            const {board: nb} = applyMove(current.board, m.from, m.to, current);
+            return isHanging(nb, m.to[0], m.to[1], 'b');
+          });
+          if (blunders.length) move = blunders[Math.floor(Math.random() * blunders.length)];
+        }
+      }
+
       if (!move) { setTurn('w'); return; }
       const result = gameMove(current, move.from, move.to);
       const toPos = move.to;
@@ -6918,6 +7921,37 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       setTimeout(()=>setAiFlash(null),600);
       setGame(result);
       setLastMove({from:move.from,to:toPos});
+      // Compute threat arrows — show what the AI piece now attacks
+      if (showThreatArrows) {
+        const arrows = [];
+        const movedPiece = result.board[toPos[0]][toPos[1]];
+        if (movedPiece) {
+          const attacks = rawMoves(result.board, toPos[0], toPos[1], {ep:null, castle:{}});
+          for (const [ar, ac] of attacks) {
+            const target = result.board[ar][ac];
+            if (target && target.color === 'w' && target.type !== 'k') {
+              arrows.push({ from: toPos, to: [ar, ac], type: 'threat' });
+            }
+          }
+        }
+        // Also show any AI pieces that now directly attack white pieces
+        for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+          const p = result.board[r][c];
+          if (!p || p.color !== 'b') continue;
+          const atks = rawMoves(result.board, r, c, {ep:null, castle:{}});
+          for (const [ar, ac] of atks) {
+            const target = result.board[ar][ac];
+            if (target?.color === 'w' && target.type !== 'k' && isHanging(result.board, ar, ac, 'w')) {
+              if (!arrows.some(a => a.from[0]===r && a.from[1]===c && a.to[0]===ar && a.to[1]===ac)) {
+                arrows.push({ from: [r, c], to: [ar, ac], type: 'hanging' });
+              }
+            }
+          }
+        }
+        setThreatArrows(arrows);
+        // Clear arrows when player starts moving
+        if (arrows.length > 0) setTimeout(() => setThreatArrows([]), 4000);
+      }
       if (result.captured) {
         // AI capture explosion (different color — reddish)
         if (boardRef.current) {
@@ -6942,6 +7976,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const handleSquare = (r, c) => {
     if (turn!=='w'||gameOver) return;
     if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
+    setThreatArrows([]); // clear threat arrows when player interacts
     const g = gameRef.current;
 
     if (selected) {
@@ -6991,6 +8026,20 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                   onScore(pts);
                   showMsg(`✓ ${pieceName} claimed!`);
                   setMoveHistory(h => [...h, {from:selected, to:[r,c]}]);
+                  // #5 Streak tracking
+                  setCorrectStreak(s => {
+                    const ns = s + 1;
+                    if (ns > 0 && ns % 3 === 0) {
+                      setStreakFlash(true);
+                      setTimeout(() => setStreakFlash(false), 2000);
+                    }
+                    return ns;
+                  });
+                  // #6 Track word for post-game review
+                  setWordsThisGame(prev => [...prev, { word: wordEntry.word, def: wordEntry.def, piece: capPiece.type, correct: true }]);
+                  // #8 Opening name detection
+                  const oName = getOpeningName([...moveHistory, {from:selected, to:[r,c]}]);
+                  if (oName) setOpeningName(oName);
                   if (!checkOver(result)) {
                     const coachResult = getCoachComment(gameBefore, result, selected, [r,c], moveHistory, shownTips, lastWord);
                     if (coachResult) {
@@ -7001,6 +8050,8 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                   }
                 } else {
                   setLastWord({ word: wordEntry.word, def: wordEntry.def, correct: false });
+                  setCorrectStreak(0); // #5 reset streak on wrong
+                  setWordsThisGame(prev => [...prev, { word: wordEntry.word, def: wordEntry.def, piece: capPiece.type, correct: false }]);
                   // Reverse AND lose a turn — restore board to pre-capture state, swap to black turn
                   setReversing([r,c]);
                   setTimeout(()=>{
@@ -7014,7 +8065,30 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                     setGame(restored);
                     showMsg(`✗ Wrong — ${pieceName} escapes, opponent gets an extra turn!`, 3500);
                     setTurn('b');
-                    setTimeout(()=>doAiTurn(restored),2200);
+                    // Give AI extra time and use a deeper search for the bonus turn
+                    setTimeout(() => {
+                      const bonusGame = gameRef.current;
+                      if (bonusGame.turn !== 'b') { setTurn('w'); return; }
+                      const bonusMove = gameGetAiMove({...bonusGame, moveHistory: moveHistoryRef.current}, null, lastAiMoveRef.current);
+                      if (!bonusMove) { setTurn('w'); return; }
+                      const bonusResult = gameMove(bonusGame, bonusMove.from, bonusMove.to);
+                      setLastAiMove(bonusMove);
+                      setAiFlash(bonusMove.to);
+                      setTimeout(()=>setAiFlash(null),600);
+                      setGame(bonusResult);
+                      setLastMove({from:bonusMove.from, to:bonusMove.to});
+                      if (bonusResult.captured) {
+                        if (boardRef.current) {
+                          const boardRect = boardRef.current.getBoundingClientRect();
+                          const ex = boardRect.left + (bonusMove.to[1] + 0.5) * cellSizeRef.current;
+                          const ey = boardRect.top + (bonusMove.to[0] + 0.5) * cellSizeRef.current;
+                          triggerExplosion(ex, ey, true);
+                          playExplosionSound(true);
+                        }
+                        setCaptured(prev=>({...prev, b:[...prev.b, bonusResult.captured.type]}));
+                      }
+                      if (!checkOver(bonusResult)) setTurn('w');
+                    }, 2200);
                   },600);
                 }
               }
@@ -7026,7 +8100,12 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           setGame(result);
           setLastMove({from:selected,to:[r,c]});
           setSelected(null); setLegalDests([]);
-          setMoveHistory(h => [...h, {from:selected, to:[r,c]}]);
+          setMoveHistory(h => {
+            const nh = [...h, {from:selected, to:[r,c]}];
+            const oName = getOpeningName(nh);
+            if (oName) setOpeningName(oName);
+            return nh;
+          });
           if (!checkOver(result)) {
             const coachResult = getCoachComment(g, result, selected, [r,c], moveHistory, shownTips, lastWord);
             if (coachResult) {
@@ -7058,6 +8137,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setGame(g); setSelected(null); setLegalDests([]); setLastMove(null);
     setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
     setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
+    setCorrectStreak(0); setStreakFlash(false); setOpeningName(null); setWordsThisGame([]); setShowWordReview(false); setThreatArrows([]);
   };
 
   // Precompute which legal destinations are risky (piece would be under attack after moving there)
@@ -7086,12 +8166,62 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   // Squares attacked by AI (shown as subtle threat indicators)
   const threatened = turn==='w' ? getThreatenedSquares(game.board, 'b') : new Set();
 
+  // ── #1 Difficulty selector ──────────────────────────────────────────────────
+  if (!difficulty) {
+    return (
+      <div style={{minHeight:'100vh',background:theme.bg,display:'flex',flexDirection:'column'}}>
+        <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
+          <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
+          <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
+            <span style={{fontFamily:theme.fontMono,fontSize:15,fontWeight:700,letterSpacing:2,color:C}}>VOCAB CHESS</span>
+          </div>
+          <div style={{width:60}}/>
+        </div>
+        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',gap:12}}>
+          <div style={{fontFamily:theme.fontMono,fontSize:13,color:theme.textMuted,letterSpacing:2,marginBottom:8}}>SELECT MODE</div>
+          {/* Puzzles option at top */}
+          <button onClick={() => setDifficulty('puzzles')} style={{
+            width:'100%', maxWidth:320, padding:'18px 20px', borderRadius:12,
+            background:'#f59e0b18', border:`2px solid #f59e0b88`,
+            cursor:'pointer', textAlign:'left', transition:'all 0.15s',
+          }}>
+            <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:'#f59e0b',letterSpacing:2,marginBottom:4}}>PUZZLES</div>
+            <div style={{fontSize:13,color:theme.textMuted}}>Tactics training — fork, pin, checkmate</div>
+          </button>
+          <div style={{fontFamily:theme.fontMono,fontSize:10,color:theme.border,letterSpacing:2,margin:'4px 0'}}>── VS OPPONENT ──</div>
+          {[
+            {id:'easy',   label:'EASY',   sub:'Beginner-friendly (~800 Elo)',      color:'#00cc66'},
+            {id:'medium', label:'MEDIUM', sub:'Casual club player (~1300 Elo)',    color:C},
+            {id:'hard',   label:'HARD',   sub:'Solid club player (~1600 Elo)',     color:'#ff4444'},
+          ].map(d => (
+            <button key={d.id} onClick={() => setDifficulty(d.id)} style={{
+              width:'100%', maxWidth:320, padding:'18px 20px', borderRadius:12,
+              background:d.color+'18', border:`2px solid ${d.color}66`,
+              cursor:'pointer', textAlign:'left', transition:'all 0.15s',
+            }}>
+              <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:d.color,letterSpacing:2,marginBottom:4}}>{d.label}</div>
+              <div style={{fontSize:13,color:theme.textMuted}}>{d.sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Puzzles mode — render inline within VocabChess flow
+  if (difficulty === 'puzzles') {
+    return <ChessPuzzles onBack={() => setDifficulty(null)} onScore={onScore} onCorrect={onCorrect} wordBank={wordBank} />;
+  }
+
   return (
     <div style={{minHeight:'100vh',background:theme.bg,display:'flex',flexDirection:'column'}}>
       <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
         <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
         <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
           <span style={{fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color:"#3d8ef5"}}>VOCAB CHESS</span>
+          <span style={{marginLeft:8,fontSize:10,color:difficulty==='easy'?'#00cc66':difficulty==='hard'?'#ff4444':C,fontFamily:theme.fontMono,opacity:0.8}}>
+            {difficulty?.toUpperCase()}
+          </span>
         </div>
         <div style={{width:60}} />
       </div>
@@ -7107,6 +8237,19 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           }}>
             {turn==='w' ? '● YOUR TURN (WHITE)' : turn==='b' ? '○ OPPONENT THINKING… (BLACK)' : turn==='winback' ? '🛡️ WIN IT BACK!' : ''}
           </span>
+          {/* #5 Streak indicator */}
+          {correctStreak >= 2 && (
+            <span style={{marginLeft:10, fontSize:11, color:theme.gold, fontFamily:theme.fontMono,
+              animation: streakFlash ? 'pulse 0.4s ease-in-out 3' : 'none'}}>
+              🔥 {correctStreak} streak
+            </span>
+          )}
+        </div>
+      )}
+      {/* #8 Opening name banner */}
+      {openingName && !gameOver && (
+        <div style={{textAlign:'center',padding:'5px 16px',background:C+'18',borderBottom:`1px solid ${C}33`}}>
+          <span style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:1}}>📖 {openingName}</span>
         </div>
       )}
       <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 16px 24px',gap:8}}>
@@ -7174,6 +8317,41 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                 <span style={{fontFamily:theme.fontMono,fontSize:13,color:'#3d8ef5',letterSpacing:2,fontWeight:700,textShadow:`0 0 10px #3d8ef5`,background:'#0a0a1299',padding:'4px 10px',borderRadius:4}}>↩ REVERSING</span>
               </div>
             )}
+            {/* Threat arrows SVG overlay */}
+            {threatArrows.length > 0 && (
+              <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:15}} viewBox={`0 0 ${cellSize*8} ${cellSize*8}`}>
+                <defs>
+                  <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L6,3 z" fill="#ff4444cc"/>
+                  </marker>
+                  <marker id="arrowOrange" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L6,3 z" fill="#ff9900cc"/>
+                  </marker>
+                </defs>
+                {threatArrows.map((a, i) => {
+                  const fx = (a.from[1] + 0.5) * cellSize;
+                  const fy = (a.from[0] + 0.5) * cellSize;
+                  const tx = (a.to[1] + 0.5) * cellSize;
+                  const ty = (a.to[0] + 0.5) * cellSize;
+                  // Shorten the line so it doesn't overlap piece
+                  const dx = tx - fx, dy = ty - fy;
+                  const len = Math.sqrt(dx*dx + dy*dy);
+                  const ux = dx/len, uy = dy/len;
+                  const pad = cellSize * 0.3;
+                  const color = a.type === 'hanging' ? '#ff9900cc' : '#ff4444cc';
+                  const marker = a.type === 'hanging' ? 'url(#arrowOrange)' : 'url(#arrowRed)';
+                  return (
+                    <line key={i}
+                      x1={fx + ux*pad} y1={fy + uy*pad}
+                      x2={tx - ux*pad} y2={ty - uy*pad}
+                      stroke={color} strokeWidth={cellSize*0.08}
+                      markerEnd={marker} strokeLinecap="round"
+                      style={{animation:'fadeIn 0.3s ease'}}
+                    />
+                  );
+                })}
+              </svg>
+            )}
           </div>
 
           {/* Bottom tray: your captured (black pieces you took) */}
@@ -7230,7 +8408,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               <button onClick={()=>{
                 setHintLoading(true);
                 setTimeout(()=>{
-                  const h = getHintMove({...game, moveHistory, bookSeed});
+                  const h = getHintMove({...game, moveHistory, bookSeed, difficulty});
                   if (h) { setHint(h); setHintsUsed(n=>n+1); setCoachMsg(''); }
                   setHintLoading(false);
                 }, 100);
@@ -7243,6 +8421,11 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         {gameOver && (
           <div style={{fontFamily:theme.fontMono,fontSize:11,color:theme.textMuted,letterSpacing:1,textAlign:'center'}}>
             <div style={{display:'flex',flexDirection:'column',gap:10,alignItems:'center'}}>
+              {wordsThisGame.length > 0 && (
+                <button onClick={() => setShowWordReview(true)} style={{background:C+'22',border:`1px solid ${C}55`,color:C,fontFamily:theme.fontMono,fontSize:11,padding:'8px 20px',cursor:'pointer',borderRadius:8,letterSpacing:1}}>
+                  📖 REVIEW WORDS ({wordsThisGame.length})
+                </button>
+              )}
               <button onClick={newGame} style={{background:C,border:'none',borderRadius:8,color:'#fff',fontFamily:theme.fontMono,fontSize:12,padding:'8px 24px',cursor:'pointer',letterSpacing:1}}>NEW GAME</button>
             </div>
           </div>
@@ -7254,6 +8437,48 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       {quiz&&<ChessVocabQuiz word={quiz.word.word||quiz.word} context={quiz.context} timeLimit={quiz.timeLimit} onResult={quiz.onResult}/>}
       {winBackQuiz&&<ChessVocabQuiz word={winBackQuiz.word.word||winBackQuiz.word} context={winBackQuiz.context} timeLimit={winBackQuiz.timeLimit} onResult={winBackQuiz.onResult} isHard={true}/>}
       <CelebrationCanvas />
+      {/* #5 Streak flash overlay */}
+      {streakFlash && (
+        <div style={{position:'fixed',inset:0,zIndex:200,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{fontFamily:theme.fontMono,fontSize:22,fontWeight:700,color:theme.gold,letterSpacing:3,
+            textShadow:`0 0 20px ${theme.gold}`,animation:'fadeIn 0.2s ease',background:'rgba(0,0,0,0.6)',padding:'12px 24px',borderRadius:12,border:`2px solid ${theme.gold}66`}}>
+            🔥 {correctStreak} WORD STREAK!
+          </div>
+        </div>
+      )}
+
+      {/* #6 Post-game word review modal */}
+      {showWordReview && ReactDOM.createPortal(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:'flex-end',justifyContent:'center'}}
+          onClick={() => setShowWordReview(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:'16px 16px 0 0',border:`1.5px solid ${C}44`,borderBottom:'none',width:'100%',maxWidth:600,maxHeight:'80vh',display:'flex',flexDirection:'column'}}>
+            <div style={{padding:'18px 20px 12px',borderBottom:`1px solid ${theme.border}`,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+              <div>
+                <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:C,letterSpacing:2}}>📖 WORDS THIS GAME</div>
+                <div style={{fontSize:11,color:theme.textMuted,marginTop:3}}>{wordsThisGame.length} words · tap outside to close</div>
+              </div>
+              <div style={{display:'flex',gap:8}}>
+                <button onClick={newGame} style={{background:C+'22',border:`1px solid ${C}55`,color:C,borderRadius:8,padding:'7px 14px',fontSize:12,cursor:'pointer',fontFamily:theme.fontBody,fontWeight:600}}>New Game</button>
+                <button onClick={() => setShowWordReview(false)} style={{background:'none',border:`1px solid ${theme.border}`,color:theme.textMuted,borderRadius:8,padding:'7px 12px',fontSize:13,cursor:'pointer'}}>✕</button>
+              </div>
+            </div>
+            <div style={{overflowY:'auto',padding:'12px 20px 24px',display:'flex',flexDirection:'column',gap:10}}>
+              {wordsThisGame.map(({word, def, piece, correct}, i) => (
+                <div key={i} style={{background:theme.bg,borderRadius:10,padding:'12px 14px',border:`1px solid ${correct?theme.success+'44':theme.danger+'44'}`}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <span style={{fontFamily:theme.fontMono,fontWeight:700,fontSize:14,color:correct?theme.success:'#fff',letterSpacing:1}}>{word}</span>
+                    <span style={{fontSize:10,color:theme.textMuted}}>captured {PIECE_NAMES[piece]}</span>
+                    <span style={{marginLeft:'auto',fontSize:12}}>{correct?'✓':'✗'}</span>
+                  </div>
+                  <div style={{fontSize:12,color:theme.textMuted,lineHeight:1.5}}>{def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       <ExplodeSVG />
     </div>
   );
@@ -7365,7 +8590,8 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
 
   React.useEffect(() => {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === 'suspended') ctx.resume();
       const play = (freq, start, dur, type = 'sawtooth', vol = 0.18) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -7414,7 +8640,7 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
         <div style={{ textAlign: 'center', marginBottom: 10 }}>
           <img
             src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/finalboss.png"
-            width={90} height={90}
+            width={110} height={110}
             style={{ objectFit: 'contain', display: 'block', margin: '0 auto',
               animation: 'bossFloat 3s ease-in-out infinite, bossGlow 3s ease-in-out infinite' }}
             alt="Final Boss"
@@ -7483,7 +8709,8 @@ function MasteryToast({ word, onClose }) {
   React.useEffect(() => {
     // Congratulatory run-up fanfare
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === 'suspended') ctx.resume();
       const play = (freq, start, dur, type = 'sine', vol = 0.18) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -7574,7 +8801,7 @@ function MasteryToast({ word, onClose }) {
       }}>
         <div style={{ marginBottom: 10, overflow: 'visible', padding: '8px 0' }}>
           <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/graduationcap.png"
-            width={80} height={80}
+            width={100} height={100}
             style={{ display: 'block', margin: '0 auto', objectFit: 'contain',
               filter: 'drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 20px #ffd70088)' }}
             alt="🎓"

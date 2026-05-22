@@ -7742,9 +7742,9 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                 {status === 'quizRight' ? (
                   <div style={{background:theme.success+'18',borderRadius:10,padding:'12px 14px',border:`1px solid ${theme.success}44`,marginBottom:8}}>
                     <div style={{fontSize:13,fontWeight:700,color:theme.success,marginBottom:4}}>Correct! +30 pts</div>
-                    {wordEntry?.example && (
-                      <div style={{fontSize:12,color:theme.textMuted,fontStyle:'italic'}}>
-                        "{wordEntry.example.replace('___', puzzle.word)}"
+                    {wordEntry?.def && (
+                      <div style={{fontSize:12,color:theme.textMuted,lineHeight:1.45}}>
+                        <span style={{color:theme.success,fontWeight:700}}>Definition:</span> {wordEntry.def}
                       </div>
                     )}
                   </div>
@@ -7753,7 +7753,11 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                     <div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.5}}>
                       Not quite — the correct sentence is highlighted above. +10 pts for solving the chess puzzle.
                     </div>
-                    {wordEntry && <div style={{marginTop:6,fontSize:12,color:theme.textMuted}}>{wordEntry.def}</div>}
+                    {wordEntry?.def && (
+                      <div style={{marginTop:6,fontSize:12,color:theme.textMuted,lineHeight:1.45}}>
+                        <span style={{color:theme.danger,fontWeight:700}}>Definition:</span> {wordEntry.def}
+                      </div>
+                    )}
                   </div>
                 )}
                 <button onClick={goToNextPuzzle} style={{

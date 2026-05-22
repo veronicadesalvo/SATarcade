@@ -2225,11 +2225,12 @@ const theme = {
   fontDisplay: "'Playfair Display', Georgia, serif",
   fontBody: "'DM Sans', system-ui, sans-serif",
   fontMono: "'JetBrains Mono', monospace",
+  fontPixel: "'Press Start 2P', monospace",
 };
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 const globalStyle = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&family=Press+Start+2P&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: ${theme.bg}; color: ${theme.text}; font-family: ${theme.fontBody}; min-height: 100vh; }
   ::-webkit-scrollbar { width: 6px; }
@@ -2243,8 +2244,16 @@ const globalStyle = `
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
   @keyframes glow { 0%,100% { box-shadow: 0 0 10px ${theme.accentGlow}; } 50% { box-shadow: 0 0 30px ${theme.accentGlow}, 0 0 60px ${theme.accentGlow}; } }
   @keyframes firePieceGlow {
-    0%,100% { filter: drop-shadow(0 0 1px #fff3b0) drop-shadow(0 -1px 2px #ffb703) drop-shadow(0 -2px 3px #ff5a1f); }
-    50% { filter: drop-shadow(0 0 2px #fff8d6) drop-shadow(1px -1px 2px #ffd166) drop-shadow(-1px -3px 4px #ff7a18); }
+    0%,100% { filter: drop-shadow(0 0 1px #fff6b0) drop-shadow(0 -1px 1px #ffd43b) drop-shadow(0 -2px 1px #ff4a16); }
+    50% { filter: drop-shadow(0 0 1px #fffbe0) drop-shadow(0 -2px 1px #ffbf1a) drop-shadow(0 -3px 2px #e82d12); }
+  }
+  @keyframes rainbowPieceGlow {
+    0% { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #ff3366) drop-shadow(0 0 5px #ff9f1c); }
+    20% { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #ffd60a) drop-shadow(0 0 5px #70e000); }
+    40% { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #00e5ff) drop-shadow(0 0 5px #3d8ef5); }
+    60% { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #7c5cfc) drop-shadow(0 0 5px #f700ff); }
+    80% { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #ff5e7a) drop-shadow(0 0 5px #ffd60a); }
+    100% { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #ff3366) drop-shadow(0 0 5px #ff9f1c); }
   }
   .piece-fire-wrap {
     position: relative;
@@ -2255,46 +2264,98 @@ const globalStyle = `
   }
   .piece-fire-bed {
     position: absolute;
-    left: 7%;
-    right: 7%;
+    left: 2%;
+    right: 2%;
     bottom: -2%;
-    height: 48%;
-    z-index: 0;
-    border-radius: 50%;
-    background: radial-gradient(ellipse at bottom, rgba(255,245,176,0.9) 0%, rgba(255,178,0,0.68) 28%, rgba(255,88,24,0.42) 54%, transparent 78%);
-    filter: blur(2px);
-    animation: flameBed 0.7s ease-in-out infinite alternate;
+    height: 38%;
+    z-index: 1;
+    border-radius: 0;
+    background: linear-gradient(to top, #fff7a8 0 22%, #ffd23c 23% 50%, #ff9f0a 51% 72%, #ff4a16 73% 100%);
+    clip-path: polygon(0 100%, 0 66%, 7% 66%, 7% 49%, 15% 49%, 15% 58%, 24% 58%, 24% 38%, 34% 38%, 34% 54%, 43% 54%, 43% 34%, 52% 34%, 52% 56%, 61% 56%, 61% 38%, 70% 38%, 70% 55%, 78% 55%, 78% 34%, 87% 34%, 87% 59%, 95% 59%, 95% 43%, 100% 43%, 100% 100%);
+    filter: drop-shadow(0 -1px 0 #ffe066) drop-shadow(0 -2px 2px rgba(255,74,22,0.58));
+    image-rendering: pixelated;
+    animation: flameBed 0.42s steps(2, end) infinite;
   }
   .piece-flame {
     position: absolute;
-    bottom: -3%;
+    bottom: 1%;
     z-index: 1;
-    clip-path: polygon(50% 0%, 69% 25%, 84% 56%, 64% 100%, 36% 100%, 16% 56%, 31% 25%);
-    background:
-      radial-gradient(circle at 50% 72%, rgba(255,255,220,0.95) 0 13%, rgba(255,214,102,0.94) 25%, rgba(255,122,24,0.9) 55%, rgba(211,32,28,0.86) 82%, transparent 100%);
-    filter: blur(0.1px) drop-shadow(0 -2px 3px rgba(255,106,0,0.75));
-    mix-blend-mode: screen;
+    clip-path: polygon(45% 6%, 58% 6%, 58% 16%, 68% 16%, 68% 30%, 74% 30%, 74% 48%, 82% 48%, 82% 66%, 69% 66%, 69% 84%, 58% 84%, 58% 100%, 28% 100%, 28% 86%, 18% 86%, 18% 68%, 12% 68%, 12% 50%, 22% 50%, 22% 34%, 30% 34%, 30% 20%, 40% 20%, 40% 10%);
+    background: linear-gradient(to top, #fff7a8 0 13%, #ffd21f 14% 36%, #ff9f0a 37% 59%, #ff4b16 60% 82%, #d92212 83% 100%);
+    filter: drop-shadow(0 -1px 0 #ff8a1a) drop-shadow(0 -2px 2px rgba(255,54,0,0.54));
+    image-rendering: pixelated;
     transform-origin: 50% 100%;
   }
-  .flame-a { animation: flameTongueA 0.54s ease-in-out infinite; }
-  .flame-b { animation: flameTongueB 0.48s ease-in-out infinite; }
-  .flame-c { animation: flameTongueC 0.62s ease-in-out infinite; }
-  .flame-d { animation: flameTongueB 0.58s ease-in-out infinite reverse; }
+  .piece-flame::after {
+    content: "";
+    position: absolute;
+    left: 25%;
+    right: 21%;
+    bottom: 0;
+    height: 54%;
+    background: linear-gradient(to top, #fffbe0 0 20%, #ffe45c 21% 54%, #ffb000 55% 100%);
+    clip-path: polygon(42% 8%, 56% 8%, 56% 24%, 66% 24%, 66% 46%, 58% 46%, 58% 68%, 72% 68%, 72% 100%, 24% 100%, 24% 78%, 34% 78%, 34% 55%, 22% 55%, 22% 34%, 40% 34%);
+  }
+  .flame-a { animation: flameTongueA 0.46s steps(2, end) infinite; }
+  .flame-b { animation: flameTongueB 0.5s steps(2, end) infinite; }
+  .flame-c { animation: flameTongueC 0.58s steps(2, end) infinite; }
+  .flame-d { animation: flameTongueB 0.52s steps(2, end) infinite reverse; }
+  .flame-e { animation: flameTongueA 0.62s steps(2, end) infinite reverse; }
+  .pixel-win-burst {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .pixel-win-bit {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 10px;
+    height: 10px;
+    background: var(--bit-color, ${theme.success});
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+    image-rendering: pixelated;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    animation: pixelWinBit 900ms steps(6, end) var(--bit-delay, 0ms) both;
+  }
+  @media (max-width: 520px) {
+    .pixel-win-bit {
+      width: 8px;
+      height: 8px;
+      animation-duration: 760ms;
+    }
+  }
+  @keyframes pixelWinBit {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.6);
+    }
+    12% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + var(--bit-x)), calc(-50% + var(--bit-y))) scale(1);
+    }
+  }
   @keyframes flameBed {
-    from { opacity: 0.45; transform: scaleX(0.88) scaleY(0.92); }
-    to { opacity: 0.72; transform: scaleX(1.05) scaleY(1.06); }
+    0%,100% { opacity: 0.78; transform: scaleX(0.94) scaleY(0.92); }
+    50% { opacity: 0.9; transform: scaleX(1.01) scaleY(1); }
   }
   @keyframes flameTongueA {
-    0%,100% { opacity: 0.64; transform: translateX(-50%) translateY(6%) scaleX(0.64) scaleY(0.92) rotate(-7deg); }
-    45% { opacity: 1; transform: translateX(-50%) translateY(-30%) scaleX(0.82) scaleY(1.46) rotate(7deg); }
+    0%,100% { opacity: 0.72; transform: translateX(-50%) translateY(1%) scaleX(0.86) scaleY(0.92); }
+    50% { opacity: 0.92; transform: translateX(-55%) translateY(-8%) scaleX(0.96) scaleY(1.04); }
   }
   @keyframes flameTongueB {
-    0%,100% { opacity: 0.58; transform: translateX(-50%) translateY(7%) scaleX(0.58) scaleY(0.9) rotate(8deg); }
-    55% { opacity: 0.96; transform: translateX(-50%) translateY(-25%) scaleX(0.78) scaleY(1.36) rotate(-9deg); }
+    0%,100% { opacity: 0.74; transform: translateX(-50%) translateY(1%) scaleX(0.88) scaleY(0.94); }
+    50% { opacity: 0.94; transform: translateX(-47%) translateY(-10%) scaleX(1) scaleY(1.06); }
   }
   @keyframes flameTongueC {
-    0%,100% { opacity: 0.5; transform: translateX(-50%) translateY(8%) scaleX(0.52) scaleY(0.98) rotate(0deg); }
-    50% { opacity: 0.95; transform: translateX(-50%) translateY(-38%) scaleX(0.72) scaleY(1.68) rotate(4deg); }
+    0%,100% { opacity: 0.7; transform: translateX(-50%) translateY(1%) scaleX(0.84) scaleY(0.94); }
+    50% { opacity: 0.9; transform: translateX(-52%) translateY(-11%) scaleX(0.96) scaleY(1.08); }
   }
   @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
@@ -2607,7 +2668,7 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
                 const pool = activeWords.filter(w => w.word !== testWord && w.example && w.pos === entry.pos).sort(() => Math.random() - 0.5).slice(0, 2);
                 distractors = pool.map(w => w.example.replace('___', displayWord));
               }
-              const choices = [correct, ...distractors].sort(() => Math.random() - 0.5);
+              const choices = shuffleWithBalancedCorrect([correct, ...distractors], choice => choice === correct, 'final_boss_sentence');
               onTestFinalBoss({ word: testWord, entry, choices, correctIdx: choices.indexOf(correct) });
             }
           }} style={{
@@ -2618,6 +2679,39 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
         </div>
       </div>
     </div>
+  );
+}
+
+const HOME_GAME_ICON_SOURCES = {
+  hangman: 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/hangman.png',
+  crossword: 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/crossword.png',
+  detective: 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png',
+  oddoneout: 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png',
+  eartrainer: 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png',
+  chess: 'https://lichess1.org/assets/piece/pixel/wN.svg',
+};
+
+function GameHeaderTitle({ game, title, color, detail, fontSize = 15 }) {
+  const src = HOME_GAME_ICON_SOURCES[game];
+  const iconSize = game === 'crossword' || game === 'chess' ? 22 : 24;
+  return (
+    <span style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:8,maxWidth:'100%',whiteSpace:'nowrap'}}>
+      {src && (
+        <img
+          src={src}
+          width={iconSize}
+          height={iconSize}
+          style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 3px ${color}) drop-shadow(0 0 8px ${color}cc) drop-shadow(0 0 14px ${color}66)`,flexShrink:0}}
+          alt=""
+        />
+      )}
+      <span style={{fontFamily:theme.fontMono,fontSize,fontWeight:700,letterSpacing:2,color}}>{title}</span>
+      {detail && (
+        <span style={{fontFamily:theme.fontMono,fontSize:10,color:detail.color || color,opacity:detail.opacity ?? 0.85,letterSpacing:1}}>
+          {detail.text}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -2988,7 +3082,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
             </div>
             {/* Title + Subtitle */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <div style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: g.color, letterSpacing: 0.5, textTransform: "uppercase", lineHeight: 1.3 }}>{g.title}</div>
+              <div style={{ fontFamily: theme.fontPixel, fontSize: 8, fontWeight: 400, color: g.color, letterSpacing: 0, textTransform: "uppercase", lineHeight: 1.85, transform: 'scaleY(1.12)', transformOrigin: 'left center' }}>{g.title}</div>
               <div style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.3 }}>{g.sub}</div>
             </div>
           </div>
@@ -3040,6 +3134,43 @@ function shuffle(arr) {
   }
   return a;
 }
+
+function nextBalancedAnswerSlot(key, count) {
+  if (count <= 1) return 0;
+  const storageKey = `balanced_answer_slots_${key}_${count}`;
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const queue = Array.isArray(saved) && saved.every(n => Number.isInteger(n) && n >= 0 && n < count)
+      ? saved
+      : [];
+    if (!queue.length) queue.push(...shuffle(Array.from({length: count}, (_, i) => i)));
+    const slot = queue.shift();
+    localStorage.setItem(storageKey, JSON.stringify(queue));
+    return slot;
+  } catch(e) {
+    return Math.floor(Math.random() * count);
+  }
+}
+
+function shuffleWithBalancedCorrect(choices, isCorrect, key) {
+  const shuffled = shuffle(choices);
+  const correctIndex = shuffled.findIndex(isCorrect);
+  if (correctIndex < 0) return shuffled;
+  const correct = shuffled.splice(correctIndex, 1)[0];
+  const targetSlot = Math.min(nextBalancedAnswerSlot(key, choices.length), shuffled.length);
+  shuffled.splice(targetSlot, 0, correct);
+  return shuffled;
+}
+
+const HINT_LOADING_MIN_MS = 500;
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const waitForPaint = () => new Promise(resolve => {
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  } else {
+    setTimeout(resolve, 0);
+  }
+});
 
 function getMastered() {
   try {
@@ -3251,7 +3382,7 @@ function HangmanGame({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#ffa500" }}>HANGMAN</div>
+          <GameHeaderTitle game="hangman" title="HANGMAN" color="#ffa500" />
         </div>
         {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
       </div>
@@ -4042,7 +4173,7 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#9b30d9" }}>CROSSWORD</div>
+          <GameHeaderTitle game="crossword" title="CROSSWORD" color="#9b30d9" />
         </div>
         <div style={{ width: 60 }} />
       </div>
@@ -4414,7 +4545,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
   useEffect(() => {
     if (current) {
       const distractors = getDistractors(current);
-      setShuffledOptions([current.word, ...distractors].sort(() => Math.random() - 0.5));
+      setShuffledOptions(shuffleWithBalancedCorrect([current.word, ...distractors], option => option === current.word, 'word_detective'));
     }
     setChosen(null);
   }, [idx]);
@@ -4449,7 +4580,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#f5e000" }}>WORD DETECTIVE</div>
+          <GameHeaderTitle game="detective" title="WORD DETECTIVE" color="#f5e000" />
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
@@ -4742,7 +4873,7 @@ function OddOneOut({ onBack, onCorrect, wordBank = WORD_BANK }) {
     if (current) {
       // Dedupe words in case of any bad data
       const unique = [...new Set(current.words)];
-      setShuffledWords(unique.sort(() => Math.random() - 0.5));
+      setShuffledWords(shuffleWithBalancedCorrect(unique, word => word === current.odd, 'odd_one_out'));
     }
     setChosen(null);
     setShowDefs(false);
@@ -4777,7 +4908,7 @@ function OddOneOut({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#00c9a7" }}>IMPOSTOR</div>
+          <GameHeaderTitle game="oddoneout" title="IMPOSTOR" color="#00c9a7" />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
@@ -4987,7 +5118,7 @@ function EarTrainer({ onBack, onCorrect, wordBank = WORD_BANK }) {
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
       .map(e => ({ word: e.word, def: e.def }));
-    setOptions([{ word: current.word, def: current.def }, ...distractors].sort(() => Math.random() - 0.5));
+    setOptions(shuffleWithBalancedCorrect([{ word: current.word, def: current.def }, ...distractors], option => option.word === current.word, 'ear_trainer_definition'));
     setChosen(null);
     setUsedHint(false);
     setRevealed(false);
@@ -5041,7 +5172,7 @@ function EarTrainer({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <Btn variant="ghost" small color={C} onClick={() => { window.speechSynthesis?.cancel(); onBack(); }}>← Back</Btn>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#f700ff" }}>EAR TRAINER</div>
+          <GameHeaderTitle game="eartrainer" title="EAR TRAINER" color="#f700ff" />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
@@ -5661,14 +5792,14 @@ const BLACK_OPENING_BOOK = (() => {
 let _aiGameSeed = Math.random();
 function resetAiSeed() { _aiGameSeed = Math.random(); }
 
-function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
+function gameGetAiMove(game, lastPlayerMove, lastAiMove, aiColor = 'b') {
   // Clear search tables for a fresh search
   ttClear();
   historyClear();
   KILLERS.forEach(k => { k[0] = null; k[1] = null; });
-  // Try opening book for black (first 8 half-moves)
+  // Try a light opening book for the side controlled by the opponent.
   const mh = game.moveHistory || [];
-  if (mh.length <= 8) {
+  if (aiColor === 'b' && mh.length <= 8) {
     const whiteMoves = mh.filter((_,i)=>i%2===0)
       .map(m=>'abcdefgh'[m.from[1]]+(8-m.from[0])+'abcdefgh'[m.to[1]]+(8-m.to[0]))
       .join(' ');
@@ -5688,19 +5819,34 @@ function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
       }
     }
   }
+  if (aiColor === 'w' && mh.length <= 8 && typeof getOpeningHint === 'function') {
+    const opening = getOpeningHint(mh, _aiGameSeed);
+    const legal = getLegal(game.board, 'w', game);
+    if (opening?.move && legal.some(m =>
+      m.from[0]===opening.move.from[0] && m.from[1]===opening.move.from[1] &&
+      m.to[0]===opening.move.to[0] && m.to[1]===opening.move.to[1]
+    )) {
+      return opening.move;
+    }
+  }
   // Add small noise to evaluation to prevent deterministic play each game
   const noiseFactor = ((_aiGameSeed * 1000) | 0) % 15; // 0-14 cp noise per game
   const depth = game.difficulty === 'hard' ? 5 : game.difficulty === 'easy' ? 3 : 4;
-  const {move} = minimax(game.board, depth, -Infinity + noiseFactor, Infinity, true, game, lastAiMove, lastAiMove);
-  return move;
+  const {move} = minimax(game.board, depth, -Infinity + noiseFactor, Infinity, aiColor === 'b', game, lastAiMove, lastAiMove);
+  if (move) return move;
+  const legal = getLegal(game.board, aiColor, game);
+  return legal.length ? legal[Math.floor(Math.random() * legal.length)] : null;
 }
 
 // ── Piece rendering ───────────────────────────────────────────────────────────
-function ChessPiece({ color, type, size, fireGlow = false }) {
+function ChessPiece({ color, type, size, fireGlow = false, rainbowGlow = false, flameSeed = 0 }) {
   const url = `https://lichess1.org/assets/piece/pixel/${color}${type.toUpperCase()}.svg`;
   const glow = 'drop-shadow(0 0 3px rgba(200,210,220,0.7)) drop-shadow(0 0 6px rgba(180,195,210,0.3))';
-  const fire = 'drop-shadow(0 0 1px #fff3b0) drop-shadow(0 -1px 2px #ffb703) drop-shadow(0 -2px 3px #ff5a1f)';
+  const fire = 'drop-shadow(0 0 1px #fff6b0) drop-shadow(0 -1px 1px #ffd43b) drop-shadow(0 -2px 1px #ff4a16)';
+  const rainbow = 'drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #00e5ff) drop-shadow(0 0 5px #f700ff)';
   const pieceSize = size * 0.82;
+  const activeFilter = fireGlow ? fire : rainbowGlow ? rainbow : glow;
+  const activeAnimation = fireGlow ? 'firePieceGlow 0.9s steps(2, end) infinite' : rainbowGlow ? 'rainbowPieceGlow 0.9s linear infinite' : 'none';
   const pieceImg = (
     <img
       src={url}
@@ -5709,25 +5855,29 @@ function ChessPiece({ color, type, size, fireGlow = false }) {
       style={{
         display:'block',
         position:'relative',
-        zIndex:2,
+        zIndex:3,
         userSelect:'none',
         WebkitUserSelect:'none',
         pointerEvents:'none',
-        filter: fireGlow ? fire : glow,
-        animation: fireGlow ? 'firePieceGlow 0.9s steps(2, end) infinite' : 'none',
-        willChange: fireGlow ? 'filter' : 'auto',
+        filter: activeFilter,
+        animation: activeAnimation,
+        willChange: (fireGlow || rainbowGlow) ? 'filter' : 'auto',
       }}
       alt={`${color}${type}`}
     />
   );
   if (!fireGlow) return pieceImg;
+  const seed = Math.abs(flameSeed || 0);
+  const flameDelay = (base, offset) => `${(base - ((seed * 37 + offset) % 13) * 0.035).toFixed(2)}s`;
+  const flameDuration = (base, offset) => `${(base + ((seed * 19 + offset) % 7) * 0.035).toFixed(2)}s`;
+  const bedDuration = flameDuration(0.42, 3);
   return (
     <div className="piece-fire-wrap" style={{width:pieceSize,height:pieceSize}}>
-      <span className="piece-fire-bed" />
-      <span className="piece-flame flame-a" style={{left:'22%',width:pieceSize*0.2,height:pieceSize*0.68,animationDelay:'-0.08s'}} />
-      <span className="piece-flame flame-b" style={{left:'39%',width:pieceSize*0.24,height:pieceSize*0.8,animationDelay:'-0.2s'}} />
-      <span className="piece-flame flame-c" style={{left:'58%',width:pieceSize*0.23,height:pieceSize*0.9,animationDelay:'-0.12s'}} />
-      <span className="piece-flame flame-d" style={{left:'76%',width:pieceSize*0.18,height:pieceSize*0.62,animationDelay:'-0.3s'}} />
+      <span className="piece-fire-bed" style={{animationDuration:bedDuration,animationDelay:flameDelay(-0.04, 2)}} />
+      <span className="piece-flame flame-a" style={{left:'17%',width:pieceSize*0.3,height:pieceSize*0.66,animationDelay:flameDelay(-0.08, 1),animationDuration:flameDuration(0.46, 5)}} />
+      <span className="piece-flame flame-b" style={{left:'39%',width:pieceSize*0.29,height:pieceSize*0.72,animationDelay:flameDelay(-0.22, 4),animationDuration:flameDuration(0.5, 2)}} />
+      <span className="piece-flame flame-d" style={{left:'61%',width:pieceSize*0.29,height:pieceSize*0.7,animationDelay:flameDelay(-0.3, 10),animationDuration:flameDuration(0.52, 9)}} />
+      <span className="piece-flame flame-e" style={{left:'82%',width:pieceSize*0.28,height:pieceSize*0.64,animationDelay:flameDelay(-0.18, 12),animationDuration:flameDuration(0.62, 11)}} />
       {pieceImg}
     </div>
   );
@@ -5737,7 +5887,11 @@ function ChessPiece({ color, type, size, fireGlow = false }) {
 function ChessVocabQuiz({ word, context, timeLimit, onResult, isHard }) {
   const entry = WORD_BANK.find(e => e.word === word);
   if (!entry) { onResult(true); return null; }
-  const [shuffled] = useState(() => shuffle([entry, ...shuffle(WORD_BANK.filter(e=>e.word!==word)).slice(0,3)]));
+  const [shuffled] = useState(() => shuffleWithBalancedCorrect(
+    [entry, ...shuffle(WORD_BANK.filter(e=>e.word!==word)).slice(0,3)],
+    e => e.word === entry.word,
+    'vocab_chess_definition'
+  ));
   const [chosen, setChosen] = useState(null);
   const [timeLeft, setTimeLeft] = useState(timeLimit||15);
   const timerRef = useRef(null);
@@ -5881,9 +6035,12 @@ function getKingAttackers(B, kingColor) {
   return attackers;
 }
 
-function getVocabChessGameOverDetail(gameOver, game) {
-  if (gameOver === 'black_wins') {
-    const attackers = getKingAttackers(game.board, 'w');
+function getVocabChessGameOverDetail(gameOver, game, playerColor = 'w') {
+  const winnerColor = gameOver === 'white_wins' ? 'w' : gameOver === 'black_wins' ? 'b' : null;
+  if (gameOver === 'draw') return 'Nobody blinked.';
+  if (winnerColor === playerColor) return `${playerColor === 'w' ? 'White' : 'Black'} takes the board.`;
+  if (winnerColor) {
+    const attackers = getKingAttackers(game.board, playerColor);
     if (attackers === null) return 'Your king was captured.';
     if (attackers.length) {
       const attacker = attackers[0];
@@ -5891,8 +6048,6 @@ function getVocabChessGameOverDetail(gameOver, game) {
     }
     return 'Your king has no safe move left.';
   }
-  if (gameOver === 'white_wins') return 'White wins this game.';
-  if (gameOver === 'draw') return 'No legal moves remain, and neither king is in check.';
   return 'The game is over.';
 }
 
@@ -6754,7 +6909,61 @@ function getOpeningHint(moveHistory, seed) {
   return options[Math.floor(seed * options.length)];
 }
 
+function getSimpleSideHintMove(game, color) {
+  const moves = getLegal(game.board, color, game);
+  if (!moves.length) return null;
+  const maximizing = color === 'b';
+  const before = evaluate(game.board);
+  const hintDepth = game.difficulty === 'hard' ? 4 : 3;
+  let bestMove = null;
+  let bestScore = maximizing ? -Infinity : Infinity;
+  for (const m of orderMovesHint(game.board, moves, game)) {
+    const { board: nb, newEp, newCastle } = applyMove(game.board, m.from, m.to, game);
+    const nextState = { board: nb, turn: opp(color), ep: newEp, castle: newCastle };
+    const { score } = minimax(nb, hintDepth, -Infinity, Infinity, color === 'w', nextState, null, null);
+    if ((maximizing && score > bestScore) || (!maximizing && score < bestScore)) {
+      bestScore = score;
+      bestMove = m;
+    }
+  }
+  if (!bestMove) return null;
+  const piece = game.board[bestMove.from[0]][bestMove.from[1]];
+  const cap = game.board[bestMove.to[0]][bestMove.to[1]];
+  const { board: nb, newCastle } = applyMove(game.board, bestMove.from, bestMove.to, game);
+  const dst = toSq(bestMove.to[0], bestMove.to[1]);
+  const pName = PIECE_NAMES[piece?.type] || 'Piece';
+  const perspectiveScore = color === 'w' ? -bestScore : bestScore;
+  const beforePerspective = color === 'w' ? -before : before;
+  const delta = perspectiveScore - beforePerspective;
+
+  let reason = `${pName} to ${dst} keeps your position coordinated and avoids giving the opponent an easy target.`;
+  let label = 'SOLID MOVE';
+  if (gameIsCheckmate({ board: nb, turn: opp(color), ep: null, castle: newCastle || game.castle })) {
+    label = 'FORCED MATE';
+    reason = `Checkmate in one! ${pName} to ${dst} leaves the opponent with no escape.`;
+  } else if (inCheck(nb, opp(color))) {
+    label = 'GOOD MOVE';
+    reason = `${pName} to ${dst} puts the opponent in check and forces them to respond.`;
+  } else if (cap && cap.color === opp(color)) {
+    label = 'WINNING TACTIC';
+    reason = `Capture the ${PIECE_NAMES[cap.type]} on ${dst}. That wins material and keeps pressure on the board.`;
+  } else if (piece && piece.type !== 'k' && isHanging(game.board, bestMove.from[0], bestMove.from[1], color) && !isHanging(nb, bestMove.to[0], bestMove.to[1], color)) {
+    label = 'SAVE YOUR PIECE';
+    reason = `Your ${pName} is under attack. Move it to ${dst} to keep it safe.`;
+  } else if (delta >= 200) {
+    label = 'WINNING TACTIC';
+    reason = `${pName} to ${dst} creates a strong tactical swing.`;
+  } else if (delta >= 50) {
+    label = 'GOOD MOVE';
+    reason = `${pName} to ${dst} improves your position and makes the opponent's defense harder.`;
+  }
+
+  return { move: bestMove, score: perspectiveScore, label, reason };
+}
+
 function getHintMove(game) {
+  const hintColor = game.hintColor || 'w';
+  if (hintColor !== 'w') return getSimpleSideHintMove(game, hintColor);
   const moves = getLegal(game.board, 'w', game);
   if (!moves.length) return null;
 
@@ -7037,6 +7246,33 @@ function useWinCelebration() {
   , []);
 
   return { celebrate, CelebrationCanvas };
+}
+
+function PixelWinBurst() {
+  const colors = ['#22c55e', '#7dd3fc', '#facc15', '#ffffff', '#a78bfa'];
+  const bits = [
+    [-140, -74, 0], [-112, -118, 40], [-72, -92, 80], [-34, -132, 20],
+    [32, -126, 70], [72, -94, 30], [112, -116, 100], [142, -72, 55],
+    [-156, -18, 90], [-118, 34, 10], [-84, 88, 65], [-38, 108, 115],
+    [36, 104, 35], [82, 84, 85], [124, 32, 15], [158, -14, 75],
+    [-96, -38, 125], [-54, -62, 150], [54, -58, 135], [94, -34, 165],
+  ];
+  return (
+    <div className="pixel-win-burst" aria-hidden="true">
+      {bits.map(([x, y, delay], i) => (
+        <span
+          key={i}
+          className="pixel-win-bit"
+          style={{
+            '--bit-x': `${x}px`,
+            '--bit-y': `${y}px`,
+            '--bit-delay': `${delay}ms`,
+            '--bit-color': colors[i % colors.length],
+          }}
+        />
+      ))}
+    </div>
+  );
 }
 
 
@@ -8054,7 +8290,7 @@ function shufflePuzzleDeck(puzzles) {
 }
 
 function shufflePuzzleChoices(choices) {
-  return shufflePuzzleDeckRaw(choices);
+  return shuffleWithBalancedCorrect(choices, choice => choice.correct, 'chess_puzzle_sentence');
 }
 
 function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
@@ -8193,7 +8429,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
         <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
         <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
-          <span style={{fontFamily:theme.fontMono,fontSize:15,fontWeight:700,letterSpacing:2,color:C}}>CHESS PUZZLES</span>
+          <GameHeaderTitle game="chess" title="CHESS PUZZLES" color={C} />
         </div>
         <div style={{width:60}} />
       </div>
@@ -8453,6 +8689,7 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#3d8ef5"; // game color
   const { sfReady, sfError, getBestMove, getBestMoveForHint } = useStockfishWorker();
   const [difficulty, setDifficulty] = useState(null); // null = not chosen yet
+  const [playerColor, setPlayerColor] = useState('w');
   const [game, setGame] = useState(() => createGame());
   const [selected, setSelected] = useState(null);
   const [legalDests, setLegalDests] = useState([]);
@@ -8471,6 +8708,8 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const [lastWord, setLastWord] = useState(null); // { word, def, correct }
   const [blunderWarn, setBlunderWarn] = useState(null);
   const [reversing, setReversing] = useState(false);
+  const [lockedCapture, setLockedCapture] = useState(null); // {from, to, piece, word}
+  const [lockedMoveFlash, setLockedMoveFlash] = useState(false);
   const [hint, setHint] = useState(null);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
@@ -8479,6 +8718,8 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const [showCoachTips, setShowCoachTips] = useState(true);
   const [bookSeed, setBookSeed] = useState(() => Math.random());
   const [correctStreak, setCorrectStreak] = useState(0); // #5 streak bonus
+  const [firePreview, setFirePreview] = useState(false);
+  const [rainbowPreview, setRainbowPreview] = useState(false);
   const [streakFlash, setStreakFlash] = useState(false);
   const [openingName, setOpeningName] = useState(null); // #8 opening name banner
   const [wordsThisGame, setWordsThisGame] = useState([]); // #6 post-game review
@@ -8492,43 +8733,81 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const lastAiMoveRef = useRef(lastAiMove);
   lastAiMoveRef.current = lastAiMove;
   const { trigger: triggerExplosion, ExplodeSVG } = useExplosion();
-  const { celebrate, CelebrationCanvas } = useWinCelebration();
   const gameRef = useRef(game);
   gameRef.current = game;
   const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth,420)-32-64)/8));
   const cellSizeRef = useRef(cellSize);
   cellSizeRef.current = cellSize;
+  const opponentColor = opp(playerColor);
+  const playerLabel = playerColor === 'w' ? 'WHITE' : 'BLACK';
+  const opponentLabel = opponentColor === 'w' ? 'WHITE' : 'BLACK';
+  const isPlayerTurn = turn === playerColor;
+  const isOpponentTurn = turn === opponentColor;
+  const squareToView = ([r, c]) => playerColor === 'b' ? [7 - r, 7 - c] : [r, c];
+  const squareCenter = ([r, c]) => {
+    const [vr, vc] = squareToView([r, c]);
+    return [(vc + 0.5) * cellSizeRef.current, (vr + 0.5) * cellSizeRef.current];
+  };
 
   const showMsg = (m,dur=2500) => { setMsg(m); setTimeout(()=>setMsg(''),dur); };
   const showCoach = (m) => { if(m && showCoachTips) setCoachMsg(m); };
   const stockfishDifficulty = difficulty === 'medium' ? 'sf-medium' : difficulty === 'hard' ? 'sf-hard' : null;
 
-  const getStockfishMoveForBlack = async (current) => {
-    if (!stockfishDifficulty || !sfReady) return null;
-    const fen = boardToFen({...current, turn:'b'});
-    const uci = await getBestMove(fen, stockfishDifficulty).catch(() => null);
+  useEffect(() => {
+    const handlePieceEffectPreviewKey = (e) => {
+      const tag = e.target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
+      const key = e.key?.toLowerCase();
+      if (key !== 'f' && key !== 'r') return;
+      if (!difficulty || difficulty === 'puzzles') return;
+      e.preventDefault();
+      if (key === 'f') {
+        setRainbowPreview(false);
+        setFirePreview(on => {
+          const next = !on;
+          showMsg(next ? '🔥 Fire preview on' : 'Fire preview off', 1600);
+          return next;
+        });
+      } else {
+        setFirePreview(false);
+        setRainbowPreview(on => {
+          const next = !on;
+          showMsg(next ? '🌈 Rainbow preview on' : 'Rainbow preview off', 1600);
+          return next;
+        });
+      }
+    };
+    window.addEventListener('keydown', handlePieceEffectPreviewKey);
+    return () => window.removeEventListener('keydown', handlePieceEffectPreviewKey);
+  }, [difficulty]);
+
+  const getStockfishMoveForOpponent = async (current, diff = difficulty) => {
+    const sfLevel = diff === 'medium' ? 'sf-medium' : diff === 'hard' ? 'sf-hard' : null;
+    if (!sfLevel || !sfReady) return null;
+    const fen = boardToFen({...current, turn:opponentColor});
+    const uci = await getBestMove(fen, sfLevel).catch(() => null);
     const sfMove = uci ? uciToMove(uci, current.board) : null;
     if (!sfMove) return null;
-    const legalMoves = getLegal(current.board, 'b', current);
+    const legalMoves = getLegal(current.board, opponentColor, current);
     return legalMoves.find(m =>
       m.from[0]===sfMove.from[0] && m.from[1]===sfMove.from[1] &&
       m.to[0]===sfMove.to[0] && m.to[1]===sfMove.to[1]
     ) || null;
   };
 
-  const getOpponentMove = async (current) => {
-    const stockfishMove = await getStockfishMoveForBlack(current);
+  const getOpponentMove = async (current, diff = difficulty) => {
+    const stockfishMove = await getStockfishMoveForOpponent(current, diff);
     if (stockfishMove) return stockfishMove;
 
     const currentMoveHistory = moveHistoryRef.current;
     const currentLastAiMove = lastAiMoveRef.current;
-    const gameWithDiff = {...current, moveHistory: currentMoveHistory, difficulty};
-    let move = gameGetAiMove(gameWithDiff, null, currentLastAiMove);
+    const gameWithDiff = {...current, moveHistory: currentMoveHistory, difficulty: diff};
+    let move = gameGetAiMove(gameWithDiff, null, currentLastAiMove, opponentColor);
 
     // Easy mode: sometimes imperfect, but still trying to play real chess.
-    if (difficulty === 'easy') {
+    if (diff === 'easy') {
       const rand = Math.random();
-      const legalMoves = getLegal(current.board, 'b', current);
+      const legalMoves = getLegal(current.board, opponentColor, current);
       if (rand < 0.22 && legalMoves.length) {
         const candidates = legalMoves.map(m => {
           const target = current.board[m.to[0]][m.to[1]];
@@ -8536,9 +8815,9 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
           const moved = nb[m.to[0]][m.to[1]];
           return {
             move: m,
-            captures: target?.color === 'w',
-            checks: inCheck(nb, 'w'),
-            hangs: moved?.type !== 'k' && isHanging(nb, m.to[0], m.to[1], 'b')
+            captures: target?.color === playerColor,
+            checks: inCheck(nb, playerColor),
+            hangs: moved?.type !== 'k' && isHanging(nb, m.to[0], m.to[1], opponentColor)
           };
         });
         const practical = candidates.filter(c => !c.hangs);
@@ -8551,29 +8830,32 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
   };
 
   const checkOver = (g) => {
+    const finishWithWinner = (winnerColor) => {
+      const winner = winnerColor === 'w' ? 'white_wins' : 'black_wins';
+      setGameOver(winner);
+      if (winnerColor === playerColor) setShowWinPopup(true);
+      else setShowLossPopup(true);
+      return true;
+    };
     const hasWhiteKing = g.board.some(row => row.some(p => p?.type==='k' && p?.color==='w'));
     const hasBlackKing = g.board.some(row => row.some(p => p?.type==='k' && p?.color==='b'));
-    if (!hasBlackKing) { setGameOver('white_wins'); setShowWinPopup(true); celebrate(); return true; }
-    if (!hasWhiteKing) { setGameOver('black_wins'); setShowLossPopup(true); return true; }
+    if (!hasBlackKing) return finishWithWinner('w');
+    if (!hasWhiteKing) return finishWithWinner('b');
     if (gameIsCheckmate(g)) {
-      const winner = g.turn==='b'?'white_wins':'black_wins';
-      setGameOver(winner);
-      if (winner === 'white_wins') { setShowWinPopup(true); celebrate(); }
-      if (winner === 'black_wins') setShowLossPopup(true);
-      return true;
+      return finishWithWinner(g.turn === 'b' ? 'w' : 'b');
     }
     if (gameIsDraw(g)) { setGameOver('draw'); setShowDrawPopup(true); return true; }
     return false;
   };
 
-  const doAiTurn = (g) => {
-    setTurn('b');
+  const doAiTurn = (g, diff = difficulty) => {
+    setTurn(opponentColor);
     setTimeout(async () => {
       const current = g || gameRef.current;
-      if (current.turn !== 'b') { setTurn('w'); return; }
-      let move = await getOpponentMove(current);
+      if (current.turn !== opponentColor) { setTurn(playerColor); return; }
+      let move = await getOpponentMove(current, diff);
 
-      if (!move) { setTurn('w'); return; }
+      if (!move) { setTurn(playerColor); return; }
       const result = gameMove(current, move.from, move.to);
       const toPos = move.to;
       setLastAiMove(move);
@@ -8587,34 +8869,41 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
         // AI capture explosion (different color — reddish)
         if (boardRef.current) {
           const boardRect = boardRef.current.getBoundingClientRect();
-          const ex = boardRect.left + (toPos[1] + 0.5) * cellSizeRef.current;
-          const ey = boardRect.top + (toPos[0] + 0.5) * cellSizeRef.current;
+          const [sx, sy] = squareCenter(toPos);
+          const ex = boardRect.left + sx;
+          const ey = boardRect.top + sy;
           triggerExplosion(ex, ey, true);
           playExplosionSound(true);
         }
         const capType = result.captured.type;
         const pieceName = PIECE_NAMES[capType];
         showMsg(`Opponent captured your ${pieceName}!`, 2000);
-        showCoach(getAiCoachComment(current, move, result, lastWord));
-        setCaptured(prev=>({...prev,b:[...prev.b,capType]}));
-        if (!checkOver(result)) setTurn('w');
+        if (playerColor === 'w') showCoach(getAiCoachComment(current, move, result, lastWord));
+        setCaptured(prev=>({...prev,[opponentColor]:[...prev[opponentColor],capType]}));
       }
-      showCoach(getAiCoachComment(current, move, result, lastWord));
-      if (!checkOver(result)) setTurn('w');
+      if (playerColor === 'w') showCoach(getAiCoachComment(current, move, result, lastWord));
+      if (!checkOver(result)) {
+        setLockedCapture(null);
+        setLockedMoveFlash(false);
+        setTurn(playerColor);
+      }
     }, 450);
   };
 
   const requestHint = async () => {
-    if (hintLoading || turn !== 'w') return;
+    if (hintLoading || turn !== playerColor) return;
+    const startedAt = performance.now();
     setHintLoading(true);
     setHint(null);
+    await waitForPaint();
+    let nextHint = null;
     try {
       let h = null;
       if (stockfishDifficulty && sfReady) {
-        const fen = boardToFen({...gameRef.current, turn:'w'});
+        const fen = boardToFen({...gameRef.current, turn:playerColor});
         const uci = await getBestMoveForHint(fen).catch(() => null);
         const sfMove = uci ? uciToMove(uci, gameRef.current.board) : null;
-        const legalMoves = getLegal(gameRef.current.board, 'w', gameRef.current);
+        const legalMoves = getLegal(gameRef.current.board, playerColor, gameRef.current);
         const move = sfMove && legalMoves.find(m =>
           m.from[0]===sfMove.from[0] && m.from[1]===sfMove.from[1] &&
           m.to[0]===sfMove.to[0] && m.to[1]===sfMove.to[1]
@@ -8623,23 +8912,47 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
           const scoreBefore = evaluateBoard(gameRef.current.board);
           const {board: nb} = applyMove(gameRef.current.board, move.from, move.to, gameRef.current);
           const scoreAfter = evaluateBoard(nb);
-          h = { move, label:'STOCKFISH', reason: explainMove(gameRef.current, move, scoreBefore, scoreAfter) };
+          if (playerColor === 'w') {
+            h = { move, label:'STOCKFISH', reason: explainMove(gameRef.current, move, scoreBefore, scoreAfter) };
+          } else {
+            const piece = gameRef.current.board[move.from[0]][move.from[1]];
+            const cap = gameRef.current.board[move.to[0]][move.to[1]];
+            const dst = toSq(move.to[0], move.to[1]);
+            const pName = PIECE_NAMES[piece?.type] || 'Piece';
+            const reason = cap?.color === opponentColor
+              ? `Capture the ${PIECE_NAMES[cap.type]} on ${dst}. That wins material and keeps pressure on the board.`
+              : inCheck(nb, opponentColor)
+                ? `${pName} to ${dst} puts the opponent in check and forces a response.`
+                : `${pName} to ${dst} is the engine's favorite move here. It keeps your pieces active and coordinated.`;
+            h = { move, label:'BEST IDEA', reason };
+          }
         }
       }
-      if (!h) h = getHintMove({...gameRef.current, moveHistory: moveHistoryRef.current, bookSeed, difficulty});
-      if (h) { setHint(h); setHintsUsed(n=>n+1); setCoachMsg(''); }
+      if (!h) h = getHintMove({...gameRef.current, moveHistory: moveHistoryRef.current, bookSeed, difficulty, hintColor: playerColor});
+      nextHint = h;
     } finally {
+      const remaining = HINT_LOADING_MIN_MS - (performance.now() - startedAt);
+      if (remaining > 0) await wait(remaining);
+      if (nextHint) { setHint(nextHint); setHintsUsed(n=>n+1); setCoachMsg(''); }
       setHintLoading(false);
     }
   };
 
   const showThreatForSquare = (B, r, c) => {
     if (!showOverlays) return;
-    setThreatArrows(getThreatArrowsForSquare(B, r, c, 'b'));
+    setThreatArrows(getThreatArrowsForSquare(B, r, c, opponentColor));
+  };
+
+  const sameSquare = (a, b) => a && b && a[0] === b[0] && a[1] === b[1];
+  const isLockedMove = (from, to) => lockedCapture && sameSquare(lockedCapture.from, from) && sameSquare(lockedCapture.to, to);
+  const showLockedCaptureCue = () => {
+    setLockedMoveFlash(true);
+    showMsg('✗ That capture is locked until next turn. Try another move.', 2600);
+    setTimeout(() => setLockedMoveFlash(false), 2200);
   };
 
   const handleSquare = (r, c) => {
-    if (turn!=='w'||gameOver) return;
+    if (turn!==playerColor||gameOver) return;
     if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
     setThreatArrows([]); // clear threat arrows when player interacts
     const g = gameRef.current;
@@ -8647,18 +8960,23 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
     if (selected) {
       const isLegal = legalDests.some(([lr,lc])=>lr===r&&lc===c);
       if (isLegal) {
+        if (isLockedMove(selected, [r, c])) {
+          showLockedCaptureCue();
+          return;
+        }
         setBlunderWarn(null);
         setHint(null);
         setCoachMsg('');
         const capPiece = g.board[r][c];
         const gameBefore = g;
 
-        if (capPiece && capPiece.color==='b') {
+        if (capPiece && capPiece.color===opponentColor) {
           // Explosion effect at capture square
           if (boardRef.current) {
             const boardRect = boardRef.current.getBoundingClientRect();
-            const ex = boardRect.left + (c + 0.5) * cellSize;
-            const ey = boardRect.top + (r + 0.5) * cellSize;
+            const [sx, sy] = squareCenter([r, c]);
+            const ex = boardRect.left + sx;
+            const ey = boardRect.top + sy;
             triggerExplosion(ex, ey, false);
             playExplosionSound(false);
           }
@@ -8683,7 +9001,7 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
               onResult: (correct) => {
                 setQuiz(null);
                 if (correct) {
-                  setCaptured(prev=>({...prev,w:[...prev.w,capPiece.type]}));
+                  setCaptured(prev=>({...prev,[playerColor]:[...prev[playerColor],capPiece.type]}));
                   onCorrect(wordEntry.word);
                   setLastWord({ word: wordEntry.word, def: wordEntry.def, correct: true });
 	                  showMsg(`✓ ${pieceName} claimed!`);
@@ -8703,18 +9021,19 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
                   const oName = getOpeningName([...moveHistory, {from:selected, to:[r,c]}]);
                   if (oName) setOpeningName(oName);
                   if (!checkOver(result)) {
-                    const coachResult = getCoachComment(gameBefore, result, selected, [r,c], moveHistory, shownTips, lastWord);
+                    const coachResult = playerColor === 'w' ? getCoachComment(gameBefore, result, selected, [r,c], moveHistory, shownTips, lastWord) : null;
                     if (coachResult) {
                       showCoach(typeof coachResult==='object' ? coachResult.msg : coachResult);
                       if (typeof coachResult==='object') setShownTips(s=>new Set([...s, coachResult.key]));
                     }
-                    setTurn('b'); doAiTurn(result);
+                    setTurn(opponentColor); doAiTurn(result);
                   }
                 } else {
                   setLastWord({ word: wordEntry.word, def: wordEntry.def, correct: false });
                   setCorrectStreak(0); // #5 reset streak on wrong
                   setWordsThisGame(prev => [...prev, { word: wordEntry.word, def: wordEntry.def, piece: capPiece.type, correct: false }]);
-                  // Reverse AND lose a turn — restore board to pre-capture state, swap to black turn
+                  // Reverse the capture, keep the player to move, and lock this exact capture until after the opponent replies.
+                  setLockedCapture({ from: selected, to: [r, c], piece: capPiece.type, word: wordEntry.word });
                   setReversing([r,c]);
                   setTimeout(()=>{
                     setReversing(null);
@@ -8722,35 +9041,12 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
                     setAiFlash(null);
                     setSelected(null);
                     setLegalDests([]);
-                    // Restore position but with black to move (lose-a-turn penalty)
-                    const restored = { board: cloneB(gameBefore.board), turn:'b', ep: gameBefore.ep, castle: {...gameBefore.castle} };
+                    const restored = { board: cloneB(gameBefore.board), turn:playerColor, ep: gameBefore.ep, castle: {...gameBefore.castle} };
                     setGame(restored);
-                    showMsg(`✗ Wrong — ${pieceName} escapes, opponent gets an extra turn!`, 3500);
-                    setTurn('b');
-                    // Give AI extra time and use a deeper search for the bonus turn
-                    setTimeout(async () => {
-                      const bonusGame = gameRef.current;
-                      if (bonusGame.turn !== 'b') { setTurn('w'); return; }
-                      const bonusMove = await getOpponentMove(bonusGame);
-                      if (!bonusMove) { setTurn('w'); return; }
-                      const bonusResult = gameMove(bonusGame, bonusMove.from, bonusMove.to);
-                      setLastAiMove(bonusMove);
-                      setAiFlash(bonusMove.to);
-                      setTimeout(()=>setAiFlash(null),600);
-                      setGame(bonusResult);
-                      setLastMove({from:bonusMove.from, to:bonusMove.to});
-                      if (bonusResult.captured) {
-                        if (boardRef.current) {
-                          const boardRect = boardRef.current.getBoundingClientRect();
-                          const ex = boardRect.left + (bonusMove.to[1] + 0.5) * cellSizeRef.current;
-                          const ey = boardRect.top + (bonusMove.to[0] + 0.5) * cellSizeRef.current;
-                          triggerExplosion(ex, ey, true);
-                          playExplosionSound(true);
-                        }
-                        setCaptured(prev=>({...prev, b:[...prev.b, bonusResult.captured.type]}));
-                      }
-                      if (!checkOver(bonusResult)) setTurn('w');
-                    }, 2200);
+                    setLockedMoveFlash(true);
+                    showMsg(`✗ Wrong — ${pieceName} escapes. That capture is locked until next turn.`, 3500);
+                    setTurn(playerColor);
+                    setTimeout(() => setLockedMoveFlash(false), 2600);
                   },600);
                 }
               }
@@ -8769,7 +9065,7 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
             return nh;
           });
           if (!checkOver(result)) {
-            const coachResult = getCoachComment(g, result, selected, [r,c], moveHistory, shownTips, lastWord);
+            const coachResult = playerColor === 'w' ? getCoachComment(g, result, selected, [r,c], moveHistory, shownTips, lastWord) : null;
             if (coachResult) {
               showCoach(typeof coachResult==='object' ? coachResult.msg : coachResult);
               if (typeof coachResult==='object') setShownTips(s=>new Set([...s, coachResult.key]));
@@ -8780,28 +9076,44 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
         return;
       }
       // Reselect
-      if (g.board[r][c]?.color==='w') {
+      if (g.board[r][c]?.color===playerColor) {
         setSelected([r,c]);
         setLegalDests(gameLegal(g,[r,c]));
         showThreatForSquare(g.board, r, c);
+        if (lockedCapture && sameSquare(lockedCapture.from, [r, c])) showLockedCaptureCue();
       } else {
         setSelected(null); setLegalDests([]);
       }
       return;
     }
-    if (g.board[r][c]?.color==='w') {
+    if (g.board[r][c]?.color===playerColor) {
       setSelected([r,c]);
       setLegalDests(gameLegal(g,[r,c]));
       showThreatForSquare(g.board, r, c);
+      if (lockedCapture && sameSquare(lockedCapture.from, [r, c])) showLockedCaptureCue();
     }
   };
 
-  const newGame = () => {
+  const beginFreshGame = (nextDifficulty = difficulty) => {
     const g = createGame();
     setGame(g); setSelected(null); setLegalDests([]); setLastMove(null);
     setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
-	    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
+	    setQuiz(null); setWinBackQuiz(null); setReversing(null); setLockedCapture(null); setLockedMoveFlash(false); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
     setCorrectStreak(0); setStreakFlash(false); setOpeningName(null); setWordsThisGame([]); setShowWordReview(false); setShowWinPopup(false); setShowLossPopup(false); setShowDrawPopup(false); setThreatArrows([]);
+    if (playerColor === 'b' && nextDifficulty && nextDifficulty !== 'puzzles') {
+      showMsg('Opponent opens as White.', 1500);
+      doAiTurn(g, nextDifficulty);
+    }
+  };
+
+  const newGame = () => beginFreshGame(difficulty);
+  const startMode = (id) => {
+    if (id === 'puzzles') {
+      setDifficulty('puzzles');
+      return;
+    }
+    setDifficulty(id);
+    beginFreshGame(id);
   };
 
   // Precompute which legal destinations are risky (piece would be under attack after moving there)
@@ -8813,12 +9125,12 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
       const { board: nb } = applyMove(game.board, selected, [dr, dc], game);
       // Check if our piece is attacked on the destination after the move
       const piece = nb[dr][dc];
-      if (piece && isAttacked(nb, dr, dc, 'b')) {
+      if (piece && isAttacked(nb, dr, dc, opponentColor)) {
         risky.add(`${dr},${dc}`);
       }
     }
     return risky;
-  }, [selected, legalDests, game.board]);
+  }, [selected, legalDests, game.board, opponentColor]);
 
   const checkedKingPos = gameInCheck(game) ? (() => {
     for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
@@ -8828,7 +9140,11 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
   })() : null;
 
   // Squares attacked by AI (shown as subtle threat indicators)
-  const threatened = turn==='w' ? getThreatenedSquares(game.board, 'b') : new Set();
+  const threatened = turn===playerColor ? getThreatenedSquares(game.board, opponentColor) : new Set();
+  const lockedSourceSelected = lockedCapture && selected && sameSquare(lockedCapture.from, selected);
+  const winnerColor = gameOver === 'white_wins' ? 'w' : gameOver === 'black_wins' ? 'b' : null;
+  const playerWon = winnerColor === playerColor;
+  const playerLost = !!winnerColor && winnerColor !== playerColor;
 
   // ── #1 Difficulty selector ──────────────────────────────────────────────────
   if (!difficulty) {
@@ -8837,34 +9153,54 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
         <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
           <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
           <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
-            <span style={{fontFamily:theme.fontMono,fontSize:15,fontWeight:700,letterSpacing:2,color:C}}>VOCAB CHESS</span>
+            <GameHeaderTitle game="chess" title="VOCAB CHESS" color={C} />
           </div>
           <div style={{width:60}}/>
         </div>
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',gap:12}}>
           <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:'#fff',letterSpacing:2,marginBottom:8,lineHeight:1.6}}>SELECT MODE</div>
           {/* Puzzles option at top */}
-          <button onClick={() => setDifficulty('puzzles')} style={{
+          <button onClick={() => startMode('puzzles')} style={{
             width:'100%', maxWidth:320, padding:'18px 20px', borderRadius:12,
             background:'#f59e0b18', border:`2px solid #f59e0b88`,
             cursor:'pointer', textAlign:'left', transition:'all 0.15s',
           }}>
             <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:'#f59e0b',letterSpacing:2,marginBottom:8,lineHeight:1.6}}>PUZZLES</div>
-            <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>Tactics training — fork, pin, checkmate</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.45}}>Train tactics. Learn words.</div>
           </button>
-          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:7,fontWeight:400,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'6px 0',lineHeight:1.6}}>-- VS OPPONENT --</div>
+          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:7,fontWeight:400,color:'#fff',letterSpacing:2,margin:'6px 0',lineHeight:1.6}}>-- VS OPPONENT --</div>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,margin:'0 0 4px'}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:6,border:`1.5px solid ${C}66`,borderRadius:22,padding:'5px 7px 5px 12px',background:'transparent',boxShadow:`0 0 12px ${C}18`}}>
+              <span style={{fontFamily:theme.fontMono,fontSize:8,color:theme.textMuted,letterSpacing:1.3}}>PLAY AS</span>
+              <span style={{fontSize:9,color:theme.textMuted}}>|</span>
+              {[
+                {id:'w',label:'WHITE',sub:'you go first'},
+                {id:'b',label:'BLACK',sub:'you go second'},
+              ].map(opt => {
+                const active = playerColor === opt.id;
+                return (
+                  <button key={opt.id} onClick={() => setPlayerColor(opt.id)} style={{background:active?C+'24':theme.surface,border:`1.5px solid ${active?C:theme.border}`,borderRadius:14,color:active?'#fff':theme.textMuted,fontFamily:theme.fontPixel,fontSize:8,letterSpacing:1,padding:'6px 9px 5px',cursor:'pointer',lineHeight:1.2,textShadow:active?`0 0 8px ${C}88`:'none',boxShadow:active?`0 0 10px ${C}22`:'none'}}>
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{fontSize:10,color:theme.textMuted,fontFamily:theme.fontBody,fontWeight:600,lineHeight:1.2}}>
+              {playerColor === 'w' ? 'you go first' : 'you go second'}
+            </div>
+          </div>
           {[
-            {id:'easy',   label:'EASY',   sub:'For learning — forgiving opponent', color:'#00cc66'},
-            {id:'medium', label:'MEDIUM', sub:'Tries to punish mistakes',          color:C},
-            {id:'hard',   label:'HARD',   sub:'Sharper tactics, fewer gifts',      color:'#ff4444'},
+            {id:'easy',   label:'EASY',   sub:'A kinder chessboard for building confidence. (~500-700 ELO)', color:'#00cc66'},
+            {id:'medium', label:'MEDIUM', sub:'The opponent starts noticing your mistakes. (~1000-1300 ELO)', color:C},
+            {id:'hard',   label:'HARD',   sub:'Sharper tactics. Fewer second chances. (~1600-2000+ ELO)', color:'#ff4444'},
           ].map(d => (
-            <button key={d.id} onClick={() => setDifficulty(d.id)} style={{
+            <button key={d.id} onClick={() => startMode(d.id)} style={{
               width:'100%', maxWidth:320, padding:'18px 20px', borderRadius:12,
               background:d.color+'18', border:`2px solid ${d.color}66`,
               cursor:'pointer', textAlign:'left', transition:'all 0.15s',
             }}>
               <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:d.color,letterSpacing:2,marginBottom:8,lineHeight:1.6}}>{d.label}</div>
-              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>{d.sub}</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.45}}>{d.sub}</div>
             </button>
           ))}
         </div>
@@ -8882,10 +9218,12 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
         <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
         <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
-          <span style={{fontFamily: theme.fontMono, fontSize: 15, fontWeight: 700, letterSpacing: 2, color:"#3d8ef5"}}>VOCAB CHESS</span>
-          <span style={{marginLeft:8,fontSize:10,color:difficulty==='easy'?'#00cc66':difficulty==='hard'?'#ff4444':C,fontFamily:theme.fontMono,opacity:0.8}}>
-            {difficulty?.toUpperCase()}
-          </span>
+          <GameHeaderTitle
+            game="chess"
+            title="VOCAB CHESS"
+            color="#3d8ef5"
+            detail={{text:difficulty?.toUpperCase(),color:difficulty==='easy'?'#00cc66':difficulty==='hard'?'#ff4444':C,opacity:0.8}}
+          />
         </div>
         <div style={{width:60}} />
       </div>
@@ -8893,13 +9231,13 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
       {!gameOver && (
         <div style={{
           textAlign:'center', padding:'8px 16px',
-          background: turn==='w' ? theme.success+'18' : turn==='b' ? theme.danger+'18' : theme.gold+'18',
-          borderBottom: `1px solid ${turn==='w' ? theme.success+'44' : turn==='b' ? theme.danger+'44' : theme.gold+'44'}`,
+          background: isPlayerTurn ? theme.success+'18' : isOpponentTurn ? theme.danger+'18' : theme.gold+'18',
+          borderBottom: `1px solid ${isPlayerTurn ? theme.success+'44' : isOpponentTurn ? theme.danger+'44' : theme.gold+'44'}`,
         }}>
           <span style={{fontFamily:theme.fontMono, fontSize:12, fontWeight:700, letterSpacing:1,
-            color: turn==='w' ? theme.success : turn==='b' ? theme.danger : theme.gold,
+            color: isPlayerTurn ? theme.success : isOpponentTurn ? theme.danger : theme.gold,
           }}>
-            {turn==='w' ? '● YOUR TURN (WHITE)' : turn==='b' ? '○ OPPONENT THINKING… (BLACK)' : turn==='winback' ? '🛡️ WIN IT BACK!' : ''}
+            {isPlayerTurn ? `● YOUR TURN (${playerLabel})` : isOpponentTurn ? `○ OPPONENT THINKING… (${opponentLabel})` : turn==='winback' ? '🛡️ WIN IT BACK!' : ''}
           </span>
           {/* #5 Streak indicator */}
           {correctStreak >= 2 && (
@@ -8918,29 +9256,30 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
       )}
       <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 16px 24px',gap:8}}>
         {/* Status */}
-        <div style={{fontFamily:theme.fontMono,fontSize:12,minHeight:18,color:gameOver==='white_wins'?theme.success:gameOver==='black_wins'?theme.danger:gameOver==='draw'?theme.textMuted:msg.startsWith('✓')?theme.success:msg.startsWith('✗')?theme.danger:checkedKingPos?theme.gold:theme.textMuted,letterSpacing:1,textAlign:'center'}}>
-          {gameOver==='white_wins'?'🏆 YOU WON':gameOver==='black_wins'?'💀 YOU LOST':gameOver==='draw'?'🤝 DRAW':msg||(checkedKingPos&&game.turn==='w'?'⚠ YOU ARE IN CHECK':checkedKingPos&&game.turn==='b'?'⚠ OPPONENT IS IN CHECK':'')}
+        <div style={{fontFamily:theme.fontMono,fontSize:12,minHeight:18,color:playerWon?theme.success:playerLost?theme.danger:gameOver==='draw'?theme.textMuted:msg.startsWith('✓')?theme.success:msg.startsWith('✗')?theme.danger:checkedKingPos?theme.gold:theme.textMuted,letterSpacing:1,textAlign:'center'}}>
+          {playerWon?'🏆 YOU WON':playerLost?'💀 YOU LOST':gameOver==='draw'?'🤝 DRAW':msg||(checkedKingPos&&game.turn===playerColor?'⚠ YOU ARE IN CHECK':checkedKingPos&&game.turn===opponentColor?'⚠ OPPONENT IS IN CHECK':'')}
         </div>
         {/* Board + Captured Pieces */}
         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,width:'100%'}}>
-          {/* Top tray: opponent captured (your white pieces AI took) */}
+          {/* Top tray: pieces the opponent captured */}
           <div style={{display:'flex',flexDirection:'row',alignItems:'center',gap:4,minHeight:28,width:`${cellSize*8+4}px`}}>
             <span style={{fontFamily:theme.fontMono,fontSize:8,color:theme.danger,letterSpacing:0.5,marginRight:2,flexShrink:0}}>OPP</span>
             <div style={{display:'flex',flexDirection:'row',flexWrap:'wrap',gap:2,alignItems:'center'}}>
-              {captured.b.map((t,i)=>(
+              {captured[opponentColor].map((t,i)=>(
                 <div key={i} style={{position:'relative',width:22,height:22}}>
-                  <img src={`https://lichess1.org/assets/piece/pixel/w${t.toUpperCase()}.svg`} width={20} height={20} style={{opacity:0.95,display:'block',filter:`drop-shadow(0 0 4px ${theme.danger}cc) drop-shadow(0 0 2px ${theme.danger})`}} alt={t}/>
+                  <img src={`https://lichess1.org/assets/piece/pixel/${playerColor}${t.toUpperCase()}.svg`} width={20} height={20} style={{opacity:0.95,display:'block',filter:`drop-shadow(0 0 4px ${theme.danger}cc) drop-shadow(0 0 2px ${theme.danger})`}} alt={t}/>
                 </div>
               ))}
-              {captured.b.length===0 && <div style={{width:20,height:20,border:`1px dashed ${theme.border}`,borderRadius:3,opacity:0.3}}/>}
+              {captured[opponentColor].length===0 && <div style={{width:20,height:20,border:`1px dashed ${theme.border}`,borderRadius:3,opacity:0.3}}/>}
             </div>
           </div>
 
           {/* Board */}
           <div style={{position:'relative',flexShrink:0,width:`${cellSize*8+4}px`,height:`${cellSize*8+4}px`}}>
-          <div ref={boardRef} style={{display:'grid',gridTemplateColumns:`repeat(8,${cellSize}px)`,border: turn==='w' ? '2px solid #00cc66' : turn==='b' ? '2px solid #ff4444' : '2px solid #2a2a3a',borderRadius:6,overflow:'hidden',flexShrink:0,boxShadow: turn==='w' ? '0 0 12px 3px #00cc6666, 0 0 4px 1px #00cc6688' : turn==='b' ? '0 0 12px 3px #ff444466, 0 0 4px 1px #ff444488' : 'none',transition:'border-color 0.3s,box-shadow 0.3s'}}>
+          <div ref={boardRef} style={{display:'grid',gridTemplateColumns:`repeat(8,${cellSize}px)`,border: isPlayerTurn ? '2px solid #00cc66' : isOpponentTurn ? '2px solid #ff4444' : '2px solid #2a2a3a',borderRadius:6,overflow:'hidden',flexShrink:0,boxShadow: isPlayerTurn ? '0 0 12px 3px #00cc6666, 0 0 4px 1px #00cc6688' : isOpponentTurn ? '0 0 12px 3px #ff444466, 0 0 4px 1px #ff444488' : 'none',transition:'border-color 0.3s,box-shadow 0.3s'}}>
             {Array.from({length:64}).map((_,i)=>{
-              const r=Math.floor(i/8),c=i%8;
+              const displayR=Math.floor(i/8),displayC=i%8;
+              const r=playerColor==='b'?7-displayR:displayR,c=playerColor==='b'?7-displayC:displayC;
               const piece=game.board[r][c];
               const isLight=(r+c)%2===0;
               const isSel=selected&&selected[0]===r&&selected[1]===c;
@@ -8949,36 +9288,50 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
               const isCheck=checkedKingPos&&checkedKingPos[0]===r&&checkedKingPos[1]===c;
               const isFlash=aiFlash&&aiFlash[0]===r&&aiFlash[1]===c;
               const isRev=false; // reversing is now a board-level overlay, not per-cell
-              const isThreatened = showOverlays && threatened.has(`${r},${c}`) && piece?.color==='w' && !isSel;
+              const isThreatened = showOverlays && threatened.has(`${r},${c}`) && piece?.color===playerColor && !isSel;
               const isBlunderDest = showOverlays && isDest && blunderDests.has(`${r},${c}`);
               const isHintFrom = hint && hint.move.from[0]===r && hint.move.from[1]===c;
               const isHintTo = hint && hint.move.to[0]===r && hint.move.to[1]===c;
+              const isLockedCaptureTarget = lockedSourceSelected && sameSquare(lockedCapture.to, [r, c]);
 
               let bg=isLight?'#00aaff':'#1a5cbf';
               if (isLast) bg=isLight?'#33bbff':'#2266d4';
               if (isSel) bg='#ff5e9988';
               if (isHintFrom) bg='#22d3a055';
               if (isHintTo) bg='#22d3a088';
+              if (isLockedCaptureTarget) bg=theme.danger+'aa';
               if (isFlash) bg=theme.gold+'cc';
               if (isCheck) bg=theme.danger+'cc';
               if (isRev) bg=theme.danger;
 
               return (
-                <div key={i} onClick={()=>handleSquare(r,c)} style={{width:cellSize,height:cellSize,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:turn==='w'&&!quiz?'pointer':'default',position:'relative',transition:'background 0.15s',userSelect:'none',WebkitUserSelect:'none'}}>
+                <div key={i} onClick={()=>handleSquare(r,c)} style={{width:cellSize,height:cellSize,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:isPlayerTurn&&!quiz?'pointer':'default',position:'relative',transition:'background 0.15s',userSelect:'none',WebkitUserSelect:'none'}}>
                   {/* Threat indicator — small red corner dot on your pieces under attack */}
                   {isThreatened && <div style={{position:'absolute',top:2,right:2,width:6,height:6,borderRadius:'50%',background:theme.danger,zIndex:2}}/>}
                   {/* Blunder warning — orange ring on dangerous destinations */}
                   {isBlunderDest && <div style={{position:'absolute',inset:1,borderRadius:2,border:`2px solid ${theme.gold}`,pointerEvents:'none',zIndex:2}}/>}
                   {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff33'}}/>}
-                  {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff44',pointerEvents:'none'}}/>}
-                  {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize} fireGlow={piece.color==='w' && correctStreak >= 3}/>}
+                  {isDest&&piece&&piece.color===opponentColor&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff44',pointerEvents:'none'}}/>}
+                  {isLockedCaptureTarget && (
+                    <div style={{position:'absolute',inset:0,zIndex:4,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                      <span style={{fontFamily:theme.fontPixel,fontSize:Math.max(18, cellSize*0.5),color:'#fff',lineHeight:1,textShadow:`0 0 4px ${theme.danger}, 0 0 10px ${theme.danger}`}}>X</span>
+                    </div>
+                  )}
+                  {piece&&<ChessPiece
+                    color={piece.color}
+                    type={piece.type}
+                    size={cellSize}
+                    fireGlow={piece.color===playerColor && (firePreview || (correctStreak >= 3 && !rainbowPreview))}
+                    rainbowGlow={piece.color===playerColor && rainbowPreview}
+                    flameSeed={r * 8 + c}
+                  />}
                 </div>
               );
             })}
           </div>
             {reversing && (
-              <div style={{position:'absolute',inset:0,zIndex:20,background:'#3d8ef533',border:`3px solid #3d8ef5`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                <span style={{fontFamily:theme.fontMono,fontSize:13,color:'#3d8ef5',letterSpacing:2,fontWeight:700,textShadow:`0 0 10px #3d8ef5`,background:'#0a0a1299',padding:'4px 10px',borderRadius:4}}>↩ REVERSING</span>
+              <div style={{position:'absolute',inset:0,zIndex:20,background:theme.danger+'24',border:`3px solid ${theme.danger}`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                <span style={{fontFamily:theme.fontMono,fontSize:13,color:theme.danger,letterSpacing:2,fontWeight:700,textShadow:`0 0 10px ${theme.danger}`,background:'#0a0a1299',padding:'4px 10px',borderRadius:4}}>✕ CAPTURE LOCKED</span>
               </div>
             )}
             {/* Threat arrows SVG overlay */}
@@ -8993,10 +9346,12 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
                   </marker>
                 </defs>
                 {threatArrows.map((a, i) => {
-                  const fx = (a.from[1] + 0.5) * cellSize;
-                  const fy = (a.from[0] + 0.5) * cellSize;
-                  const tx = (a.to[1] + 0.5) * cellSize;
-                  const ty = (a.to[0] + 0.5) * cellSize;
+                  const [fvr, fvc] = squareToView(a.from);
+                  const [tvr, tvc] = squareToView(a.to);
+                  const fx = (fvc + 0.5) * cellSize;
+                  const fy = (fvr + 0.5) * cellSize;
+                  const tx = (tvc + 0.5) * cellSize;
+                  const ty = (tvr + 0.5) * cellSize;
                   // Shorten the line so it doesn't overlap piece
                   const dx = tx - fx, dy = ty - fy;
                   const len = Math.sqrt(dx*dx + dy*dy);
@@ -9018,16 +9373,16 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
             )}
           </div>
 
-          {/* Bottom tray: your captured (black pieces you took) */}
+          {/* Bottom tray: pieces you captured */}
           <div style={{display:'flex',flexDirection:'row',alignItems:'center',gap:4,minHeight:28,width:`${cellSize*8+4}px`}}>
             <span style={{fontFamily:theme.fontMono,fontSize:8,color:theme.success,letterSpacing:0.5,marginRight:2,flexShrink:0}}>YOU</span>
             <div style={{display:'flex',flexDirection:'row',flexWrap:'wrap',gap:2,alignItems:'center'}}>
-              {captured.w.map((t,i)=>(
+              {captured[playerColor].map((t,i)=>(
                 <div key={i} style={{position:'relative',width:22,height:22}}>
-                  <img src={`https://lichess1.org/assets/piece/pixel/b${t.toUpperCase()}.svg`} width={20} height={20} style={{opacity:0.95,display:'block',filter:`drop-shadow(0 0 4px ${theme.success}cc) drop-shadow(0 0 2px ${theme.success})`}} alt={t}/>
+                  <img src={`https://lichess1.org/assets/piece/pixel/${opponentColor}${t.toUpperCase()}.svg`} width={20} height={20} style={{opacity:0.95,display:'block',filter:`drop-shadow(0 0 4px ${theme.success}cc) drop-shadow(0 0 2px ${theme.success})`}} alt={t}/>
                 </div>
               ))}
-              {captured.w.length===0 && <div style={{width:20,height:20,border:`1px dashed ${theme.border}`,borderRadius:3,opacity:0.3}}/>}
+              {captured[playerColor].length===0 && <div style={{width:20,height:20,border:`1px dashed ${theme.border}`,borderRadius:3,opacity:0.3}}/>}
             </div>
           </div>
         </div>
@@ -9038,7 +9393,7 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
           </div>
         )}
         {/* Legend / overlay toggle */}
-        {turn==='w' && !gameOver && (
+        {turn===playerColor && !gameOver && (
           <div style={{display:'flex',gap:12,fontSize:10,color:theme.textMuted,alignItems:'center'}}>
             <span style={{opacity:showOverlays?1:0.35,transition:'opacity 0.15s'}}><span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',background:theme.danger,marginRight:4,verticalAlign:'middle'}}/>Under attack</span>
             <span style={{opacity:showOverlays?1:0.35,transition:'opacity 0.15s'}}><span style={{display:'inline-block',width:10,height:10,border:`2px solid ${theme.gold}`,marginRight:4,verticalAlign:'middle'}}/>Risky square</span>
@@ -9052,7 +9407,7 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
           </div>
         )}
         {/* Hint */}
-        {turn==='w' && !gameOver && (
+        {turn===playerColor && !gameOver && (
           <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
             {hint ? (() => {
               const labelColors = { 'FORCED MATE':'#ff4488', 'WINNING TACTIC':theme.danger, 'GOOD MOVE':theme.success, 'SOLID MOVE':C, 'BEST AVAILABLE':theme.textMuted, 'RISKY MOVE':theme.gold, 'BOOK MOVE':'#a78bfa' };
@@ -9069,8 +9424,8 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
                 </div>
               );
             })() : (
-              <button onClick={requestHint} disabled={hintLoading || turn !== 'w'} style={{background:hintLoading?C+'33':'none',border:`1px solid ${(hintLoading||turn!=='w')?C+'44':C+'55'}`,borderRadius:8,color:(hintLoading||turn!=='w')?C+'66':C,fontFamily:theme.fontMono,fontSize:11,padding:'5px 14px',cursor:(hintLoading||turn!=='w')?'not-allowed':'pointer',letterSpacing:1,transition:'all 0.15s'}}>
-                {hintLoading ? '⏳ Computing...' : `💡 HINT ${hintsUsed>0?`(${hintsUsed} used)`:''}`}
+              <button onClick={requestHint} disabled={hintLoading || turn !== playerColor} style={{background:hintLoading?'#7dd3fc':'none',border:`1px solid ${hintLoading?'#bae6fd':(turn!==playerColor?C+'44':C+'55')}`,borderRadius:8,color:hintLoading?'#082f49':(turn!==playerColor?C+'66':C),fontFamily:theme.fontMono,fontSize:11,padding:'5px 14px',cursor:hintLoading?'wait':(turn!==playerColor?'not-allowed':'pointer'),letterSpacing:1,transition:'all 0.15s',boxShadow:hintLoading?'0 0 14px rgba(125,211,252,0.35)':'none',fontWeight:700}}>
+                {hintLoading ? 'COMPUTING BEST IDEA' : `💡 HINT ${hintsUsed>0?`(${hintsUsed} used)`:''}`}
               </button>
             )}
           </div>
@@ -9078,12 +9433,12 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
         {gameOver && (
           <div style={{fontFamily:theme.fontMono,fontSize:11,color:theme.textMuted,letterSpacing:1,textAlign:'center'}}>
             <div style={{display:'flex',flexDirection:'column',gap:10,alignItems:'center'}}>
-              <div style={{background:gameOver==='black_wins'?theme.danger+'18':gameOver==='white_wins'?theme.success+'18':theme.surface,border:`1.5px solid ${gameOver==='black_wins'?theme.danger+'66':gameOver==='white_wins'?theme.success+'66':theme.border}`,borderRadius:12,padding:'12px 16px',maxWidth:320,width:'100%',boxShadow:gameOver==='black_wins'?`0 0 20px ${theme.danger}22`:'none'}}>
-                <div style={{fontFamily:theme.fontMono,fontSize:14,fontWeight:800,color:gameOver==='black_wins'?theme.danger:gameOver==='white_wins'?theme.success:theme.textMuted,letterSpacing:2,marginBottom:5}}>
-                  {gameOver==='black_wins'?'YOU LOST':gameOver==='white_wins'?'YOU WON':gameOver==='draw'?'DRAW':'GAME OVER'}
+              <div style={{background:playerLost?theme.danger+'18':playerWon?theme.success+'18':theme.surface,border:`1.5px solid ${playerLost?theme.danger+'66':playerWon?theme.success+'66':theme.border}`,borderRadius:12,padding:'12px 16px',maxWidth:320,width:'100%',boxShadow:playerLost?`0 0 20px ${theme.danger}22`:'none'}}>
+                <div style={{fontFamily:theme.fontMono,fontSize:14,fontWeight:800,color:playerLost?theme.danger:playerWon?theme.success:theme.textMuted,letterSpacing:2,marginBottom:5}}>
+                  {playerLost?'YOU LOST':playerWon?'YOU WON':gameOver==='draw'?'DRAW':'GAME OVER'}
                 </div>
                 <div style={{fontFamily:theme.fontBody,fontSize:13,color:theme.text,lineHeight:1.45,letterSpacing:0}}>
-                  {getVocabChessGameOverDetail(gameOver, game)}
+                  {getVocabChessGameOverDetail(gameOver, game, playerColor)}
                 </div>
               </div>
               {wordsThisGame.length > 0 && (
@@ -9101,14 +9456,14 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
       </div>
       {quiz&&<ChessVocabQuiz word={quiz.word.word||quiz.word} context={quiz.context} timeLimit={quiz.timeLimit} onResult={quiz.onResult}/>}
       {winBackQuiz&&<ChessVocabQuiz word={winBackQuiz.word.word||winBackQuiz.word} context={winBackQuiz.context} timeLimit={winBackQuiz.timeLimit} onResult={winBackQuiz.onResult} isHard={true}/>}
-      <CelebrationCanvas />
-      {showWinPopup && gameOver === 'white_wins' && ReactDOM.createPortal(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:260,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
+      {showWinPopup && playerWon && ReactDOM.createPortal(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:260,display:'flex',alignItems:'center',justifyContent:'center',padding:16,overflow:'hidden'}}
           onClick={() => setShowWinPopup(false)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:16,padding:24,maxWidth:360,width:'100%',border:`2px solid ${theme.success}66`,boxShadow:`0 0 34px ${theme.success}22`,textAlign:'center'}}>
+          <PixelWinBurst />
+          <div onClick={e=>e.stopPropagation()} style={{position:'relative',zIndex:1,background:theme.surface,borderRadius:16,padding:24,maxWidth:360,width:'100%',border:`2px solid ${theme.success}66`,boxShadow:`0 0 34px ${theme.success}22`,textAlign:'center'}}>
             <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:theme.success,letterSpacing:2,marginBottom:8}}>VICTORY</div>
-            <div style={{fontSize:32,fontWeight:700,color:'#fff',marginBottom:10,letterSpacing:1}}>You won!</div>
-            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>White wins the game.</div>
+            <div style={{fontFamily:theme.fontPixel,fontSize:'clamp(24px, 6vw, 34px)',fontWeight:400,color:'#fff',marginBottom:12,letterSpacing:0,lineHeight:1.35,textShadow:`0 3px 0 ${theme.success}55`}}>YOU WON!</div>
+            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>{getVocabChessGameOverDetail(gameOver, game, playerColor)}</div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
               {wordsThisGame.length > 0 && (
                 <button onClick={() => { setShowWinPopup(false); setShowWordReview(true); }} style={{background:C+'22',border:`1.5px solid ${C}77`,borderRadius:10,padding:'11px 14px',color:C,fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:700}}>
@@ -9126,13 +9481,13 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
         </div>,
         document.body
       )}
-      {showLossPopup && gameOver === 'black_wins' && ReactDOM.createPortal(
+      {showLossPopup && playerLost && ReactDOM.createPortal(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:260,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
           onClick={() => setShowLossPopup(false)}>
           <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:16,padding:24,maxWidth:360,width:'100%',border:`2px solid ${theme.danger}66`,boxShadow:`0 0 34px ${theme.danger}22`,textAlign:'center'}}>
             <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:theme.danger,letterSpacing:2,marginBottom:8}}>GAME OVER</div>
-            <div style={{fontSize:32,fontWeight:700,color:'#fff',marginBottom:10,letterSpacing:1}}>You lost</div>
-            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>{getVocabChessGameOverDetail(gameOver, game)} Review your words or start a new one.</div>
+            <div style={{fontFamily:theme.fontPixel,fontSize:'clamp(22px, 5vw, 30px)',fontWeight:400,color:'#fff',marginBottom:12,letterSpacing:0,lineHeight:1.35,textShadow:`0 3px 0 ${theme.danger}55`}}>YOU LOST</div>
+            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>Your king ran out of squares. Review your words or start a new one.</div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
               {wordsThisGame.length > 0 && (
                 <button onClick={() => { setShowLossPopup(false); setShowWordReview(true); }} style={{background:C+'22',border:`1.5px solid ${C}77`,borderRadius:10,padding:'11px 14px',color:C,fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:700}}>
@@ -9155,8 +9510,8 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
           onClick={() => setShowDrawPopup(false)}>
           <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:16,padding:24,maxWidth:360,width:'100%',border:`2px solid ${theme.border}`,boxShadow:'0 0 34px rgba(255,255,255,0.08)',textAlign:'center'}}>
             <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:theme.textMuted,letterSpacing:2,marginBottom:8}}>GAME OVER</div>
-            <div style={{fontSize:32,fontWeight:700,color:'#fff',marginBottom:10,letterSpacing:1}}>Draw</div>
-            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>{getVocabChessGameOverDetail(gameOver, game)}</div>
+            <div style={{fontFamily:theme.fontPixel,fontSize:'clamp(24px, 6vw, 34px)',fontWeight:400,color:'#fff',marginBottom:12,letterSpacing:0,lineHeight:1.35}}>DRAW</div>
+            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>{getVocabChessGameOverDetail(gameOver, game, playerColor)}</div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
               {wordsThisGame.length > 0 && (
                 <button onClick={() => { setShowDrawPopup(false); setShowWordReview(true); }} style={{background:C+'22',border:`1.5px solid ${C}77`,borderRadius:10,padding:'11px 14px',color:C,fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:700}}>
@@ -9892,8 +10247,11 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
   // ── Stockfish hint ────────────────────────────────────────────────────────────
   const getHintSF = async () => {
     if (hintLoading || turn !== 'w') return;
+    const startedAt = performance.now();
     setHintLoading(true);
     setHint(null);
+    await waitForPaint();
+    let nextHint = null;
     try {
       // Flip turn to white for hint (Stockfish expects position from current player)
       const fen = boardToFen({...gameRef.current, turn: 'w'});
@@ -9909,11 +10267,13 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
           const from = toSq(move.from[0], move.from[1]);
           const to = toSq(move.to[0], move.to[1]);
           const piece = gameRef.current.board[move.from[0]][move.from[1]];
-          setHint({ move, label: 'STOCKFISH', reason: `⚡ ${PIECE_NAMES[piece?.type] || 'Piece'} from ${from} to ${to}` });
-          setHintsUsed(h => h+1);
+          nextHint = { move, label: 'STOCKFISH', reason: `⚡ ${PIECE_NAMES[piece?.type] || 'Piece'} from ${from} to ${to}` };
         }
       }
     } catch(e) { console.error('SF hint error:', e); }
+    const remaining = HINT_LOADING_MIN_MS - (performance.now() - startedAt);
+    if (remaining > 0) await wait(remaining);
+    if (nextHint) { setHint(nextHint); setHintsUsed(h => h+1); }
     setHintLoading(false);
   };
 
@@ -9925,9 +10285,9 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{minHeight:'100vh',background:theme.bg,display:'flex',flexDirection:'column'}}>
         <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
           <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
-          <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
-            <span style={{fontFamily:theme.fontMono,fontSize:14,fontWeight:700,letterSpacing:2,color:C}}>⚡ VOCAB CHESS SF</span>
-          </div>
+        <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
+          <GameHeaderTitle game="chess" title="VOCAB CHESS SF" color={C} fontSize={14} />
+        </div>
           <div style={{width:60}}/>
         </div>
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',gap:12}}>
@@ -9949,15 +10309,15 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
             background:'#f59e0b18',border:`2px solid #f59e0b88`,cursor:'pointer',textAlign:'left',
           }}>
             <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:'#f59e0b',letterSpacing:2,marginBottom:8,lineHeight:1.6}}>PUZZLES</div>
-            <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>Stockfish-validated tactics + vocab</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.45}}>Train tactics. Learn words.</div>
           </button>
 
-          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:7,fontWeight:400,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'6px 0',lineHeight:1.6}}>-- VS OPPONENT --</div>
+          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:7,fontWeight:400,color:'#fff',letterSpacing:2,margin:'6px 0',lineHeight:1.6}}>-- VS OPPONENT --</div>
 
           {[
-            {id:'sf-easy',   label:'EASY',   sub:'~800 Elo  (UCI_Elo limited)',  color:'#00cc66', disabled:!sfReady},
-            {id:'sf-medium', label:'MEDIUM', sub:'~1300 Elo (UCI_Elo limited)',  color:C,         disabled:!sfReady},
-            {id:'sf-hard',   label:'HARD',   sub:'~2000 Elo (full strength)',    color:'#ff4444', disabled:!sfReady},
+            {id:'sf-easy',   label:'EASY',   sub:'A kinder chessboard for building confidence. (~500-700 ELO)', color:'#00cc66', disabled:!sfReady},
+            {id:'sf-medium', label:'MEDIUM', sub:'The opponent starts noticing your mistakes. (~1000-1300 ELO)', color:C, disabled:!sfReady},
+            {id:'sf-hard',   label:'HARD',   sub:'Sharper tactics. Fewer second chances. (~1600-2000+ ELO)', color:'#ff4444', disabled:!sfReady},
           ].map(d => (
             <button key={d.id} onClick={() => !d.disabled && setDifficulty(d.id)} style={{
               width:'100%',maxWidth:320,padding:'18px 20px',borderRadius:12,
@@ -9965,7 +10325,7 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
               cursor:d.disabled?'not-allowed':'pointer',textAlign:'left',opacity:d.disabled?0.5:1,
             }}>
               <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:d.disabled?theme.textMuted:d.color,letterSpacing:2,marginBottom:8,lineHeight:1.6}}>{d.label}</div>
-              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>{d.disabled ? 'Waiting for engine…' : d.sub}</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.45}}>{d.disabled ? 'Waiting for engine…' : d.sub}</div>
             </button>
           ))}
         </div>
@@ -10104,8 +10464,13 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
       <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${theme.border}`}}>
         <button onClick={onBack} style={{background:'none',border:`1px solid ${C}`,color:C,fontSize:13,cursor:'pointer',borderRadius:10,padding:'8px 16px',fontFamily:theme.fontBody,fontWeight:600}}>← Back</button>
         <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
-          <span style={{fontFamily:theme.fontMono,fontSize:14,fontWeight:700,letterSpacing:2,color:C}}>⚡ VOCAB CHESS SF</span>
-          <span style={{marginLeft:8,fontSize:10,color:diffColor,fontFamily:theme.fontMono,opacity:0.9}}>{diffLabel}</span>
+          <GameHeaderTitle
+            game="chess"
+            title="VOCAB CHESS SF"
+            color={C}
+            fontSize={14}
+            detail={{text:diffLabel,color:diffColor,opacity:0.9}}
+          />
         </div>
         <div style={{width:60}}/>
       </div>
@@ -10191,7 +10556,7 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
                 outline:isThreatened?`2px solid ${theme.danger}88`:'none',outlineOffset:'-2px'}}>
                 {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff44'}}/>}
                 {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff55',pointerEvents:'none'}}/>}
-                {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize} fireGlow={piece.color==='w' && correctStreak >= 3}/>}
+                {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize} fireGlow={piece.color==='w' && correctStreak >= 3} flameSeed={r * 8 + c}/>}
                 {r===7&&<div style={{position:'absolute',bottom:1,right:3,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{'abcdefgh'[c]}</div>}
                 {c===0&&<div style={{position:'absolute',top:1,left:2,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{8-r}</div>}
               </div>
@@ -10221,8 +10586,8 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
         {/* Hint button */}
         {turn==='w'&&!gameOver&&(
           <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'center',padding:'8px 0'}}>
-            <button onClick={getHintSF} disabled={hintLoading||!sfReady} style={{background:'none',border:`1px solid ${C}`,color:C,borderRadius:8,padding:'6px 14px',fontSize:12,cursor:hintLoading?'wait':'pointer',fontFamily:theme.fontBody,fontWeight:600,opacity:sfReady?1:0.5}}>
-              {hintLoading?'⚡ Thinking…':'⚡ Hint'}
+            <button onClick={getHintSF} disabled={hintLoading||!sfReady} style={{background:hintLoading?'#7dd3fc':'none',border:`1px solid ${hintLoading?'#bae6fd':C}`,color:hintLoading?'#082f49':C,borderRadius:8,padding:'6px 14px',fontSize:12,cursor:hintLoading?'wait':'pointer',fontFamily:theme.fontBody,fontWeight:700,opacity:sfReady?1:0.5,boxShadow:hintLoading?'0 0 14px rgba(125,211,252,0.35)':'none'}}>
+              {hintLoading?'COMPUTING BEST IDEA':'⚡ Hint'}
             </button>
           </div>
         )}
@@ -10324,7 +10689,7 @@ function App() {
       distractors = shuffled.slice(0, 2).map(w => w.example.replace('___', word.toLowerCase()));
     }
 
-    const choices = [correctSentence, ...distractors].sort(() => Math.random() - 0.5);
+    const choices = shuffleWithBalancedCorrect([correctSentence, ...distractors], choice => choice === correctSentence, 'final_boss_sentence');
     const correctIdx = choices.indexOf(correctSentence);
     return { word, entry, choices, correctIdx };
   };

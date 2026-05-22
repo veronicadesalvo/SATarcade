@@ -595,6 +595,7 @@ const WORD_BANK = [
   { word: "COMPELLING", def: "Convincing or powerfully persuasive", pos: "adj", example: "The defense attorney gave a ___ closing argument.", distractors: ["The train arrived at a ___ pace through the mountain tunnel.", "She submitted the ___ form to the admissions office on time."], tier: 1 },
   { word: "CONCEDE", def: "To admit or yield reluctantly", pos: "v", example: "She had to ___ that her opponent made a valid point.", distractors: ["The river began to ___ after weeks of heavy rainfall.", "She tried to ___ the broken furniture before the guests arrived."], tier: 1 },
   { word: "CONSENSUS", def: "General agreement among a group", pos: "n", example: "The committee reached a ___ after hours of debate.", distractors: ["The team worked through the night to fix the software ___.", "Her ___ of the painting showed a clear eye for detail."], tier: 1 },
+  { word: "CONSTRAIN", def: "To limit or restrict something", pos: "v", example: "Limited funding can ___ what a school is able to offer.", distractors: ["She tried to ___ the old chair before the guests arrived.", "He agreed to ___ the report after the meeting ended."], tier: 1 },
   { word: "CONTRADICT", def: "To deny or be in opposition to a statement", pos: "v", example: "The new evidence seems to ___ his original alibi.", distractors: ["He tried to ___ the flowers before the frost arrived.", "The committee voted to ___ the old policy at the annual meeting."], tier: 1 },
   { word: "CORROBORATE", def: "To confirm or support with evidence", pos: "v", example: "Data from the second lab helped ___ our findings.", distractors: ["She asked the librarian to ___ the books by subject.", "He worked to ___ the broken fence before winter."], tier: 1 },
   { word: "DECISIVE", def: "Conclusive or showing firm resolution", pos: "adj", example: "Her ___ leadership helped the team navigate the crisis.", distractors: ["The artist used a ___ shade of blue throughout the painting.", "She packed a ___ lunch for the long hike ahead."], tier: 1 },
@@ -2114,7 +2115,7 @@ const CHESS_PUZZLES = (() => {
     desc:"The king is trapped on the back rank by its own pieces. Deliver checkmate.",fen:'r5k1/5ppp/8/8/8/8/8/R4K2',solution:[{from:[7,0],to:[0,0]}],
     word:'INCISIVE',sentences:[{text:"The ___ rook maneuver cut straight to the heart of black's weakness \u2014 the undefended back rank.",correct:true},{text:"A ___ exchange of queens simplified the position into an endgame.",correct:false},{text:"His ___ questioning got to the truth faster than anyone expected.",correct:false}],},
   {id:'p7',type:'Checkmate in 1',tactic:'Rook Ladder Mate',
-    desc:"Two rooks work together. Find the checkmate.",fen:'7k/8/8/8/8/8/7R/6RK',solution:[{from:[6,6],to:[0,6]}],
+    desc:"Two rooks work together. Find the checkmate.",fen:'6k1/5R2/6K1/8/8/8/8/R7',solution:[{from:[7,0],to:[0,0]}],
     word:'PERSISTENT',sentences:[{text:"A ___ pawn advance slowly squeezed the opponent out of the game.",correct:false},{text:"His ___ dedication to practice made him one of the strongest players in the club.",correct:false},{text:"The ___ rook claimed rank after rank until the king had nowhere left to run.",correct:true}],},
   {id:'p8',type:'Checkmate in 1',tactic:'Queen Checkmate',
     desc:"Find the queen move that delivers immediate checkmate.",fen:'k7/2Q5/2K5/8/8/8/8/8',solution:[{from:[1,2],to:[1,1]}],
@@ -2165,8 +2166,8 @@ const CHESS_PUZZLES = (() => {
     desc:"Pin the rook to a more valuable piece behind it.",fen:'4k3/8/2r5/8/B7/8/8/4K3',solution:[{from:[4,0],to:[3,1]}],
     word:'CONSTRAIN',sentences:[{text:"A shortage of resources began to limit the team's options heading into the final round.",correct:false},{text:"The bishop move ___ the rook completely \u2014 it could not leave the diagonal without exposing the king.",correct:true},{text:"A tight deadline can ___ both players' ability to find the best moves.",correct:false}],},
   {id:'p24',type:'Pin',tactic:'Absolute Pin',
-    desc:"Move your bishop to pin the piece to the king \u2014 it cannot move at all.",fen:'4k3/8/8/2r5/B7/8/8/4K3',solution:[{from:[4,0],to:[1,3]}],
-    word:'PRECLUDE',sentences:[{text:"A lack of preparation can ___ success in high-level competition.",correct:false},{text:"The pin served to ___ any rook activity \u2014 moving it would expose the king to check.",correct:true},{text:"The weak back rank would limit black from ever castling safely.",correct:false}],},
+    desc:"Move your bishop to pin the piece to the king \u2014 it cannot move at all.",fen:'6k1/5n2/8/8/2B5/8/8/4K3',solution:[{from:[4,2],to:[2,4]}],
+    word:'PRECLUDE',sentences:[{text:"A lack of preparation can ___ success in high-level competition.",correct:false},{text:"The pin served to ___ any knight activity \u2014 moving it would expose the king to check.",correct:true},{text:"The weak back rank would limit black from ever castling safely.",correct:false}],},
   ];
   return raw.slice().sort(() => Math.random() - 0.5);
 })();
@@ -2241,6 +2242,60 @@ const globalStyle = `
   @keyframes bossEntrance { 0%{transform:scale(0.3) rotate(-10deg);opacity:0} 60%{transform:scale(1.15) rotate(3deg);opacity:1} 80%{transform:scale(0.95) rotate(-1deg)} 100%{transform:scale(1) rotate(0deg)} }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
   @keyframes glow { 0%,100% { box-shadow: 0 0 10px ${theme.accentGlow}; } 50% { box-shadow: 0 0 30px ${theme.accentGlow}, 0 0 60px ${theme.accentGlow}; } }
+  @keyframes firePieceGlow {
+    0%,100% { filter: drop-shadow(0 0 1px #fff3b0) drop-shadow(0 -1px 2px #ffb703) drop-shadow(0 -2px 3px #ff5a1f); }
+    50% { filter: drop-shadow(0 0 2px #fff8d6) drop-shadow(1px -1px 2px #ffd166) drop-shadow(-1px -3px 4px #ff7a18); }
+  }
+  .piece-fire-wrap {
+    position: relative;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .piece-fire-bed {
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    bottom: -2%;
+    height: 48%;
+    z-index: 0;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at bottom, rgba(255,245,176,0.9) 0%, rgba(255,178,0,0.68) 28%, rgba(255,88,24,0.42) 54%, transparent 78%);
+    filter: blur(2px);
+    animation: flameBed 0.7s ease-in-out infinite alternate;
+  }
+  .piece-flame {
+    position: absolute;
+    bottom: -3%;
+    z-index: 1;
+    clip-path: polygon(50% 0%, 69% 25%, 84% 56%, 64% 100%, 36% 100%, 16% 56%, 31% 25%);
+    background:
+      radial-gradient(circle at 50% 72%, rgba(255,255,220,0.95) 0 13%, rgba(255,214,102,0.94) 25%, rgba(255,122,24,0.9) 55%, rgba(211,32,28,0.86) 82%, transparent 100%);
+    filter: blur(0.1px) drop-shadow(0 -2px 3px rgba(255,106,0,0.75));
+    mix-blend-mode: screen;
+    transform-origin: 50% 100%;
+  }
+  .flame-a { animation: flameTongueA 0.54s ease-in-out infinite; }
+  .flame-b { animation: flameTongueB 0.48s ease-in-out infinite; }
+  .flame-c { animation: flameTongueC 0.62s ease-in-out infinite; }
+  .flame-d { animation: flameTongueB 0.58s ease-in-out infinite reverse; }
+  @keyframes flameBed {
+    from { opacity: 0.45; transform: scaleX(0.88) scaleY(0.92); }
+    to { opacity: 0.72; transform: scaleX(1.05) scaleY(1.06); }
+  }
+  @keyframes flameTongueA {
+    0%,100% { opacity: 0.64; transform: translateX(-50%) translateY(6%) scaleX(0.64) scaleY(0.92) rotate(-7deg); }
+    45% { opacity: 1; transform: translateX(-50%) translateY(-30%) scaleX(0.82) scaleY(1.46) rotate(7deg); }
+  }
+  @keyframes flameTongueB {
+    0%,100% { opacity: 0.58; transform: translateX(-50%) translateY(7%) scaleX(0.58) scaleY(0.9) rotate(8deg); }
+    55% { opacity: 0.96; transform: translateX(-50%) translateY(-25%) scaleX(0.78) scaleY(1.36) rotate(-9deg); }
+  }
+  @keyframes flameTongueC {
+    0%,100% { opacity: 0.5; transform: translateX(-50%) translateY(8%) scaleX(0.52) scaleY(0.98) rotate(0deg); }
+    50% { opacity: 0.95; transform: translateX(-50%) translateY(-38%) scaleX(0.72) scaleY(1.68) rotate(4deg); }
+  }
   @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -2749,7 +2804,6 @@ function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profil
     { id: "eartrainer", icon: "👂", title: "Ear Trainer", sub: "Do your ears know as much as your eyes?", color: "#f700ff" },
     { id: "hangman", icon: "🪢", title: "Hangman", sub: "Letters or death. Choose wisely.", color: "#ffa500" },
     { id: "chess", icon: "♟️", title: "Vocab Chess", sub: "Know a word. Capture a piece.", color: "#3d8ef5" },
-    { id: "chessf", icon: "⚡", title: "Vocab Chess SF", sub: "Stockfish-powered. Harder. Smarter.", color: "#a78bfa" },
     { id: "crossword", icon: "🔠", title: "Crossword", sub: "Cryptic clues. Unforgiving grid.", color: "#9b30d9" },
   ];
 
@@ -5657,17 +5711,40 @@ function gameGetAiMove(game, lastPlayerMove, lastAiMove) {
 }
 
 // ── Piece rendering ───────────────────────────────────────────────────────────
-function ChessPiece({ color, type, size }) {
+function ChessPiece({ color, type, size, fireGlow = false }) {
   const url = `https://lichess1.org/assets/piece/pixel/${color}${type.toUpperCase()}.svg`;
   const glow = 'drop-shadow(0 0 3px rgba(200,210,220,0.7)) drop-shadow(0 0 6px rgba(180,195,210,0.3))';
-  return (
+  const fire = 'drop-shadow(0 0 1px #fff3b0) drop-shadow(0 -1px 2px #ffb703) drop-shadow(0 -2px 3px #ff5a1f)';
+  const pieceSize = size * 0.82;
+  const pieceImg = (
     <img
       src={url}
-      width={size * 0.82}
-      height={size * 0.82}
-      style={{ display:'block', userSelect:'none', WebkitUserSelect:'none', pointerEvents:'none', filter: glow }}
+      width={pieceSize}
+      height={pieceSize}
+      style={{
+        display:'block',
+        position:'relative',
+        zIndex:2,
+        userSelect:'none',
+        WebkitUserSelect:'none',
+        pointerEvents:'none',
+        filter: fireGlow ? fire : glow,
+        animation: fireGlow ? 'firePieceGlow 0.9s steps(2, end) infinite' : 'none',
+        willChange: fireGlow ? 'filter' : 'auto',
+      }}
       alt={`${color}${type}`}
     />
+  );
+  if (!fireGlow) return pieceImg;
+  return (
+    <div className="piece-fire-wrap" style={{width:pieceSize,height:pieceSize}}>
+      <span className="piece-fire-bed" />
+      <span className="piece-flame flame-a" style={{left:'22%',width:pieceSize*0.2,height:pieceSize*0.68,animationDelay:'-0.08s'}} />
+      <span className="piece-flame flame-b" style={{left:'39%',width:pieceSize*0.24,height:pieceSize*0.8,animationDelay:'-0.2s'}} />
+      <span className="piece-flame flame-c" style={{left:'58%',width:pieceSize*0.23,height:pieceSize*0.9,animationDelay:'-0.12s'}} />
+      <span className="piece-flame flame-d" style={{left:'76%',width:pieceSize*0.18,height:pieceSize*0.62,animationDelay:'-0.3s'}} />
+      {pieceImg}
+    </div>
   );
 }
 
@@ -5780,7 +5857,59 @@ function getThreatenedSquares(B, byColor) {
   return threatened;
 }
 
+function getThreatArrowsForSquare(B, targetR, targetC, byColor='b') {
+  const target = B[targetR]?.[targetC];
+  if (!target || target.color === byColor) return [];
+  const arrows = [];
+  for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+    const p = B[r][c];
+    if (!p || p.color !== byColor) continue;
+    const attacks = rawMoves(B, r, c, {ep:null, castle:{}});
+    if (attacks.some(([ar, ac]) => ar === targetR && ac === targetC)) {
+      arrows.push({
+        from: [r, c],
+        to: [targetR, targetC],
+        type: target.type !== 'k' && isHanging(B, targetR, targetC, target.color) ? 'hanging' : 'threat'
+      });
+    }
+  }
+  return arrows;
+}
+
 function toSq(r, c) { return 'abcdefgh'[c] + (8 - r); }
+
+function getKingAttackers(B, kingColor) {
+  let king = null;
+  for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+    if (B[r][c]?.color === kingColor && B[r][c]?.type === 'k') king = [r, c];
+  }
+  if (!king) return null;
+  const attackers = [];
+  const byColor = opp(kingColor);
+  for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+    const p = B[r][c];
+    if (!p || p.color !== byColor) continue;
+    if (rawMoves(B, r, c, {ep:null, castle:{}}).some(([ar, ac]) => ar === king[0] && ac === king[1])) {
+      attackers.push({ piece:p, from:[r, c] });
+    }
+  }
+  return attackers;
+}
+
+function getVocabChessGameOverDetail(gameOver, game) {
+  if (gameOver === 'black_wins') {
+    const attackers = getKingAttackers(game.board, 'w');
+    if (attackers === null) return 'Your king was captured.';
+    if (attackers.length) {
+      const attacker = attackers[0];
+      return `Your king was trapped by the ${PIECE_NAMES[attacker.piece.type]} on ${toSq(attacker.from[0], attacker.from[1])}.`;
+    }
+    return 'Your king has no safe move left.';
+  }
+  if (gameOver === 'white_wins') return 'White wins this game.';
+  if (gameOver === 'draw') return 'No legal moves remain, and neither king is in check.';
+  return 'The game is over.';
+}
 
 function assessOpeningPrinciples(moveHistory, board, castle, shownTips) {
   const moveNum = moveHistory.length;
@@ -7056,6 +7185,311 @@ function useExplosion() {
 // For checkmate-in-1: just one move
 // For fork puzzles: one move that forks two pieces
 
+function puzzleMovesSame(a, b) {
+  return !!a && !!b &&
+    a.from[0] === b.from[0] && a.from[1] === b.from[1] &&
+    a.to[0] === b.to[0] && a.to[1] === b.to[1];
+}
+
+function puzzleMoveLabel(move) {
+  return `${toSq(move.from[0], move.from[1])} to ${toSq(move.to[0], move.to[1])}`;
+}
+
+function puzzleIsLegalMove(B, move) {
+  return getLegal(B, 'w', {ep:null, castle:{wK:false,wQ:false,bK:false,bQ:false}})
+    .some(m => puzzleMovesSame(m, move));
+}
+
+function puzzleStartIsLegal(B) {
+  return !inCheck(B, 'w') &&
+    !inCheck(B, 'b') &&
+    getLegal(B, 'w', {ep:null, castle:{wK:false,wQ:false,bK:false,bQ:false}}).length > 0;
+}
+
+function puzzleAttacksSquare(B, from, target) {
+  return rawMoves(B, from[0], from[1], {ep:null, castle:{}})
+    .some(([r, c]) => r === target[0] && c === target[1]);
+}
+
+function puzzleIsMateMove(B, move) {
+  if (!puzzleIsLegalMove(B, move)) return false;
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  return inCheck(nb, 'b') && getLegal(nb, 'b', {ep:null, castle:{}}).length === 0;
+}
+
+function puzzleForkTargets(B, move) {
+  if (!puzzleIsLegalMove(B, move)) return [];
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  const moved = nb[move.to[0]][move.to[1]];
+  if (!moved) return [];
+  const targets = [];
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const target = nb[r][c];
+    if (target?.color === 'b' && puzzleAttacksSquare(nb, move.to, [r, c])) {
+      targets.push(target);
+    }
+  }
+  return targets;
+}
+
+function puzzleIsForkMove(B, move) {
+  const targets = puzzleForkTargets(B, move);
+  return targets.some(t => t.type === 'k') && targets.some(t => t.type !== 'k');
+}
+
+function puzzlePinTargets(B, move) {
+  if (!puzzleIsLegalMove(B, move)) return [];
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  const moved = nb[move.to[0]][move.to[1]];
+  if (!moved) return [];
+  const dirs = [];
+  if (moved.type === 'b' || moved.type === 'q') dirs.push([-1,-1], [-1,1], [1,-1], [1,1]);
+  if (moved.type === 'r' || moved.type === 'q') dirs.push([-1,0], [1,0], [0,-1], [0,1]);
+  const pinned = [];
+  for (const [dr, dc] of dirs) {
+    let r = move.to[0] + dr;
+    let c = move.to[1] + dc;
+    let firstBlackPiece = null;
+    while (inB(r, c)) {
+      const piece = nb[r][c];
+      if (piece) {
+        if (!firstBlackPiece) {
+          if (piece.color !== 'b') break;
+          firstBlackPiece = piece;
+        } else {
+          if (piece.color === 'b' && piece.type === 'k') pinned.push(firstBlackPiece);
+          break;
+        }
+      }
+      r += dr;
+      c += dc;
+    }
+  }
+  return pinned;
+}
+
+function puzzleIsPinMove(B, move) {
+  return puzzlePinTargets(B, move).length > 0;
+}
+
+function isPuzzleMoveCorrect(puzzle, B, move, moveStep) {
+  if (!puzzleStartIsLegal(B)) return false;
+  if (!puzzleIsLegalMove(B, move)) return false;
+  if (puzzle.type.includes('Checkmate')) return puzzleIsMateMove(B, move);
+  if (puzzle.type === 'Fork') return puzzleIsForkMove(B, move);
+  if (puzzle.type === 'Pin') return puzzleIsPinMove(B, move);
+  return puzzleMovesSame(move, puzzle.solution[moveStep]);
+}
+
+function isPuzzlePlayable(puzzle) {
+  const B = (puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => r.map(p => p ? {...p} : null));
+  return puzzleStartIsLegal(B) && isPuzzleMoveCorrect(puzzle, B, puzzle.solution[0], 0);
+}
+
+function puzzleSq(s) {
+  return [8 - Number(s[1]), 'abcdefgh'.indexOf(s[0])];
+}
+
+function puzzleBoardFromPieces(pieces) {
+  const B = Array(8).fill(null).map(() => Array(8).fill(null));
+  for (const piece of pieces) {
+    const [r, c] = typeof piece.sq === 'string' ? puzzleSq(piece.sq) : piece.sq;
+    if (!inB(r, c) || B[r][c]) return null;
+    B[r][c] = { color: piece.color, type: piece.type };
+  }
+  return B;
+}
+
+function puzzleBoardToFen(B) {
+  let fen = '';
+  for (let r = 0; r < 8; r++) {
+    let empty = 0;
+    for (let c = 0; c < 8; c++) {
+      const piece = B[r][c];
+      if (!piece) { empty++; continue; }
+      if (empty) { fen += empty; empty = 0; }
+      fen += piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+    }
+    if (empty) fen += empty;
+    if (r < 7) fen += '/';
+  }
+  return fen;
+}
+
+const PUZZLE_WORD_SENTENCES = {
+  DECISIVE: ["A ___ move ended the game immediately.", "A ___ retreat gave black time to escape.", "Her ___ leadership helped the team outside the game."],
+  INEVITABLE: ["The final move made checkmate feel ___.", "The draw was ___ after both sides traded pieces.", "A quiet pawn move was ___ but not forcing."],
+  PREVAIL: ["White managed to ___ with one forcing move.", "Researchers must ___ data carefully before drawing conclusions.", "The knight outpost helped white ___ only much later."],
+  FORMIDABLE: ["The attacking piece became a ___ force.", "A ___ defensive wall made progress impossible.", "She faced a ___ opponent in the tournament."],
+  PRAGMATIC: ["White chose the ___ solution: one clean move.", "A ___ defensive setup ignored the tactic.", "A ___ approach can help with real-life problems too."],
+  DETERMINED: ["White was ___ to finish the attack immediately.", "A ___ defender found a way to escape.", "She was ___ not to let the setback derail her plans."],
+  INCISIVE: ["The ___ move cut straight through the defense.", "An ___ exchange simplified into a quiet endgame.", "His ___ questioning revealed the truth."],
+  STEADFAST: ["The ___ attack left the king no escape.", "A ___ bishop maneuver improved the position slowly.", "She was ___ in her commitment."],
+  PERSISTENT: ["The ___ pressure finally trapped the king.", "A ___ pawn advance built pressure slowly.", "His ___ dedication improved his chess."],
+  COMPELLING: ["The tactic made a ___ case that the game was over.", "A ___ exchange of queens led toward a draw.", "Her ___ argument convinced the committee."],
+  EXPLOIT: ["White used the tactic to ___ black's loose placement.", "An investor seeks to ___ market inefficiencies.", "White chose to improve pieces instead of trying to ___ anything."],
+  ASTUTE: ["The ___ player spotted the double attack.", "An ___ investor notices hidden opportunities.", "A slow rook move was solid but not especially ___."],
+  ELUSIVE: ["The winning tactic looked ___ until the fork appeared.", "Victory remained ___ for the struggling team.", "White played a calm move instead of chasing an ___ tactic."],
+  UNDERMINE: ["The fork helped ___ black's whole position.", "Constant criticism can ___ a person's confidence.", "White chose to defend rather than ___ anything."],
+  AMBIGUITY: ["The fork created ___ because black could not save both pieces.", "The ___ in the contract caused a dispute.", "A simple recapture removed all ___ from the position."],
+  HINDER: ["The tactic would ___ black's coordination.", "Budget cuts can ___ a team's preparation.", "White made a move that did not ___ black at all."],
+  INHIBIT: ["The pin would ___ the defender completely.", "Stress can ___ performance.", "The bishop retreated without trying to ___ anything."],
+  CONSTRAIN: ["The pin would ___ black's available moves.", "Limited funding can ___ what a school offers.", "A waiting move did not ___ the defender."],
+  PRECLUDE: ["The pin would ___ the defender from moving safely.", "A lack of preparation can ___ success.", "The quiet move failed to ___ black's response."],
+};
+
+function puzzleSentencesFor(word) {
+  const lines = PUZZLE_WORD_SENTENCES[word] || ["White found the ___ tactic.", "A ___ retreat missed the point.", "The ___ idea belonged to a different position."];
+  return lines.map((text, i) => ({ text, correct: i === 0 }));
+}
+
+function generatedPuzzle(id, type, tactic, desc, B, move, word) {
+  return { id, type, tactic, desc, fen: puzzleBoardToFen(B), solution: [move], word, sentences: puzzleSentencesFor(word) };
+}
+
+function puzzleGeneratorKey(puzzle) {
+  const move = puzzle.solution[0];
+  return `${puzzle.fen}|${puzzleMoveLabel(move)}|${puzzle.type}`;
+}
+
+function puzzleAllSquares() {
+  const squares = [];
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) squares.push([r, c]);
+  return squares;
+}
+
+function puzzleDistance(a, b) {
+  return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+}
+
+function generatedPieceAttacks(type, from, to) {
+  const B = Array(8).fill(null).map(() => Array(8).fill(null));
+  B[from[0]][from[1]] = { color: 'w', type };
+  return rawMoves(B, from[0], from[1], {ep:null, castle:{}}).some(([r, c]) => r === to[0] && c === to[1]);
+}
+
+function buildGeneratedMatePuzzles(allSquares, edgeSquares, limit = 180) {
+  const out = [], seen = new Set();
+  const words = ['DECISIVE','INEVITABLE','PREVAIL','FORMIDABLE','PRAGMATIC','DETERMINED','INCISIVE','STEADFAST','PERSISTENT','COMPELLING'];
+  const specs = [
+    { piece: 'q', tactic: 'Queen Checkmate', desc: 'Find the queen move that delivers immediate checkmate.' },
+    { piece: 'r', tactic: 'Rook Checkmate', desc: 'Use the rook and king to deliver checkmate in one move.' },
+  ];
+  for (const spec of specs) for (const blackKing of edgeSquares) for (const whiteKing of allSquares) {
+    if (puzzleDistance(blackKing, whiteKing) < 1 || puzzleDistance(blackKing, whiteKing) > 2) continue;
+    for (const start of allSquares) {
+      const B = puzzleBoardFromPieces([{color:'b',type:'k',sq:blackKing},{color:'w',type:'k',sq:whiteKing},{color:'w',type:spec.piece,sq:start}]);
+      if (!B || !puzzleStartIsLegal(B)) continue;
+      const moves = getLegal(B, 'w', {ep:null, castle:{}}).filter(m => m.from[0] === start[0] && m.from[1] === start[1]);
+      for (const move of moves) {
+        if (!isPuzzleMoveCorrect({ type:'Checkmate in 1', solution:[move] }, B, move, 0)) continue;
+        const puzzle = generatedPuzzle(`gm${out.length + 1}`, 'Checkmate in 1', spec.tactic, spec.desc, B, move, words[out.length % words.length]);
+        const key = puzzleGeneratorKey(puzzle);
+        if (seen.has(key)) continue;
+        seen.add(key); out.push(puzzle);
+        if (out.length >= limit) return out;
+      }
+    }
+  }
+  return out;
+}
+
+function buildGeneratedForkPuzzles(allSquares, limit = 140) {
+  const out = [], seen = new Set();
+  const words = ['EXPLOIT','ASTUTE','ELUSIVE','UNDERMINE','AMBIGUITY','HINDER'];
+  const whiteKingOptions = ['e1','h1','a1','e8','h8'].map(puzzleSq);
+  const specs = [
+    { piece:'n', tactic:'Knight Fork', desc:'One knight move attacks two pieces simultaneously. Find the fork.' },
+    { piece:'q', tactic:'Queen Fork', desc:'Your queen can check the king and attack another piece in one move.' },
+  ];
+  for (const spec of specs) for (const dest of allSquares) {
+    const attacked = allSquares.filter(s => generatedPieceAttacks(spec.piece, dest, s));
+    for (const blackKing of attacked) {
+      if (!(blackKing[0] === 0 || blackKing[0] === 7 || blackKing[1] === 0 || blackKing[1] === 7)) continue;
+      for (const blackPiece of attacked) {
+        if (blackPiece[0] === blackKing[0] && blackPiece[1] === blackKing[1]) continue;
+        for (const start of allSquares) {
+          if ((start[0] === dest[0] && start[1] === dest[1]) || !generatedPieceAttacks(spec.piece, start, dest)) continue;
+          for (const whiteKing of whiteKingOptions) {
+            const B = puzzleBoardFromPieces([{color:'w',type:'k',sq:whiteKing},{color:'w',type:spec.piece,sq:start},{color:'b',type:'k',sq:blackKing},{color:'b',type:'r',sq:blackPiece}]);
+            if (!B || !puzzleStartIsLegal(B)) continue;
+            const move = { from:start, to:dest };
+            if (!isPuzzleMoveCorrect({ type:'Fork', solution:[move] }, B, move, 0)) continue;
+            const puzzle = generatedPuzzle(`gf${out.length + 1}`, 'Fork', spec.tactic, spec.desc, B, move, words[out.length % words.length]);
+            const key = puzzleGeneratorKey(puzzle);
+            if (seen.has(key)) continue;
+            seen.add(key); out.push(puzzle);
+            if (out.length >= limit) return out;
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function buildGeneratedPinPuzzles(allSquares, limit = 140) {
+  const out = [], seen = new Set();
+  const words = ['INHIBIT','CONSTRAIN','PRECLUDE'];
+  const whiteKingOptions = ['e1','h1','a1','e8','h8'].map(puzzleSq);
+  const dirs = [[-1,-1], [-1,1], [1,-1], [1,1]];
+  for (const dest of allSquares) for (const [dr, dc] of dirs) for (let gap1 = 1; gap1 <= 3; gap1++) {
+    const blackPiece = [dest[0] + dr * gap1, dest[1] + dc * gap1];
+    if (!inB(blackPiece[0], blackPiece[1])) continue;
+    for (let gap2 = 1; gap2 <= 3; gap2++) {
+      const blackKing = [blackPiece[0] + dr * gap2, blackPiece[1] + dc * gap2];
+      if (!inB(blackKing[0], blackKing[1])) continue;
+      for (const start of allSquares) {
+        if ((start[0] === dest[0] && start[1] === dest[1]) || !generatedPieceAttacks('b', start, dest)) continue;
+        for (const whiteKing of whiteKingOptions) {
+          const isRelative = out.length % 2 === 1;
+          const B = puzzleBoardFromPieces([{color:'w',type:'k',sq:whiteKing},{color:'w',type:'b',sq:start},{color:'b',type:isRelative?'r':'n',sq:blackPiece},{color:'b',type:'k',sq:blackKing}]);
+          if (!B || !puzzleStartIsLegal(B)) continue;
+          const move = { from:start, to:dest };
+          if (!isPuzzleMoveCorrect({ type:'Pin', solution:[move] }, B, move, 0)) continue;
+          const puzzle = generatedPuzzle(`gp${out.length + 1}`, 'Pin', isRelative ? 'Relative Pin' : 'Absolute Pin', 'Move your bishop to line up a pin against the king.', B, move, words[out.length % words.length]);
+          const key = puzzleGeneratorKey(puzzle);
+          if (seen.has(key)) continue;
+          seen.add(key); out.push(puzzle);
+          if (out.length >= limit) return out;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function buildGeneratedChessPuzzles() {
+  const allSquares = puzzleAllSquares();
+  const edgeSquares = allSquares.filter(([r, c]) => r === 0 || r === 7 || c === 0 || c === 7);
+  return [
+    ...buildGeneratedMatePuzzles(allSquares, edgeSquares),
+    ...buildGeneratedForkPuzzles(allSquares),
+    ...buildGeneratedPinPuzzles(allSquares),
+  ];
+}
+
+function getPlayableChessPuzzles() {
+  const seen = new Set();
+  const playable = [...buildGeneratedChessPuzzles(), ...CHESS_PUZZLES]
+    .filter(isPuzzlePlayable)
+    .filter(puzzle => {
+      const key = puzzleGeneratorKey(puzzle);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  return playable.length ? playable : CHESS_PUZZLES;
+}
+
+function shufflePuzzleDeck(puzzles) {
+  const deck = [...puzzles];
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
 
 function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const C = '#f59e0b'; // amber for puzzles
@@ -7063,7 +7497,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [userBoard, setUserBoard] = useState(null);
   const [selected, setSelected] = useState(null);
   const [legalDests, setLegalDests] = useState([]);
-  const [status, setStatus] = useState('idle'); // idle | wrong | quiz | quizRight | quizWrong | done
+  const [status, setStatus] = useState('idle'); // idle | wrong | revealed | quiz | quizRight | quizWrong | done
   const [msg, setMsg] = useState('');
   const [wrongGuesses, setWrongGuesses] = useState(0);
   const MAX_GUESSES = 3;
@@ -7072,14 +7506,9 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [quizPicked, setQuizPicked] = useState(null); // index picked
   const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth, 420) - 32 - 64) / 8));
 
-  const [shuffledPuzzles, setShuffledPuzzles] = useState(() => [...CHESS_PUZZLES].sort(() => Math.random() - 0.5));
+  const [shuffledPuzzles, setShuffledPuzzles] = useState(() => shufflePuzzleDeck(getPlayableChessPuzzles()));
   const puzzle = shuffledPuzzles[puzzleIdx % shuffledPuzzles.length];
 
-  // Reshuffle every time we enter puzzles mode
-  useEffect(() => {
-    setShuffledPuzzles([...CHESS_PUZZLES].sort(() => Math.random() - 0.5));
-    setPuzzleIdx(0);
-  }, []);
   const wordEntry = wordBank.find(w => w.word === puzzle.word);
 
   useEffect(() => {
@@ -7087,9 +7516,17 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
     setMoveStep(0); setQuizPicked(null); setWrongGuesses(0);
     // Shuffle the sentences, remembering which is correct
-    const shuffled = [...puzzle.sentences].sort(() => Math.random() - 0.5);
+    const shuffled = shufflePuzzleDeck(puzzle.sentences);
     setQuizChoices(shuffled);
-  }, [puzzleIdx]);
+  }, [puzzleIdx, puzzle.id]);
+
+  const goToNextPuzzle = () => {
+    setShuffledPuzzles(deck => {
+      if (puzzleIdx + 1 < deck.length) return deck;
+      return shufflePuzzleDeck(getPlayableChessPuzzles());
+    });
+    setPuzzleIdx(i => (i + 1 < shuffledPuzzles.length ? i + 1 : 0));
+  };
 
   const launchQuiz = () => {
     setStatus('quiz');
@@ -7117,8 +7554,8 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       const isLegal = legalDests.some(([lr, lc]) => lr === r && lc === c);
       if (isLegal) {
         const sol = puzzle.solution[moveStep];
-        const isCorrect = selected[0] === sol.from[0] && selected[1] === sol.from[1] &&
-                          r === sol.to[0] && c === sol.to[1];
+        const attemptedMove = { from: selected, to: [r, c] };
+        const isCorrect = isPuzzleMoveCorrect(puzzle, userBoard, attemptedMove, moveStep);
 
         if (isCorrect) {
           const nb = userBoard.map(row => [...row]);
@@ -7150,7 +7587,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           if (newWrong >= MAX_GUESSES) {
             // Show the correct move
             const sol = puzzle.solution[moveStep];
-            setMsg(`The correct move was ${String.fromCharCode(97+sol.from[1])}${8-sol.from[0]} to ${String.fromCharCode(97+sol.to[1])}${8-sol.to[0]}.`);
+            setMsg(`One correct move is ${puzzleMoveLabel(sol)}.`);
             setStatus('revealed');
           } else {
             setStatus('wrong');
@@ -7181,7 +7618,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
           <span style={{fontFamily:theme.fontMono,fontSize:15,fontWeight:700,letterSpacing:2,color:C}}>CHESS PUZZLES</span>
         </div>
-        <div style={{fontFamily:theme.fontMono,fontSize:11,color:theme.textMuted}}>{puzzleIdx % shuffledPuzzles.length + 1}/{shuffledPuzzles.length}</div>
+        <div style={{width:60}} />
       </div>
 
       <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'16px 16px 24px',gap:12}}>
@@ -7207,7 +7644,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               {msg && <div style={{marginTop:8,fontSize:13,fontWeight:600,
                 color: status==='revealed' ? theme.textMuted : theme.danger}}>{msg}</div>}
               {status === 'revealed' && (
-                <button onClick={() => setPuzzleIdx(i => i + 1)} style={{
+                <button onClick={goToNextPuzzle} style={{
                   marginTop:10, padding:'8px 20px', borderRadius:8,
                   background:'#f59e0b', color:'#0a0a14', border:'none',
                   fontFamily:theme.fontMono, fontSize:11, fontWeight:700,
@@ -7238,7 +7675,12 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               </div>
             )}
 
-            <button onClick={() => setPuzzleIdx(i => i)} style={{
+            <button onClick={() => {
+              setUserBoard((puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => [...r]));
+              setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
+              setMoveStep(0); setQuizPicked(null); setWrongGuesses(0);
+              setQuizChoices(shufflePuzzleDeck(puzzle.sentences));
+            }} style={{
               padding:'8px 20px', borderRadius:8, background:'none',
               border:`1px solid ${theme.border}`, color:theme.textMuted,
               fontSize:12, cursor:'pointer', fontFamily:theme.fontBody,
@@ -7314,7 +7756,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                     {wordEntry && <div style={{marginTop:6,fontSize:12,color:theme.textMuted}}>{wordEntry.def}</div>}
                   </div>
                 )}
-                <button onClick={() => setPuzzleIdx(i => i + 1)} style={{
+                <button onClick={goToNextPuzzle} style={{
                   width:'100%', padding:'14px', borderRadius:10,
                   background:C, color:'#0a0a14', border:'none',
                   fontFamily:theme.fontMono, fontSize:12, fontWeight:700,
@@ -7378,6 +7820,7 @@ function getOpeningName(history) {
 
 function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const C = "#3d8ef5"; // game color
+  const { sfReady, sfError, getBestMove, getBestMoveForHint } = useStockfishWorker();
   const [difficulty, setDifficulty] = useState(null); // null = not chosen yet
   const [game, setGame] = useState(() => createGame());
   const [selected, setSelected] = useState(null);
@@ -7401,8 +7844,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [hint, setHint] = useState(null);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [threatArrows, setThreatArrows] = useState([]); // [{from:[r,c], to:[r,c]}] shown after AI move
-  const [showThreatArrows, setShowThreatArrows] = useState(true);
+  const [threatArrows, setThreatArrows] = useState([]); // [{from:[r,c], to:[r,c]}] shown when a threatened piece is tapped
   const [showOverlays, setShowOverlays] = useState(true);
   const [showCoachTips, setShowCoachTips] = useState(true);
   const [bookSeed, setBookSeed] = useState(() => Math.random());
@@ -7411,6 +7853,9 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [openingName, setOpeningName] = useState(null); // #8 opening name banner
   const [wordsThisGame, setWordsThisGame] = useState([]); // #6 post-game review
   const [showWordReview, setShowWordReview] = useState(false);
+  const [showWinPopup, setShowWinPopup] = useState(false);
+  const [showLossPopup, setShowLossPopup] = useState(false);
+  const [showDrawPopup, setShowDrawPopup] = useState(false);
   const boardRef = useRef(null);
   const moveHistoryRef = useRef(moveHistory);
   moveHistoryRef.current = moveHistory;
@@ -7426,51 +7871,77 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
 
   const showMsg = (m,dur=2500) => { setMsg(m); setTimeout(()=>setMsg(''),dur); };
   const showCoach = (m) => { if(m && showCoachTips) setCoachMsg(m); };
+  const stockfishDifficulty = difficulty === 'medium' ? 'sf-medium' : difficulty === 'hard' ? 'sf-hard' : null;
+
+  const getStockfishMoveForBlack = async (current) => {
+    if (!stockfishDifficulty || !sfReady) return null;
+    const fen = boardToFen({...current, turn:'b'});
+    const uci = await getBestMove(fen, stockfishDifficulty).catch(() => null);
+    const sfMove = uci ? uciToMove(uci, current.board) : null;
+    if (!sfMove) return null;
+    const legalMoves = getLegal(current.board, 'b', current);
+    return legalMoves.find(m =>
+      m.from[0]===sfMove.from[0] && m.from[1]===sfMove.from[1] &&
+      m.to[0]===sfMove.to[0] && m.to[1]===sfMove.to[1]
+    ) || null;
+  };
+
+  const getOpponentMove = async (current) => {
+    const stockfishMove = await getStockfishMoveForBlack(current);
+    if (stockfishMove) return stockfishMove;
+
+    const currentMoveHistory = moveHistoryRef.current;
+    const currentLastAiMove = lastAiMoveRef.current;
+    const gameWithDiff = {...current, moveHistory: currentMoveHistory, difficulty};
+    let move = gameGetAiMove(gameWithDiff, null, currentLastAiMove);
+
+    // Easy mode: sometimes imperfect, but still trying to play real chess.
+    if (difficulty === 'easy') {
+      const rand = Math.random();
+      const legalMoves = getLegal(current.board, 'b', current);
+      if (rand < 0.22 && legalMoves.length) {
+        const candidates = legalMoves.map(m => {
+          const target = current.board[m.to[0]][m.to[1]];
+          const {board: nb} = applyMove(current.board, m.from, m.to, current);
+          const moved = nb[m.to[0]][m.to[1]];
+          return {
+            move: m,
+            captures: target?.color === 'w',
+            checks: inCheck(nb, 'w'),
+            hangs: moved?.type !== 'k' && isHanging(nb, m.to[0], m.to[1], 'b')
+          };
+        });
+        const practical = candidates.filter(c => !c.hangs);
+        const forcing = practical.filter(c => c.checks || c.captures);
+        const pool = forcing.length ? forcing : practical.length ? practical : candidates;
+        move = pool[Math.floor(Math.random() * pool.length)].move;
+      }
+    }
+    return move;
+  };
 
   const checkOver = (g) => {
     const hasWhiteKing = g.board.some(row => row.some(p => p?.type==='k' && p?.color==='w'));
     const hasBlackKing = g.board.some(row => row.some(p => p?.type==='k' && p?.color==='b'));
-    if (!hasBlackKing) { setGameOver('white_wins'); celebrate(); return true; }
-    if (!hasWhiteKing) { setGameOver('black_wins'); return true; }
+    if (!hasBlackKing) { setGameOver('white_wins'); setShowWinPopup(true); celebrate(); return true; }
+    if (!hasWhiteKing) { setGameOver('black_wins'); setShowLossPopup(true); return true; }
     if (gameIsCheckmate(g)) {
       const winner = g.turn==='b'?'white_wins':'black_wins';
       setGameOver(winner);
-      if (winner === 'white_wins') celebrate();
+      if (winner === 'white_wins') { setShowWinPopup(true); celebrate(); }
+      if (winner === 'black_wins') setShowLossPopup(true);
       return true;
     }
-    if (gameIsDraw(g)) { setGameOver('draw'); return true; }
+    if (gameIsDraw(g)) { setGameOver('draw'); setShowDrawPopup(true); return true; }
     return false;
   };
 
   const doAiTurn = (g) => {
     setTurn('b');
-    setTimeout(() => {
+    setTimeout(async () => {
       const current = g || gameRef.current;
       if (current.turn !== 'b') { setTurn('w'); return; }
-      const currentMoveHistory = moveHistoryRef.current;
-      const currentLastAiMove = lastAiMoveRef.current;
-
-      // Pass difficulty into game object for gameGetAiMove
-      const gameWithDiff = {...current, moveHistory: currentMoveHistory, difficulty};
-
-      let move = gameGetAiMove(gameWithDiff, null, currentLastAiMove);
-
-      // Easy mode: 50% chance of a random legal move, occasionally hang a piece
-      if (difficulty === 'easy') {
-        const rand = Math.random();
-        const legalMoves = getLegal(current.board, 'b', current);
-        if (rand < 0.50 && legalMoves.length) {
-          // 50% pure random
-          move = legalMoves[Math.floor(Math.random() * legalMoves.length)];
-        } else if (rand < 0.65 && legalMoves.length) {
-          // Extra 15%: pick a move that leaves a piece hanging (intentional blunder)
-          const blunders = legalMoves.filter(m => {
-            const {board: nb} = applyMove(current.board, m.from, m.to, current);
-            return isHanging(nb, m.to[0], m.to[1], 'b');
-          });
-          if (blunders.length) move = blunders[Math.floor(Math.random() * blunders.length)];
-        }
-      }
+      let move = await getOpponentMove(current);
 
       if (!move) { setTurn('w'); return; }
       const result = gameMove(current, move.from, move.to);
@@ -7480,37 +7951,8 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       setTimeout(()=>setAiFlash(null),600);
       setGame(result);
       setLastMove({from:move.from,to:toPos});
-      // Compute threat arrows — show what the AI piece now attacks
-      if (showThreatArrows) {
-        const arrows = [];
-        const movedPiece = result.board[toPos[0]][toPos[1]];
-        if (movedPiece) {
-          const attacks = rawMoves(result.board, toPos[0], toPos[1], {ep:null, castle:{}});
-          for (const [ar, ac] of attacks) {
-            const target = result.board[ar][ac];
-            if (target && target.color === 'w' && target.type !== 'k') {
-              arrows.push({ from: toPos, to: [ar, ac], type: 'threat' });
-            }
-          }
-        }
-        // Also show any AI pieces that now directly attack white pieces
-        for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
-          const p = result.board[r][c];
-          if (!p || p.color !== 'b') continue;
-          const atks = rawMoves(result.board, r, c, {ep:null, castle:{}});
-          for (const [ar, ac] of atks) {
-            const target = result.board[ar][ac];
-            if (target?.color === 'w' && target.type !== 'k' && isHanging(result.board, ar, ac, 'w')) {
-              if (!arrows.some(a => a.from[0]===r && a.from[1]===c && a.to[0]===ar && a.to[1]===ac)) {
-                arrows.push({ from: [r, c], to: [ar, ac], type: 'hanging' });
-              }
-            }
-          }
-        }
-        setThreatArrows(arrows);
-        // Clear arrows when player starts moving
-        if (arrows.length > 0) setTimeout(() => setThreatArrows([]), 4000);
-      }
+      // Threat arrows are shown on demand when the player taps a threatened piece.
+      setThreatArrows([]);
       if (result.captured) {
         // AI capture explosion (different color — reddish)
         if (boardRef.current) {
@@ -7530,6 +7972,40 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       showCoach(getAiCoachComment(current, move, result, lastWord));
       if (!checkOver(result)) setTurn('w');
     }, 450);
+  };
+
+  const requestHint = async () => {
+    if (hintLoading || turn !== 'w') return;
+    setHintLoading(true);
+    setHint(null);
+    try {
+      let h = null;
+      if (stockfishDifficulty && sfReady) {
+        const fen = boardToFen({...gameRef.current, turn:'w'});
+        const uci = await getBestMoveForHint(fen).catch(() => null);
+        const sfMove = uci ? uciToMove(uci, gameRef.current.board) : null;
+        const legalMoves = getLegal(gameRef.current.board, 'w', gameRef.current);
+        const move = sfMove && legalMoves.find(m =>
+          m.from[0]===sfMove.from[0] && m.from[1]===sfMove.from[1] &&
+          m.to[0]===sfMove.to[0] && m.to[1]===sfMove.to[1]
+        );
+        if (move) {
+          const scoreBefore = evaluateBoard(gameRef.current.board);
+          const {board: nb} = applyMove(gameRef.current.board, move.from, move.to, gameRef.current);
+          const scoreAfter = evaluateBoard(nb);
+          h = { move, label:'STOCKFISH', reason: explainMove(gameRef.current, move, scoreBefore, scoreAfter) };
+        }
+      }
+      if (!h) h = getHintMove({...gameRef.current, moveHistory: moveHistoryRef.current, bookSeed, difficulty});
+      if (h) { setHint(h); setHintsUsed(n=>n+1); setCoachMsg(''); }
+    } finally {
+      setHintLoading(false);
+    }
+  };
+
+  const showThreatForSquare = (B, r, c) => {
+    if (!showOverlays) return;
+    setThreatArrows(getThreatArrowsForSquare(B, r, c, 'b'));
   };
 
   const handleSquare = (r, c) => {
@@ -7625,10 +8101,10 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                     showMsg(`✗ Wrong — ${pieceName} escapes, opponent gets an extra turn!`, 3500);
                     setTurn('b');
                     // Give AI extra time and use a deeper search for the bonus turn
-                    setTimeout(() => {
+                    setTimeout(async () => {
                       const bonusGame = gameRef.current;
                       if (bonusGame.turn !== 'b') { setTurn('w'); return; }
-                      const bonusMove = gameGetAiMove({...bonusGame, moveHistory: moveHistoryRef.current}, null, lastAiMoveRef.current);
+                      const bonusMove = await getOpponentMove(bonusGame);
                       if (!bonusMove) { setTurn('w'); return; }
                       const bonusResult = gameMove(bonusGame, bonusMove.from, bonusMove.to);
                       setLastAiMove(bonusMove);
@@ -7680,6 +8156,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       if (g.board[r][c]?.color==='w') {
         setSelected([r,c]);
         setLegalDests(gameLegal(g,[r,c]));
+        showThreatForSquare(g.board, r, c);
       } else {
         setSelected(null); setLegalDests([]);
       }
@@ -7688,6 +8165,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     if (g.board[r][c]?.color==='w') {
       setSelected([r,c]);
       setLegalDests(gameLegal(g,[r,c]));
+      showThreatForSquare(g.board, r, c);
     }
   };
 
@@ -7696,7 +8174,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setGame(g); setSelected(null); setLegalDests([]); setLastMove(null);
     setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
     setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
-    setCorrectStreak(0); setStreakFlash(false); setOpeningName(null); setWordsThisGame([]); setShowWordReview(false); setThreatArrows([]);
+    setCorrectStreak(0); setStreakFlash(false); setOpeningName(null); setWordsThisGame([]); setShowWordReview(false); setShowWinPopup(false); setShowLossPopup(false); setShowDrawPopup(false); setThreatArrows([]);
   };
 
   // Precompute which legal destinations are risky (piece would be under attack after moving there)
@@ -7749,9 +8227,9 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           </button>
           <div style={{fontFamily:theme.fontMono,fontSize:10,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'4px 0'}}>── VS OPPONENT ──</div>
           {[
-            {id:'easy',   label:'EASY',   sub:'Beginner-friendly (~800 Elo)',      color:'#00cc66'},
-            {id:'medium', label:'MEDIUM', sub:'Casual club player (~1300 Elo)',    color:C},
-            {id:'hard',   label:'HARD',   sub:'Solid club player (~1600 Elo)',     color:'#ff4444'},
+            {id:'easy',   label:'EASY',   sub:'For learning — forgiving opponent', color:'#00cc66'},
+            {id:'medium', label:'MEDIUM', sub:'Tries to punish mistakes',          color:C},
+            {id:'hard',   label:'HARD',   sub:'Sharper tactics, fewer gifts',      color:'#ff4444'},
           ].map(d => (
             <button key={d.id} onClick={() => setDifficulty(d.id)} style={{
               width:'100%', maxWidth:320, padding:'18px 20px', borderRadius:12,
@@ -7813,8 +8291,8 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       )}
       <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 16px 24px',gap:8}}>
         {/* Status */}
-        <div style={{fontFamily:theme.fontMono,fontSize:12,minHeight:18,color:msg.startsWith('✓')?theme.success:msg.startsWith('✗')?theme.danger:checkedKingPos?theme.gold:theme.textMuted,letterSpacing:1,textAlign:'center'}}>
-          {msg||(checkedKingPos&&game.turn==='w'?'⚠ YOU ARE IN CHECK':checkedKingPos&&game.turn==='b'?'⚠ OPPONENT IS IN CHECK':'')}
+        <div style={{fontFamily:theme.fontMono,fontSize:12,minHeight:18,color:gameOver==='white_wins'?theme.success:gameOver==='black_wins'?theme.danger:gameOver==='draw'?theme.textMuted:msg.startsWith('✓')?theme.success:msg.startsWith('✗')?theme.danger:checkedKingPos?theme.gold:theme.textMuted,letterSpacing:1,textAlign:'center'}}>
+          {gameOver==='white_wins'?'🏆 YOU WON':gameOver==='black_wins'?'💀 YOU LOST':gameOver==='draw'?'🤝 DRAW':msg||(checkedKingPos&&game.turn==='w'?'⚠ YOU ARE IN CHECK':checkedKingPos&&game.turn==='b'?'⚠ OPPONENT IS IN CHECK':'')}
         </div>
         {/* Board + Captured Pieces */}
         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,width:'100%'}}>
@@ -7866,7 +8344,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                   {isBlunderDest && <div style={{position:'absolute',inset:1,borderRadius:2,border:`2px solid ${theme.gold}`,pointerEvents:'none',zIndex:2}}/>}
                   {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff33'}}/>}
                   {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff44',pointerEvents:'none'}}/>}
-                  {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize}/>}
+                  {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize} fireGlow={piece.color==='w' && correctStreak >= 3}/>}
                 </div>
               );
             })}
@@ -7877,14 +8355,14 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               </div>
             )}
             {/* Threat arrows SVG overlay */}
-            {threatArrows.length > 0 && (
+            {showOverlays && threatArrows.length > 0 && (
               <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:15}} viewBox={`0 0 ${cellSize*8} ${cellSize*8}`}>
                 <defs>
                   <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                    <path d="M0,0 L0,6 L6,3 z" fill="#ff4444cc"/>
+                    <path d="M0,0 L0,6 L6,3 z" fill={theme.danger + 'dd'}/>
                   </marker>
                   <marker id="arrowOrange" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                    <path d="M0,0 L0,6 L6,3 z" fill="#ff9900cc"/>
+                    <path d="M0,0 L0,6 L6,3 z" fill={theme.gold + 'dd'}/>
                   </marker>
                 </defs>
                 {threatArrows.map((a, i) => {
@@ -7897,7 +8375,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                   const len = Math.sqrt(dx*dx + dy*dy);
                   const ux = dx/len, uy = dy/len;
                   const pad = cellSize * 0.3;
-                  const color = a.type === 'hanging' ? '#ff9900cc' : '#ff4444cc';
+                  const color = a.type === 'hanging' ? theme.gold + 'd9' : theme.danger + 'd9';
                   const marker = a.type === 'hanging' ? 'url(#arrowOrange)' : 'url(#arrowRed)';
                   return (
                     <line key={i}
@@ -7905,7 +8383,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                       x2={tx - ux*pad} y2={ty - uy*pad}
                       stroke={color} strokeWidth={cellSize*0.08}
                       markerEnd={marker} strokeLinecap="round"
-                      style={{animation:'fadeIn 0.3s ease'}}
+                      style={{animation:'fadeIn 0.3s ease',filter:`drop-shadow(0 0 3px ${color})`,opacity:0.9}}
                     />
                   );
                 })}
@@ -7937,7 +8415,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           <div style={{display:'flex',gap:12,fontSize:10,color:theme.textMuted,alignItems:'center'}}>
             <span style={{opacity:showOverlays?1:0.35,transition:'opacity 0.15s'}}><span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',background:theme.danger,marginRight:4,verticalAlign:'middle'}}/>Under attack</span>
             <span style={{opacity:showOverlays?1:0.35,transition:'opacity 0.15s'}}><span style={{display:'inline-block',width:10,height:10,border:`2px solid ${theme.gold}`,marginRight:4,verticalAlign:'middle'}}/>Risky square</span>
-            <button onClick={()=>setShowOverlays(v=>!v)} style={{background:'none',border:`1px solid ${showOverlays?C:theme.border}`,borderRadius:20,padding:'2px 8px',cursor:'pointer',color:showOverlays?C:theme.textMuted,fontFamily:theme.fontMono,fontSize:9,letterSpacing:1,transition:'all 0.15s'}}>
+            <button onClick={()=>setShowOverlays(v=>{ if (v) setThreatArrows([]); return !v; })} style={{background:'none',border:`1px solid ${showOverlays?C:theme.border}`,borderRadius:20,padding:'2px 8px',cursor:'pointer',color:showOverlays?C:theme.textMuted,fontFamily:theme.fontMono,fontSize:9,letterSpacing:1,transition:'all 0.15s'}}>
               {showOverlays ? 'ON' : 'OFF'}
             </button>
             <span style={{opacity:showCoachTips?1:0.35,transition:'opacity 0.15s'}}>💬 Tips</span>
@@ -7964,14 +8442,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                 </div>
               );
             })() : (
-              <button onClick={()=>{
-                setHintLoading(true);
-                setTimeout(()=>{
-                  const h = getHintMove({...game, moveHistory, bookSeed, difficulty});
-                  if (h) { setHint(h); setHintsUsed(n=>n+1); setCoachMsg(''); }
-                  setHintLoading(false);
-                }, 100);
-              }} disabled={hintLoading || turn !== 'w'} style={{background:hintLoading?C+'33':'none',border:`1px solid ${(hintLoading||turn!=='w')?C+'44':C+'55'}`,borderRadius:8,color:(hintLoading||turn!=='w')?C+'66':C,fontFamily:theme.fontMono,fontSize:11,padding:'5px 14px',cursor:(hintLoading||turn!=='w')?'not-allowed':'pointer',letterSpacing:1,transition:'all 0.15s'}}>
+              <button onClick={requestHint} disabled={hintLoading || turn !== 'w'} style={{background:hintLoading?C+'33':'none',border:`1px solid ${(hintLoading||turn!=='w')?C+'44':C+'55'}`,borderRadius:8,color:(hintLoading||turn!=='w')?C+'66':C,fontFamily:theme.fontMono,fontSize:11,padding:'5px 14px',cursor:(hintLoading||turn!=='w')?'not-allowed':'pointer',letterSpacing:1,transition:'all 0.15s'}}>
                 {hintLoading ? '⏳ Computing...' : `💡 HINT ${hintsUsed>0?`(${hintsUsed} used)`:''}`}
               </button>
             )}
@@ -7980,6 +8451,14 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         {gameOver && (
           <div style={{fontFamily:theme.fontMono,fontSize:11,color:theme.textMuted,letterSpacing:1,textAlign:'center'}}>
             <div style={{display:'flex',flexDirection:'column',gap:10,alignItems:'center'}}>
+              <div style={{background:gameOver==='black_wins'?theme.danger+'18':gameOver==='white_wins'?theme.success+'18':theme.surface,border:`1.5px solid ${gameOver==='black_wins'?theme.danger+'66':gameOver==='white_wins'?theme.success+'66':theme.border}`,borderRadius:12,padding:'12px 16px',maxWidth:320,width:'100%',boxShadow:gameOver==='black_wins'?`0 0 20px ${theme.danger}22`:'none'}}>
+                <div style={{fontFamily:theme.fontMono,fontSize:14,fontWeight:800,color:gameOver==='black_wins'?theme.danger:gameOver==='white_wins'?theme.success:theme.textMuted,letterSpacing:2,marginBottom:5}}>
+                  {gameOver==='black_wins'?'YOU LOST':gameOver==='white_wins'?'YOU WON':gameOver==='draw'?'DRAW':'GAME OVER'}
+                </div>
+                <div style={{fontFamily:theme.fontBody,fontSize:13,color:theme.text,lineHeight:1.45,letterSpacing:0}}>
+                  {getVocabChessGameOverDetail(gameOver, game)}
+                </div>
+              </div>
               {wordsThisGame.length > 0 && (
                 <button onClick={() => setShowWordReview(true)} style={{background:C+'22',border:`1px solid ${C}55`,color:C,fontFamily:theme.fontMono,fontSize:11,padding:'8px 20px',cursor:'pointer',borderRadius:8,letterSpacing:1}}>
                   📖 REVIEW WORDS ({wordsThisGame.length})
@@ -7996,6 +8475,78 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
       {quiz&&<ChessVocabQuiz word={quiz.word.word||quiz.word} context={quiz.context} timeLimit={quiz.timeLimit} onResult={quiz.onResult}/>}
       {winBackQuiz&&<ChessVocabQuiz word={winBackQuiz.word.word||winBackQuiz.word} context={winBackQuiz.context} timeLimit={winBackQuiz.timeLimit} onResult={winBackQuiz.onResult} isHard={true}/>}
       <CelebrationCanvas />
+      {showWinPopup && gameOver === 'white_wins' && ReactDOM.createPortal(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:260,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
+          onClick={() => setShowWinPopup(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:16,padding:24,maxWidth:360,width:'100%',border:`2px solid ${theme.success}66`,boxShadow:`0 0 34px ${theme.success}22`,textAlign:'center'}}>
+            <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:theme.success,letterSpacing:2,marginBottom:8}}>VICTORY</div>
+            <div style={{fontSize:32,fontWeight:700,color:'#fff',marginBottom:10,letterSpacing:1}}>You won!</div>
+            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>White wins the game.</div>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              {wordsThisGame.length > 0 && (
+                <button onClick={() => { setShowWinPopup(false); setShowWordReview(true); }} style={{background:C+'22',border:`1.5px solid ${C}77`,borderRadius:10,padding:'11px 14px',color:C,fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:700}}>
+                  REVIEW WORDS ({wordsThisGame.length})
+                </button>
+              )}
+              <button onClick={newGame} style={{background:theme.success,border:'none',borderRadius:10,padding:'12px 14px',color:'#06130a',fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:800}}>
+                NEW GAME
+              </button>
+              <button onClick={() => setShowWinPopup(false)} style={{background:'transparent',border:`1px solid ${theme.border}`,borderRadius:10,padding:'10px 14px',color:theme.textMuted,fontFamily:theme.fontMono,fontSize:11,letterSpacing:1,cursor:'pointer'}}>
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+      {showLossPopup && gameOver === 'black_wins' && ReactDOM.createPortal(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:260,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
+          onClick={() => setShowLossPopup(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:16,padding:24,maxWidth:360,width:'100%',border:`2px solid ${theme.danger}66`,boxShadow:`0 0 34px ${theme.danger}22`,textAlign:'center'}}>
+            <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:theme.danger,letterSpacing:2,marginBottom:8}}>GAME OVER</div>
+            <div style={{fontSize:32,fontWeight:700,color:'#fff',marginBottom:10,letterSpacing:1}}>You lost</div>
+            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>{getVocabChessGameOverDetail(gameOver, game)} Review your words or start a new one.</div>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              {wordsThisGame.length > 0 && (
+                <button onClick={() => { setShowLossPopup(false); setShowWordReview(true); }} style={{background:C+'22',border:`1.5px solid ${C}77`,borderRadius:10,padding:'11px 14px',color:C,fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:700}}>
+                  REVIEW WORDS ({wordsThisGame.length})
+                </button>
+              )}
+              <button onClick={newGame} style={{background:theme.danger,border:'none',borderRadius:10,padding:'12px 14px',color:'#fff',fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:800}}>
+                NEW GAME
+              </button>
+              <button onClick={() => setShowLossPopup(false)} style={{background:'transparent',border:`1px solid ${theme.border}`,borderRadius:10,padding:'10px 14px',color:theme.textMuted,fontFamily:theme.fontMono,fontSize:11,letterSpacing:1,cursor:'pointer'}}>
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+      {showDrawPopup && gameOver === 'draw' && ReactDOM.createPortal(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:260,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
+          onClick={() => setShowDrawPopup(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.surface,borderRadius:16,padding:24,maxWidth:360,width:'100%',border:`2px solid ${theme.border}`,boxShadow:'0 0 34px rgba(255,255,255,0.08)',textAlign:'center'}}>
+            <div style={{fontFamily:theme.fontMono,fontSize:12,fontWeight:700,color:theme.textMuted,letterSpacing:2,marginBottom:8}}>GAME OVER</div>
+            <div style={{fontSize:32,fontWeight:700,color:'#fff',marginBottom:10,letterSpacing:1}}>Draw</div>
+            <div style={{fontSize:13,color:theme.textMuted,lineHeight:1.5,marginBottom:18}}>{getVocabChessGameOverDetail(gameOver, game)}</div>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              {wordsThisGame.length > 0 && (
+                <button onClick={() => { setShowDrawPopup(false); setShowWordReview(true); }} style={{background:C+'22',border:`1.5px solid ${C}77`,borderRadius:10,padding:'11px 14px',color:C,fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:700}}>
+                  REVIEW WORDS ({wordsThisGame.length})
+                </button>
+              )}
+              <button onClick={newGame} style={{background:C,border:'none',borderRadius:10,padding:'12px 14px',color:'#fff',fontFamily:theme.fontMono,fontSize:12,letterSpacing:1,cursor:'pointer',fontWeight:800}}>
+                NEW GAME
+              </button>
+              <button onClick={() => setShowDrawPopup(false)} style={{background:'transparent',border:`1px solid ${theme.border}`,borderRadius:10,padding:'10px 14px',color:theme.textMuted,fontFamily:theme.fontMono,fontSize:11,letterSpacing:1,cursor:'pointer'}}>
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
       {/* #5 Streak flash overlay */}
       {streakFlash && (
         <div style={{position:'fixed',inset:0,zIndex:200,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -8458,9 +9009,10 @@ function useStockfishWorker() {
         
         // Try to load Stockfish
         const URLS = [
+          'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.min.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js',
           'https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish-nnue-16-single.js',
           'https://cdn.jsdelivr.net/npm/stockfish@15.0.0/src/stockfish.js',
-          'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js',
         ];
         
         let sfLoaded = false;
@@ -8477,17 +9029,20 @@ function useStockfishWorker() {
         } else {
           // Stockfish loaded — wire it up
           // stockfish() may be a function or already running
-          if (typeof STOCKFISH === 'function') {
-            const sf = STOCKFISH();
+          const factory = typeof STOCKFISH === 'function' ? STOCKFISH
+            : typeof Stockfish === 'function' ? Stockfish
+            : null;
+          const existingHandler = self.onmessage;
+          if (factory) {
+            const sf = factory();
             sf.onmessage = function(event) { postMessage(event.data || event); };
             self.onmessage = function(e) { sf.postMessage(e.data); };
             postMessage('uciok');
+          } else if (typeof existingHandler === 'function') {
+            // Some Stockfish builds are already worker scripts: keep their UCI handler.
+            self.onmessage = existingHandler;
           } else {
-            // Direct stockfish global
-            self.onmessage = function(e) {
-              if (typeof stockfish !== 'undefined') stockfish(e.data);
-            };
-            postMessage('uciok');
+            postMessage('error:Stockfish loaded, but this build could not be started.');
           }
         }
       `;
@@ -8499,7 +9054,7 @@ function useStockfishWorker() {
       workerRef.current = worker;
 
       worker.onerror = (e) => {
-        setSfError('Engine failed to start. Try a different browser or check your connection.');
+        setSfError('Stockfish did not load; using the built-in engine fallback.');
       };
 
       worker.onmessage = (e) => {
@@ -8604,7 +9159,6 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
   const [hintLoading, setHintLoading] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [threatArrows, setThreatArrows] = useState([]);
-  const [showThreatArrows, setShowThreatArrows] = useState(true);
   const [showOverlays, setShowOverlays] = useState(true);
   const [showCoachTips, setShowCoachTips] = useState(true);
   const [bookSeed, setBookSeed] = useState(() => Math.random());
@@ -8693,25 +9247,8 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
     setLastMove({from:move.from, to:toPos});
     setMoveHistory(h => [...h, {from:move.from, to:toPos}]);
 
-    // Threat arrows
-    if (showThreatArrows) {
-      const arrows = [];
-      for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
-        const p = result.board[r][c];
-        if (!p || p.color !== 'b') continue;
-        const atks = rawMoves(result.board, r, c, {ep:null, castle:{}});
-        for (const [ar, ac] of atks) {
-          const target = result.board[ar][ac];
-          if (target?.color === 'w' && target.type !== 'k' && isHanging(result.board, ar, ac, 'w')) {
-            if (!arrows.some(a => a.from[0]===r && a.from[1]===c && a.to[0]===ar && a.to[1]===ac)) {
-              arrows.push({ from: [r, c], to: [ar, ac], type: 'hanging' });
-            }
-          }
-        }
-      }
-      setThreatArrows(arrows);
-      if (arrows.length > 0) setTimeout(() => setThreatArrows([]), 4000);
-    }
+    // Threat arrows are shown on demand when the player taps a threatened piece.
+    setThreatArrows([]);
 
     if (result.captured) {
       if (boardRef.current) {
@@ -8815,6 +9352,11 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
   }
 
   // ── Main game board (identical UI to VocabChess) ───────────────────────────
+  const showThreatForSquare = (B, r, c) => {
+    if (!showOverlays) return;
+    setThreatArrows(getThreatArrowsForSquare(B, r, c, 'b'));
+  };
+
   const handleSquare = (r, c) => {
     if (turn!=='w'||gameOver) return;
     if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
@@ -8919,12 +9461,14 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
       if (g.board[r][c]?.color==='w') {
         setSelected([r,c]);
         setLegalDests(getLegal(g.board,'w',g).filter(m=>m.from[0]===r&&m.from[1]===c).map(m=>m.to));
+        showThreatForSquare(g.board, r, c);
       } else { setSelected(null); setLegalDests([]); }
       return;
     }
     if (g.board[r][c]?.color==='w') {
       setSelected([r,c]);
       setLegalDests(getLegal(g.board,'w',g).filter(m=>m.from[0]===r&&m.from[1]===c).map(m=>m.to));
+      showThreatForSquare(g.board, r, c);
     }
   };
 
@@ -9024,7 +9568,7 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
                 outline:isThreatened?`2px solid ${theme.danger}88`:'none',outlineOffset:'-2px'}}>
                 {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff44'}}/>}
                 {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff55',pointerEvents:'none'}}/>}
-                {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize}/>}
+                {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize} fireGlow={piece.color==='w' && correctStreak >= 3}/>}
                 {r===7&&<div style={{position:'absolute',bottom:1,right:3,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{'abcdefgh'[c]}</div>}
                 {c===0&&<div style={{position:'absolute',top:1,left:2,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{8-r}</div>}
               </div>
@@ -9032,20 +9576,20 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
           })}
           {reversing&&<div style={{position:'absolute',inset:0,zIndex:20,background:'#3d8ef533',border:'3px solid #3d8ef5',borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}><span style={{fontFamily:theme.fontMono,fontSize:13,color:'#3d8ef5',letterSpacing:2,fontWeight:700,background:'#0a0a1299',padding:'4px 10px',borderRadius:4}}>↩ REVERSING</span></div>}
           {/* Threat arrows */}
-          {threatArrows.length>0&&(
+          {showOverlays&&threatArrows.length>0&&(
             <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:15}} viewBox={`0 0 ${cellSize*8} ${cellSize*8}`}>
               <defs>
-                <marker id="arrowRedSF" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#ff4444cc"/></marker>
-                <marker id="arrowOrangeSF" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#ff9900cc"/></marker>
+                <marker id="arrowRedSF" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill={theme.danger + 'dd'}/></marker>
+                <marker id="arrowOrangeSF" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill={theme.gold + 'dd'}/></marker>
               </defs>
               {threatArrows.map((a,i)=>{
                 const fx=(a.from[1]+0.5)*cellSize,fy=(a.from[0]+0.5)*cellSize;
                 const tx=(a.to[1]+0.5)*cellSize,ty=(a.to[0]+0.5)*cellSize;
                 const dx=tx-fx,dy=ty-fy,len=Math.sqrt(dx*dx+dy*dy);
                 const ux=dx/len,uy=dy/len,pad=cellSize*0.3;
-                const color=a.type==='hanging'?'#ff9900cc':'#ff4444cc';
+                const color=a.type==='hanging'?theme.gold+'d9':theme.danger+'d9';
                 const marker=a.type==='hanging'?'url(#arrowOrangeSF)':'url(#arrowRedSF)';
-                return <line key={i} x1={fx+ux*pad} y1={fy+uy*pad} x2={tx-ux*pad} y2={ty-uy*pad} stroke={color} strokeWidth={cellSize*0.08} markerEnd={marker} strokeLinecap="round"/>;
+                return <line key={i} x1={fx+ux*pad} y1={fy+uy*pad} x2={tx-ux*pad} y2={ty-uy*pad} stroke={color} strokeWidth={cellSize*0.08} markerEnd={marker} strokeLinecap="round" style={{filter:`drop-shadow(0 0 3px ${color})`,opacity:0.9}}/>;
               })}
             </svg>
           )}
@@ -9107,7 +9651,7 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
 function App() {
   const [screen, setScreen] = useState("home");
   const [onboarded, setOnboarded] = React.useState(() => !!localStorage.getItem('satarcade_onboarded'));
-  const [scores, setScores] = useState({ hangman: 0, crossword: 0, detective: 0, oddoneout: 0, eartrainer: 0, chess: 0, chessf: 0, total: 0 });
+  const [scores, setScores] = useState({ hangman: 0, crossword: 0, detective: 0, oddoneout: 0, eartrainer: 0, chess: 0, total: 0 });
   const [profile, setProfile] = useState(() => localStorage.getItem('satarcade_profile') || 'sat');
   const activeWords = WORD_BANK.filter(w => profile === 'sat' ? w.tier <= 3 : true);
 
@@ -9220,7 +9764,6 @@ function App() {
           {screen === "oddoneout" && <OddOneOut onBack={() => setScreen("home")} onScore={pts => addScore("oddoneout", pts)} onCorrect={w => markCorrect(w, "oddoneout")} wordBank={activeWords} />}
           {screen === "eartrainer" && <EarTrainer onBack={() => setScreen("home")} onScore={pts => addScore("eartrainer", pts)} onCorrect={w => markCorrect(w, "eartrainer")} wordBank={activeWords} />}
           {screen === "chess" && <VocabChess onBack={() => setScreen("home")} onScore={pts => addScore("chess", pts)} onCorrect={w => markCorrect(w, "chess")} wordBank={activeWords} />}
-          {screen === "chessf" && <VocabChessStockfish onBack={() => setScreen("home")} onScore={pts => addScore("chessf", pts)} onCorrect={w => markCorrect(w, "chessf")} wordBank={activeWords} />}
         </div>
       </div>
       {/* Final Boss modal */}

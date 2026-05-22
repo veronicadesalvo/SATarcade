@@ -8617,11 +8617,6 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
 	              }}>
 	                {puzzle.tactic}
 	              </div>
-	              {puzzle.explanation && (
-	                <div style={{fontSize:12,color:theme.textMuted,lineHeight:1.45,margin:'4px 0 10px'}}>
-	                  {puzzle.explanation}
-	                </div>
-	              )}
 	              <div>Now answer the vocab challenge to finish it.</div>
 	            </div>
 	            <button onClick={launchQuiz} style={{
@@ -9677,8 +9672,17 @@ function OnboardingScreen({ onDone }) {
 function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
   const [selected, setSelected] = React.useState(null);
   const [revealed, setRevealed] = React.useState(false);
+  const [quizReady, setQuizReady] = React.useState(false);
   const correct = selected === correctIdx;
   const C = '#ffd700';
+
+  React.useEffect(() => {
+    setSelected(null);
+    setRevealed(false);
+    setQuizReady(false);
+    const timer = setTimeout(() => setQuizReady(true), 1600);
+    return () => clearTimeout(timer);
+  }, [word]);
 
   React.useEffect(() => {
     try {
@@ -9707,7 +9711,7 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
   }, []);
 
   const handleSelect = (i) => {
-    if (revealed) return;
+    if (!quizReady || revealed) return;
     setSelected(i);
     setRevealed(true);
   };
@@ -9729,65 +9733,75 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
         maxWidth: 360, width: '100%',
         position: 'relative',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 10 }}>
+        <div style={{ textAlign: 'center', marginBottom: quizReady ? 10 : 4 }}>
           <img
             src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/finalboss.png"
-            width={110} height={110}
+            width={quizReady ? 110 : 178} height={quizReady ? 110 : 178}
             style={{ objectFit: 'contain', display: 'block', margin: '0 auto',
               animation: 'bossFloat 3s ease-in-out infinite, bossGlow 3s ease-in-out infinite' }}
             alt="Final Boss"
           />
         </div>
-        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: C, letterSpacing: 2, marginBottom: 8, textAlign: 'center' }}>FINAL BOSS</div>
-        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 26, color: '#fff', letterSpacing: 2, marginBottom: 20, textAlign: 'center' }}>{word}</div>
-        <div style={{ fontFamily: theme.fontBody, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 14, textAlign: 'center' }}>
-          Which sentence uses this word correctly?
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-          {choices.map((sentence, i) => {
-            let bg = 'transparent', border = 'rgba(255,255,255,0.15)', color = 'rgba(255,255,255,0.85)';
-            if (revealed) {
-              if (i === correctIdx) { bg = '#00cc6622'; border = '#00cc66'; color = '#00cc66'; }
-              else if (i === selected && selected !== correctIdx) { bg = '#ff444422'; border = '#ff4444'; color = '#ff4444'; }
-              else { color = 'rgba(255,255,255,0.3)'; }
-            }
-            return (
-              <button key={i} onClick={() => handleSelect(i)} style={{
-                background: bg, border: `1.5px solid ${border}`,
-                borderRadius: 8, padding: '12px 14px',
-                color, fontSize: 13, lineHeight: 1.5,
-                textAlign: 'left', cursor: revealed ? 'default' : 'pointer',
-                fontFamily: theme.fontBody, transition: 'all 0.15s',
-              }}>
-                <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, marginRight: 8, opacity: 0.6 }}>
-                  {String.fromCharCode(65 + i)}.
-                </span>
-                {sentence}
-                {revealed && i === correctIdx && <span style={{ marginLeft: 8 }}>✓</span>}
-                {revealed && i === selected && selected !== correctIdx && <span style={{ marginLeft: 8 }}>✗</span>}
-              </button>
-            );
-          })}
-        </div>
-        {revealed ? (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, marginBottom: 16,
-              color: correct ? '#00cc66' : '#ff8844', letterSpacing: 1 }}>
-              {correct ? 'CORRECT! WORD MASTERED!' : ''}
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: C, letterSpacing: 2, marginBottom: quizReady ? 8 : 12, textAlign: 'center' }}>FINAL BOSS</div>
+        {quizReady ? (
+          <div style={{ animation: 'fadeIn 0.2s ease' }}>
+            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 26, color: '#fff', letterSpacing: 2, marginBottom: 20, textAlign: 'center' }}>{word}</div>
+            <div style={{ fontFamily: theme.fontBody, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 14, textAlign: 'center' }}>
+              Which sentence uses this word correctly?
             </div>
-            {!correct && (
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', marginBottom: 16, lineHeight: 1.6, textAlign: 'center', fontFamily: theme.fontBody }}>
-                Not quite! You'll get another shot at mastering this word next time it comes up in a game.
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+              {choices.map((sentence, i) => {
+                let bg = 'transparent', border = 'rgba(255,255,255,0.15)', color = 'rgba(255,255,255,0.85)';
+                if (revealed) {
+                  if (i === correctIdx) { bg = '#00cc6622'; border = '#00cc66'; color = '#00cc66'; }
+                  else if (i === selected && selected !== correctIdx) { bg = '#ff444422'; border = '#ff4444'; color = '#ff4444'; }
+                  else { color = 'rgba(255,255,255,0.3)'; }
+                }
+                return (
+                  <button key={i} onClick={() => handleSelect(i)} style={{
+                    background: bg, border: `1.5px solid ${border}`,
+                    borderRadius: 8, padding: '12px 14px',
+                    color, fontSize: 13, lineHeight: 1.5,
+                    textAlign: 'left', cursor: revealed ? 'default' : 'pointer',
+                    fontFamily: theme.fontBody, transition: 'all 0.15s',
+                  }}>
+                    <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, marginRight: 8, opacity: 0.6 }}>
+                      {String.fromCharCode(65 + i)}.
+                    </span>
+                    {sentence}
+                    {revealed && i === correctIdx && <span style={{ marginLeft: 8 }}>✓</span>}
+                    {revealed && i === selected && selected !== correctIdx && <span style={{ marginLeft: 8 }}>✗</span>}
+                  </button>
+                );
+              })}
+            </div>
+            {revealed ? (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, marginBottom: 16,
+                  color: correct ? '#00cc66' : '#ff8844', letterSpacing: 1 }}>
+                  {correct ? 'CORRECT! WORD MASTERED!' : ''}
+                </div>
+                {!correct && (
+                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', marginBottom: 16, lineHeight: 1.6, textAlign: 'center', fontFamily: theme.fontBody }}>
+                    Not quite! You'll get another shot at mastering this word next time it comes up in a game.
+                  </div>
+                )}
+                <button onClick={() => onDone(correct)} style={{
+                  fontFamily: "'Press Start 2P', monospace", fontSize: 9,
+                  background: C, color: '#0a0a14', border: 'none', borderRadius: 2,
+                  padding: '10px 24px', cursor: 'pointer', letterSpacing: 1,
+                  boxShadow: `0 3px 0 #a08800`,
+                }}>CONTINUE</button>
               </div>
-            )}
-            <button onClick={() => onDone(correct)} style={{
-              fontFamily: "'Press Start 2P', monospace", fontSize: 9,
-              background: C, color: '#0a0a14', border: 'none', borderRadius: 2,
-              padding: '10px 24px', cursor: 'pointer', letterSpacing: 1,
-              boxShadow: `0 3px 0 #a08800`,
-            }}>CONTINUE</button>
+            ) : null}
           </div>
-        ) : null}
+        ) : (
+          <div style={{ textAlign: 'center', minHeight: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: 'rgba(255,255,255,0.7)', letterSpacing: 2, lineHeight: 1.8, animation: 'pulse 0.8s ease-in-out infinite' }}>
+              GET READY
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

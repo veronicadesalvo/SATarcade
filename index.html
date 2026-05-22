@@ -2162,8 +2162,8 @@ const CHESS_PUZZLES = (() => {
   {id:'p22',type:'Pin',tactic:'Absolute Pin',
     desc:"Move your bishop to pin the piece to the king \u2014 it cannot move at all.",fen:'4k3/3n4/8/8/8/8/2B5/4K3',solution:[{from:[6,2],to:[4,0]}],
     word:'INHIBIT',sentences:[{text:"Stress can ___ performance even in well-prepared competitors.",correct:false},{text:"Advancing pawns would restrict the rook's ability to control the open file.",correct:false},{text:"The bishop move ___ the knight's movement entirely \u2014 pinned to the king, it could not budge.",correct:true}],},
-  {id:'p23',type:'Pin',tactic:'Relative Pin',
-    desc:"Pin the rook to a more valuable piece behind it.",fen:'4k3/8/2r5/8/B7/8/8/4K3',solution:[{from:[4,0],to:[3,1]}],
+  {id:'p23',type:'Pin',tactic:'Absolute Pin',
+    desc:"Pin the rook to the king behind it.",fen:'4k3/8/2r5/8/B7/8/8/4K3',solution:[{from:[4,0],to:[3,1]}],
     word:'CONSTRAIN',sentences:[{text:"A shortage of resources began to limit the team's options heading into the final round.",correct:false},{text:"The bishop move ___ the rook completely \u2014 it could not leave the diagonal without exposing the king.",correct:true},{text:"A tight deadline can ___ both players' ability to find the best moves.",correct:false}],},
   {id:'p24',type:'Pin',tactic:'Absolute Pin',
     desc:"Move your bishop to pin the piece to the king \u2014 it cannot move at all.",fen:'6k1/5n2/8/8/2B5/8/8/4K3',solution:[{from:[4,2],to:[2,4]}],
@@ -2622,7 +2622,7 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
 }
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
-function HomeScreen({ onSelect, scores, mastered, wordStats, activeWords, profile, setProfile }) {
+function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setProfile }) {
   const total = activeWords.length;
   const masteredCount = [...mastered].filter(w => activeWords.some(aw => aw.word === w)).length;
   const seenCount = Object.keys(wordStats).filter(w => activeWords.some(aw => aw.word === w)).length;
@@ -3157,7 +3157,7 @@ function HangmanSVG({ wrong, figColor }) {
   );
 }
 
-function HangmanGame({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function HangmanGame({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#ffa500"; // game color
   const [entry, setEntry] = useState(() => getNextWord('hangman_queue', wordBank));
   const [guessed, setGuessed] = useState(new Set());
@@ -3190,11 +3190,9 @@ function HangmanGame({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
 
   useEffect(() => {
     if (solved && status === "playing") {
-      const pts = Math.max(10, (MAX_WRONG - wrong) * 20);
       setStatus("won");
       setStreak(s => s + 1);
       setHistory(h => [...h, { correct: true, word: entry?.word }]);
-      onScore(pts);
       onCorrect(entry?.word);
       setShowClueOffer(false);
     } else if (wrong >= MAX_WRONG && status === "playing") {
@@ -3656,7 +3654,7 @@ function getWordCells(dir, puzzle, num) {
 }
 
 // ─── CROSSWORD COMPONENT ──────────────────────────────────────────────────────
-function FreeformCrossword({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#9b30d9"; // game color
   const [puzzle, setPuzzle] = useState(null);
   const [userGrid, setUserGrid] = useState({});
@@ -3981,7 +3979,6 @@ function FreeformCrossword({ onBack, onScore, onCorrect, wordBank = WORD_BANK })
 
   useEffect(() => {
     if (isSolved) {
-      onScore(200);
       celebrate();
       setTimeout(() => setShowReview(true), 1200);
       // Mark all words in this puzzle as mastered
@@ -4390,14 +4387,13 @@ function FreeformCrossword({ onBack, onScore, onCorrect, wordBank = WORD_BANK })
 
 
 // ─── WORD DETECTIVE ───────────────────────────────────────────────────────────
-function WordDetective({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#f5e000"; // game color
   const [pool] = useState(() =>
     getNextWords('detective_queue', wordBank.filter(e => e.example), 75)
   );
   const [idx, setIdx] = useState(0);
   const [chosen, setChosen] = useState(null);
-  const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [answered, setAnswered] = useState([]);
   const [shuffledOptions, setShuffledOptions] = useState([]);
@@ -4428,10 +4424,7 @@ function WordDetective({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setChosen(word);
     const correct = word === current.word;
     if (correct) {
-      const pts = 10 + streak * 5;
-      setScore(s => s + pts);
       setStreak(s => s + 1);
-      onScore(pts);
       onCorrect(current.word);
     } else {
       setStreak(0);
@@ -4728,7 +4721,7 @@ function generateOddOneOutGroups(wordBank, count = 30) {
 }
 
 // ─── ODD ONE OUT COMPONENT ────────────────────────────────────────────────────
-function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function OddOneOut({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#00c9a7"; // game color
   const [pool] = useState(() => {
     // Mix: half hand-crafted (for quality), half auto-generated (for coverage)
@@ -4738,7 +4731,6 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   });
   const [idx, setIdx] = useState(0);
   const [chosen, setChosen] = useState(null);
-  const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [history, setHistory] = useState([]);
   const [shuffledWords, setShuffledWords] = useState([]);
@@ -4761,10 +4753,7 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setChosen(word);
     const correct = word === current.odd;
     if (correct) {
-      const pts = 15 + streak * 5;
-      setScore(s => s + pts);
       setStreak(s => s + 1);
-      onScore(pts);
       current.words.forEach(w => onCorrect(w));
     } else {
       setStreak(0);
@@ -4920,7 +4909,7 @@ function OddOneOut({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
 
 // ─── EAR TRAINER ──────────────────────────────────────────────────────────────
 // Word is spoken aloud — never shown. Pick the correct definition.
-// Replay anytime. Optional "hear in a sentence" hint costs -5 pts.
+// Replay anytime. Optional "hear in a sentence" hint is available.
 
 function getBestVoice() {
   const voices = window.speechSynthesis.getVoices();
@@ -4974,7 +4963,7 @@ function speak(text, rate = 0.82) {
   }
 }
 
-function EarTrainer({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function EarTrainer({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#f700ff"; // game color
   const [pool] = useState(() =>
     getNextWords('eartrainer_queue', wordBank.filter(e => e.example), 75)
@@ -4983,7 +4972,6 @@ function EarTrainer({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [chosen, setChosen] = useState(null);
   const [usedHint, setUsedHint] = useState(false);
   const [revealed, setRevealed] = useState(false);
-  const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [history, setHistory] = useState([]);
   const [options, setOptions] = useState([]);
@@ -5029,10 +5017,7 @@ function EarTrainer({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     setRevealed(true);
     const correct = word === current.word;
     if (correct) {
-      const pts = (usedHint ? 15 : 20) + streak * 5;
-      setScore(s => s + pts);
       setStreak(s => s + 1);
-      onScore(pts);
       onCorrect(current.word);
     } else {
       setStreak(0);
@@ -7181,7 +7166,7 @@ function useExplosion() {
 // ─── CHESS PUZZLES ────────────────────────────────────────────────────────────
 // Each puzzle: FEN-like board setup, solution move(s), tactic type, word to define
 // Board is 8x8 array: null or {color:'w'|'b', type:'p'|'n'|'b'|'r'|'q'|'k'}
-// solution: array of moves [{from:[r,c],to:[r,c]}] — player plays odd indices (0,2,...), AI plays even
+// solution: array of moves [{from:[r,c],to:[r,c]}] — white plays even indices, black replies on odd indices
 // For checkmate-in-1: just one move
 // For fork puzzles: one move that forks two pieces
 
@@ -7195,13 +7180,46 @@ function puzzleMoveLabel(move) {
   return `${toSq(move.from[0], move.from[1])} to ${toSq(move.to[0], move.to[1])}`;
 }
 
+function puzzleMoveLabelWithPiece(B, move) {
+  const piece = B?.[move.from[0]]?.[move.from[1]];
+  const name = piece ? `${PIECE_NAMES[piece.type]} ` : '';
+  return `${name}${puzzleMoveLabel(move)}`;
+}
+
+function puzzleSolutionLineLabel(puzzle, fromStep = 0) {
+  let B = (puzzle.board || makePuzzleBoard(puzzle.fen)).map(row => row.map(piece => piece ? {...piece} : null));
+  const parts = [];
+  for (let i = 0; i < puzzle.solution.length; i++) {
+    const move = puzzle.solution[i];
+    if (i >= fromStep) {
+      parts.push(`${i % 2 === 0 ? 'White' : 'Black'} ${puzzleMoveLabelWithPiece(B, move)}`);
+    }
+    B = applyMove(B, move.from, move.to, {ep:null, castle:{}}).board;
+  }
+  return parts.join(' → ');
+}
+
 function puzzleIsLegalMove(B, move) {
   return getLegal(B, 'w', {ep:null, castle:{wK:false,wQ:false,bK:false,bQ:false}})
     .some(m => puzzleMovesSame(m, move));
 }
 
+function puzzleIsLegalColorMove(B, color, move) {
+  return getLegal(B, color, {ep:null, castle:{wK:false,wQ:false,bK:false,bQ:false}})
+    .some(m => puzzleMovesSame(m, move));
+}
+
+function puzzleHasKing(B, color) {
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    if (B[r][c]?.color === color && B[r][c]?.type === 'k') return true;
+  }
+  return false;
+}
+
 function puzzleStartIsLegal(B) {
-  return !inCheck(B, 'w') &&
+  return puzzleHasKing(B, 'w') &&
+    puzzleHasKing(B, 'b') &&
+    !inCheck(B, 'w') &&
     !inCheck(B, 'b') &&
     getLegal(B, 'w', {ep:null, castle:{wK:false,wQ:false,bK:false,bQ:false}}).length > 0;
 }
@@ -7232,9 +7250,19 @@ function puzzleForkTargets(B, move) {
   return targets;
 }
 
+function puzzleMovedPieceCanBeCaptured(B, move) {
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  const moved = nb[move.to[0]][move.to[1]];
+  if (!moved || moved.type === 'k') return false;
+  return getLegal(nb, 'b', {ep:null, castle:{wK:false,wQ:false,bK:false,bQ:false}})
+    .some(reply => reply.to[0] === move.to[0] && reply.to[1] === move.to[1]);
+}
+
 function puzzleIsForkMove(B, move) {
   const targets = puzzleForkTargets(B, move);
-  return targets.some(t => t.type === 'k') && targets.some(t => t.type !== 'k');
+  return targets.some(t => t.type === 'k') &&
+    targets.some(t => t.type !== 'k') &&
+    !puzzleMovedPieceCanBeCaptured(B, move);
 }
 
 function puzzlePinTargets(B, move) {
@@ -7272,18 +7300,134 @@ function puzzleIsPinMove(B, move) {
   return puzzlePinTargets(B, move).length > 0;
 }
 
-function isPuzzleMoveCorrect(puzzle, B, move, moveStep) {
-  if (!puzzleStartIsLegal(B)) return false;
+function puzzleSkewerValue(piece) {
+  return piece?.type === 'k' ? 1000 : (PIECE_VALUES[piece?.type] || 0);
+}
+
+function puzzleSkewerTargets(B, move) {
+  if (!puzzleIsLegalMove(B, move)) return [];
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  const moved = nb[move.to[0]][move.to[1]];
+  if (!moved || (moved.type !== 'b' && moved.type !== 'r' && moved.type !== 'q')) return [];
+  const dirs = [];
+  if (moved.type === 'b' || moved.type === 'q') dirs.push([-1,-1], [-1,1], [1,-1], [1,1]);
+  if (moved.type === 'r' || moved.type === 'q') dirs.push([-1,0], [1,0], [0,-1], [0,1]);
+  for (const [dr, dc] of dirs) {
+    let r = move.to[0] + dr;
+    let c = move.to[1] + dc;
+    let first = null;
+    while (inB(r, c)) {
+      const piece = nb[r][c];
+      if (piece) {
+        if (piece.color !== 'b') break;
+        if (!first) {
+          first = piece;
+        } else {
+          if (puzzleSkewerValue(first) > puzzleSkewerValue(piece)) return [first, piece];
+          break;
+        }
+      }
+      r += dr;
+      c += dc;
+    }
+  }
+  return [];
+}
+
+function puzzleIsSkewerMove(B, move) {
+  return puzzleSkewerTargets(B, move).length > 0 &&
+    !puzzleMovedPieceCanBeCaptured(B, move);
+}
+
+function puzzleIsDiscoveredAttackMove(B, move) {
   if (!puzzleIsLegalMove(B, move)) return false;
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  return !!detectsDiscoveredAttack(B, move.from, move.to) &&
+    inCheck(nb, 'b') &&
+    !puzzleMovedPieceCanBeCaptured(B, move);
+}
+
+function puzzleIsFinalPlayerMove(puzzle, moveStep) {
+  return moveStep >= puzzle.solution.length - 1;
+}
+
+function puzzleUsesExactSolution(puzzle) {
+  return !!(puzzle?.exact || puzzle?.source === 'curated');
+}
+
+function puzzleMoveMatchesTheme(puzzle, B, move) {
   if (puzzle.type.includes('Checkmate')) return puzzleIsMateMove(B, move);
   if (puzzle.type === 'Fork') return puzzleIsForkMove(B, move);
   if (puzzle.type === 'Pin') return puzzleIsPinMove(B, move);
+  if (puzzle.type === 'Skewer') return puzzleIsSkewerMove(B, move);
+  if (puzzle.type === 'Discovered Attack' || puzzle.type === 'Discovered Check') return puzzleIsDiscoveredAttackMove(B, move);
+  return false;
+}
+
+function isPuzzleMoveCorrect(puzzle, B, move, moveStep) {
+  if (inCheck(B, 'w')) return false;
+  if (!puzzleIsLegalMove(B, move)) return false;
+  if (puzzleUsesExactSolution(puzzle)) return puzzleMovesSame(move, puzzle.solution[moveStep]);
+  if (!puzzleIsFinalPlayerMove(puzzle, moveStep) && puzzle.solution.length > 1) {
+    return puzzleMovesSame(move, puzzle.solution[moveStep]);
+  }
+  if (puzzleMoveMatchesTheme(puzzle, B, move)) return true;
   return puzzleMovesSame(move, puzzle.solution[moveStep]);
 }
 
+function puzzleCorrectMoves(puzzle, B, moveStep = 0) {
+  return getLegal(B, 'w', {ep:null, castle:{wK:false,wQ:false,bK:false,bQ:false}})
+    .filter(move => isPuzzleMoveCorrect(puzzle, B, move, moveStep));
+}
+
+function puzzleHasClearWhitePayoff(puzzle, B, move) {
+  if (puzzle.type.includes('Checkmate')) return true;
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  if (puzzle.type === 'Fork') {
+    const targets = puzzleForkTargets(B, move);
+    return inCheck(nb, 'b') &&
+      targets.some(t => t.type === 'k') &&
+      targets.some(t => (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.r);
+  }
+  if (puzzle.type === 'Skewer') {
+    return inCheck(nb, 'b') && puzzleSkewerTargets(B, move).length > 0;
+  }
+  if (puzzle.type === 'Pin') {
+    return puzzlePinTargets(B, move).some(t => (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.n);
+  }
+  if (puzzle.type === 'Discovered Attack' || puzzle.type === 'Discovered Check') {
+    return inCheck(nb, 'b');
+  }
+  return false;
+}
+
+function puzzlePassesQualityGate(puzzle) {
+  let B = (puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => r.map(p => p ? {...p} : null));
+  if (!puzzleStartIsLegal(B)) return false;
+  if (puzzleUsesExactSolution(puzzle)) {
+    return true;
+  }
+  if (puzzle.solution.length === 1) {
+    const correctMoves = puzzleCorrectMoves(puzzle, B, 0);
+    return correctMoves.length === 1 &&
+      puzzleMovesSame(correctMoves[0], puzzle.solution[0]) &&
+      puzzleHasClearWhitePayoff(puzzle, B, puzzle.solution[0]);
+  }
+  return true;
+}
+
 function isPuzzlePlayable(puzzle) {
-  const B = (puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => r.map(p => p ? {...p} : null));
-  return puzzleStartIsLegal(B) && isPuzzleMoveCorrect(puzzle, B, puzzle.solution[0], 0);
+  let B = (puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => r.map(p => p ? {...p} : null));
+  if (!puzzleStartIsLegal(B)) return false;
+  for (let i = 0; i < puzzle.solution.length; i++) {
+    const color = i % 2 === 0 ? 'w' : 'b';
+    const move = puzzle.solution[i];
+    if (!puzzleIsLegalColorMove(B, color, move)) return false;
+    if (color === 'w' && !isPuzzleMoveCorrect(puzzle, B, move, i)) return false;
+    if (color === 'w' && puzzleIsFinalPlayerMove(puzzle, i) && !puzzleMoveMatchesTheme(puzzle, B, move)) return false;
+    B = applyMove(B, move.from, move.to, {ep:null, castle:{}}).board;
+  }
+  return puzzlePassesQualityGate(puzzle);
 }
 
 function puzzleSq(s) {
@@ -7317,35 +7461,184 @@ function puzzleBoardToFen(B) {
 }
 
 const PUZZLE_WORD_SENTENCES = {
-  DECISIVE: ["A ___ move ended the game immediately.", "A ___ retreat gave black time to escape.", "Her ___ leadership helped the team outside the game."],
-  INEVITABLE: ["The final move made checkmate feel ___.", "The draw was ___ after both sides traded pieces.", "A quiet pawn move was ___ but not forcing."],
-  PREVAIL: ["White managed to ___ with one forcing move.", "Researchers must ___ data carefully before drawing conclusions.", "The knight outpost helped white ___ only much later."],
-  FORMIDABLE: ["The attacking piece became a ___ force.", "A ___ defensive wall made progress impossible.", "She faced a ___ opponent in the tournament."],
-  PRAGMATIC: ["White chose the ___ solution: one clean move.", "A ___ defensive setup ignored the tactic.", "A ___ approach can help with real-life problems too."],
-  DETERMINED: ["White was ___ to finish the attack immediately.", "A ___ defender found a way to escape.", "She was ___ not to let the setback derail her plans."],
-  INCISIVE: ["The ___ move cut straight through the defense.", "An ___ exchange simplified into a quiet endgame.", "His ___ questioning revealed the truth."],
-  STEADFAST: ["The ___ attack left the king no escape.", "A ___ bishop maneuver improved the position slowly.", "She was ___ in her commitment."],
-  PERSISTENT: ["The ___ pressure finally trapped the king.", "A ___ pawn advance built pressure slowly.", "His ___ dedication improved his chess."],
-  COMPELLING: ["The tactic made a ___ case that the game was over.", "A ___ exchange of queens led toward a draw.", "Her ___ argument convinced the committee."],
-  EXPLOIT: ["White used the tactic to ___ black's loose placement.", "An investor seeks to ___ market inefficiencies.", "White chose to improve pieces instead of trying to ___ anything."],
-  ASTUTE: ["The ___ player spotted the double attack.", "An ___ investor notices hidden opportunities.", "A slow rook move was solid but not especially ___."],
-  ELUSIVE: ["The winning tactic looked ___ until the fork appeared.", "Victory remained ___ for the struggling team.", "White played a calm move instead of chasing an ___ tactic."],
-  UNDERMINE: ["The fork helped ___ black's whole position.", "Constant criticism can ___ a person's confidence.", "White chose to defend rather than ___ anything."],
-  AMBIGUITY: ["The fork created ___ because black could not save both pieces.", "The ___ in the contract caused a dispute.", "A simple recapture removed all ___ from the position."],
-  HINDER: ["The tactic would ___ black's coordination.", "Budget cuts can ___ a team's preparation.", "White made a move that did not ___ black at all."],
-  INHIBIT: ["The pin would ___ the defender completely.", "Stress can ___ performance.", "The bishop retreated without trying to ___ anything."],
-  CONSTRAIN: ["The pin would ___ black's available moves.", "Limited funding can ___ what a school offers.", "A waiting move did not ___ the defender."],
-  PRECLUDE: ["The pin would ___ the defender from moving safely.", "A lack of preparation can ___ success.", "The quiet move failed to ___ black's response."],
+  DECISIVE: ["A ___ move ended the game immediately.", "A ___ move decided nothing and changed no threats.", "The ___ pawn push only created a tiny, harmless threat."],
+  INEVITABLE: ["The final move made checkmate feel ___.", "The ___ mate vanished once black found a simple block.", "A quiet pawn move was ___ only if black chose to blunder."],
+  PREVAIL: ["White managed to ___ with one forcing move.", "White tried to ___ the rook on a8 after the fork.", "Black hoped to ___ a queen trade into the endgame."],
+  FORMIDABLE: ["The attacking piece became a ___ force.", "A ___ blunder dropped the queen for no compensation.", "Black's ___ rook was pinned, trapped, and harmless."],
+  PRAGMATIC: ["White chose the ___ solution: one clean move.", "The ___ sacrifice was flashy, unsound, and ignored mate.", "A ___ defense walked straight into the obvious fork."],
+  DETERMINED: ["White was ___ to finish the attack immediately.", "The ___ square on h7 had no plan attached to it.", "Black's ___ trade was accidental and solved nothing."],
+  INCISIVE: ["The ___ move cut straight through the defense.", "An ___ shuffle repeated the position without progress.", "The ___ rook lift wandered away from every threat."],
+  STEADFAST: ["The ___ attack left the king no escape.", "The ___ knight hopped back and forth every turn.", "Black's ___ defense collapsed after one checking move."],
+  PERSISTENT: ["The ___ pressure finally trapped the king.", "The ___ rook check happened once and then disappeared.", "A ___ pawn advance stopped immediately after one square."],
+  COMPELLING: ["The tactic made a ___ case that the game was over.", "A ___ threat failed because black could ignore it safely.", "The ___ exchange convinced no one and won no material."],
+  EXPLOIT: ["White used the tactic to ___ black's loose placement.", "Black tried to ___ castling by moving the rook sideways.", "White chose to ___ a protected piece that could not be taken."],
+  ASTUTE: ["The ___ player spotted the double attack.", "The ___ move hung the queen in one move.", "An ___ defender ignored the only legal check."],
+  ELUSIVE: ["The winning tactic looked ___ until the fork appeared.", "The ___ checkmate was visible to both kings immediately.", "The ___ fork was marked by three obvious legal captures."],
+  UNDERMINE: ["The fork helped ___ black's whole position.", "The rook lift tried to ___ a square that was already empty.", "White chose to ___ the pinned knight by protecting it."],
+  AMBIGUITY: ["The fork created ___ because black could not save both pieces.", "The ___ position had one legal move and no uncertainty.", "A simple recapture created ___ by making everything clear."],
+  HINDER: ["The tactic would ___ black's coordination.", "The open file would ___ the rook by giving it more room.", "White tried to ___ black by giving away a free tempo."],
+  INHIBIT: ["The pin would ___ the defender completely.", "The open diagonal would ___ the bishop by increasing its range.", "The retreat tried to ___ black by freeing every piece."],
+  CONSTRAIN: ["The pin would ___ black's available moves.", "The open board would ___ the queen by giving it more squares.", "A waiting move tried to ___ black by removing all pressure."],
+  PRECLUDE: ["The pin would ___ the defender from moving safely.", "A legal escape square would ___ the king from running away.", "The quiet move failed to ___ black's response."],
+  AGGRESSIVE: ["The ___ queen move forced the king toward the corner.", "The ___ retreat moved every attacker away from the king.", "Black's ___ rook move offered a draw and no threats."],
+  SCRUTINIZE: ["Players who carefully ___ the position will spot the tactic.", "White tried to ___ the position by moving instantly without looking.", "Black had to ___ every check, but ignored the board."],
 };
 
 function puzzleSentencesFor(word) {
-  const lines = PUZZLE_WORD_SENTENCES[word] || ["White found the ___ tactic.", "A ___ retreat missed the point.", "The ___ idea belonged to a different position."];
+  const lines = PUZZLE_WORD_SENTENCES[word] || ["White found the ___ tactic.", "A ___ retreat missed the point.", "The ___ pawn push belonged to a different position."];
   return lines.map((text, i) => ({ text, correct: i === 0 }));
 }
 
-function generatedPuzzle(id, type, tactic, desc, B, move, word) {
-  return { id, type, tactic, desc, fen: puzzleBoardToFen(B), solution: [move], word, sentences: puzzleSentencesFor(word) };
+function generatedPuzzle(id, type, tactic, desc, B, solution, word) {
+  return { id, type, tactic, desc, fen: puzzleBoardToFen(B), solution: Array.isArray(solution) ? solution : [solution], word, sentences: puzzleSentencesFor(word) };
 }
+
+function puzzleMoveFromUci(uci) {
+  return { from: puzzleSq(uci.slice(0, 2)), to: puzzleSq(uci.slice(2, 4)) };
+}
+
+function curatedPuzzle({ id, type, tactic, desc, fen, line, word, explanation, difficulty = 'easy' }) {
+  return {
+    id,
+    type,
+    tactic,
+    desc,
+    fen,
+    solution: line.map(puzzleMoveFromUci),
+    word,
+    explanation,
+    difficulty,
+    exact: true,
+    source: 'curated',
+    sentences: puzzleSentencesFor(word),
+  };
+}
+
+const CURATED_CHESS_PUZZLES = [
+  curatedPuzzle({
+    id: 'cq_mate_back_rank_1',
+    type: 'Checkmate in 1',
+    tactic: 'Back Rank Mate',
+    desc: 'Black is trapped by its own pawns. Find the rook move that ends the game.',
+    fen: '4r1k1/5ppp/8/8/8/8/8/4R1K1',
+    line: ['e1e8'],
+    word: 'DECISIVE',
+    explanation: 'The rook captures on e8 and checks along the back rank. The pawns leave the king with no escape.',
+  }),
+  curatedPuzzle({
+    id: 'cq_mate_queen_corner_1',
+    type: 'Checkmate in 1',
+    tactic: 'Queen Checkmate',
+    desc: 'The queen and king are already close. Find the queen move that gives checkmate.',
+    fen: '6k1/8/5K1Q/8/8/8/8/8',
+    line: ['h6g7'],
+    word: 'INEVITABLE',
+    explanation: 'Qg7 is protected by the king on f6, and the black king has no safe square.',
+  }),
+  curatedPuzzle({
+    id: 'cq_mate_ladder_1',
+    type: 'Checkmate in 1',
+    tactic: 'Rook Ladder Mate',
+    desc: 'Two rooks have cut off the king. Finish the ladder mate.',
+    fen: '6k1/5R2/6K1/8/8/8/8/R7',
+    line: ['a1a8'],
+    word: 'PERSISTENT',
+    explanation: 'The rook moves to a8 and the other rook plus king remove the escape squares.',
+  }),
+  curatedPuzzle({
+    id: 'cq_fork_knight_1',
+    type: 'Fork',
+    tactic: 'Knight Fork',
+    desc: 'Find the knight check that also attacks the rook.',
+    fen: 'k7/3r4/8/3N4/8/8/8/4K3',
+    line: ['d5b6'],
+    word: 'ASTUTE',
+    explanation: 'Nb6+ checks the king on a8 and attacks the rook on d7 at the same time.',
+  }),
+  curatedPuzzle({
+    id: 'cq_fork_queen_1',
+    type: 'Fork',
+    tactic: 'Queen Fork',
+    desc: 'Find the queen check that wins the rook.',
+    fen: 'k4r2/8/8/8/8/3Q4/8/4K3',
+    line: ['d3a3'],
+    word: 'EXPLOIT',
+    explanation: 'Qa3+ checks the king on a8 while also attacking the rook on f8.',
+  }),
+  curatedPuzzle({
+    id: 'cq_pin_bishop_1',
+    type: 'Pin',
+    tactic: 'Absolute Pin',
+    desc: 'Line up the bishop so the knight cannot legally move.',
+    fen: '4k3/3n4/8/8/8/8/2B5/4K3',
+    line: ['c2a4'],
+    word: 'INHIBIT',
+    explanation: 'Ba4 pins the knight on d7 to the king on e8, so the knight is stuck.',
+  }),
+  curatedPuzzle({
+    id: 'cq_pin_bishop_2',
+    type: 'Pin',
+    tactic: 'Absolute Pin',
+    desc: 'Find the bishop move that freezes the defender.',
+    fen: '6k1/5n2/8/8/2B5/8/8/4K3',
+    line: ['c4e6'],
+    word: 'PRECLUDE',
+    explanation: 'Be6 pins the knight on f7 to the king on g8.',
+  }),
+  curatedPuzzle({
+    id: 'cq_skewer_rook_1',
+    type: 'Skewer',
+    tactic: 'Rook Skewer',
+    desc: 'Check the king so the queen behind it is exposed.',
+    fen: 'q1k5/8/8/8/8/8/8/4K2R',
+    line: ['h1h8'],
+    word: 'INCISIVE',
+    explanation: 'Rh8+ attacks the king on c8 along the rank; after it moves, the queen on a8 is loose.',
+  }),
+  curatedPuzzle({
+    id: 'cq_skewer_queen_1',
+    type: 'Skewer',
+    tactic: 'Queen Skewer',
+    desc: 'Find the queen check that wins the rook behind the king.',
+    fen: '8/4r3/8/4k3/8/Q7/8/4K3',
+    line: ['a3e3'],
+    word: 'COMPELLING',
+    explanation: 'Qe3+ lines up the king on e5 with the rook on e7 behind it.',
+  }),
+  curatedPuzzle({
+    id: 'cq_mate_two_rook_1',
+    type: 'Checkmate in 2',
+    tactic: 'Rook Setup Mate',
+    desc: 'Find the forcing rook check. Black has one reply, then finish the mate.',
+    fen: 'k7/8/1K6/8/8/1R6/8/7R',
+    line: ['b3a3', 'a8b8', 'h1h8'],
+    word: 'DETERMINED',
+    explanation: 'Ra3+ forces Kb8, then Rh8 is mate.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_mate_two_queen_1',
+    type: 'Checkmate in 2',
+    tactic: 'Queen Setup Mate',
+    desc: 'Find the forcing queen check. Black has one reply, then finish the mate.',
+    fen: '8/k7/8/K7/8/8/8/1Q1R4',
+    line: ['b1b6', 'a7a8', 'd1d8'],
+    word: 'STEADFAST',
+    explanation: 'Qb6+ forces Ka8, then Rd8 is mate.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_mate_two_rook_2',
+    type: 'Checkmate in 2',
+    tactic: 'Rook Setup Mate',
+    desc: 'Use the first rook to force the king, then finish with the other rook.',
+    fen: '6k1/8/5K1R/8/8/2R5/8/8',
+    line: ['c3g3', 'g8f8', 'h6h8'],
+    word: 'PERSISTENT',
+    explanation: 'Rg3+ forces Kf8, then Rh8 is mate.',
+    difficulty: 'medium',
+  }),
+];
 
 function puzzleGeneratorKey(puzzle) {
   const move = puzzle.solution[0];
@@ -7362,20 +7655,40 @@ function puzzleDistance(a, b) {
   return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
 }
 
+function puzzleSquaresSame(a, b) {
+  return !!a && !!b && a[0] === b[0] && a[1] === b[1];
+}
+
+function seededPuzzleRandom(seed) {
+  let x = seed >>> 0;
+  return () => {
+    x = Math.imul(x, 1664525) + 1013904223;
+    return ((x >>> 0) / 4294967296);
+  };
+}
+
+function puzzlePick(rand, items) {
+  return items[Math.floor(rand() * items.length)];
+}
+
 function generatedPieceAttacks(type, from, to) {
   const B = Array(8).fill(null).map(() => Array(8).fill(null));
   B[from[0]][from[1]] = { color: 'w', type };
   return rawMoves(B, from[0], from[1], {ep:null, castle:{}}).some(([r, c]) => r === to[0] && c === to[1]);
 }
 
-function buildGeneratedMatePuzzles(allSquares, edgeSquares, limit = 180) {
+function buildGeneratedMatePuzzles(allSquares, edgeSquares, limit = 70) {
   const out = [], seen = new Set();
   const words = ['DECISIVE','INEVITABLE','PREVAIL','FORMIDABLE','PRAGMATIC','DETERMINED','INCISIVE','STEADFAST','PERSISTENT','COMPELLING'];
   const specs = [
     { piece: 'q', tactic: 'Queen Checkmate', desc: 'Find the queen move that delivers immediate checkmate.' },
     { piece: 'r', tactic: 'Rook Checkmate', desc: 'Use the rook and king to deliver checkmate in one move.' },
   ];
-  for (const spec of specs) for (const blackKing of edgeSquares) for (const whiteKing of allSquares) {
+  const perSpec = Math.ceil(limit / specs.length);
+  for (const spec of specs) {
+    let specCount = 0;
+    specLoop:
+    for (const blackKing of edgeSquares) for (const whiteKing of allSquares) {
     if (puzzleDistance(blackKing, whiteKing) < 1 || puzzleDistance(blackKing, whiteKing) > 2) continue;
     for (const start of allSquares) {
       const B = puzzleBoardFromPieces([{color:'b',type:'k',sq:blackKing},{color:'w',type:'k',sq:whiteKing},{color:'w',type:spec.piece,sq:start}]);
@@ -7386,8 +7699,70 @@ function buildGeneratedMatePuzzles(allSquares, edgeSquares, limit = 180) {
         const puzzle = generatedPuzzle(`gm${out.length + 1}`, 'Checkmate in 1', spec.tactic, spec.desc, B, move, words[out.length % words.length]);
         const key = puzzleGeneratorKey(puzzle);
         if (seen.has(key)) continue;
-        seen.add(key); out.push(puzzle);
+        seen.add(key); out.push(puzzle); specCount++;
         if (out.length >= limit) return out;
+        if (specCount >= perSpec) break specLoop;
+      }
+    }
+  }
+  }
+  return out;
+}
+
+function buildGeneratedMateTwoPuzzles(allSquares, edgeSquares, limit = 110) {
+  const out = [], seen = new Set();
+  const words = ['DETERMINED','PERSISTENT','COMPELLING','INEVITABLE','INCISIVE','FORMIDABLE','DECISIVE','PRAGMATIC'];
+  const specs = [
+    ['q','r'], ['r','q'], ['r','r'], ['n','q'], ['n','r']
+  ];
+  const perSpec = Math.ceil(limit / specs.length);
+
+  for (const [firstPiece, helperPiece] of specs) {
+    const rand = seededPuzzleRandom(7100 + firstPiece.charCodeAt(0) * 37 + helperPiece.charCodeAt(0) * 101);
+    let attempts = 0;
+    let specCount = 0;
+    while (attempts < 45000 && specCount < perSpec && out.length < limit) {
+      attempts++;
+      const blackKing = puzzlePick(rand, edgeSquares);
+      const whiteKing = puzzlePick(rand, allSquares);
+      if (puzzleDistance(blackKing, whiteKing) < 2 || puzzleDistance(blackKing, whiteKing) > 4) continue;
+      const firstStart = puzzlePick(rand, allSquares);
+      const helperStart = puzzlePick(rand, allSquares);
+      if ([firstStart, helperStart].some(s => puzzleSquaresSame(s, blackKing) || puzzleSquaresSame(s, whiteKing)) ||
+          puzzleSquaresSame(firstStart, helperStart)) continue;
+
+      const B = puzzleBoardFromPieces([
+        {color:'b',type:'k',sq:blackKing},
+        {color:'w',type:'k',sq:whiteKing},
+        {color:'w',type:firstPiece,sq:firstStart},
+        {color:'w',type:helperPiece,sq:helperStart},
+      ]);
+      if (!B || !puzzleStartIsLegal(B)) continue;
+
+      const firstMoves = getLegal(B, 'w', {ep:null, castle:{}})
+        .filter(m => B[m.from[0]][m.from[1]]?.type === firstPiece && !puzzleIsMateMove(B, m));
+      for (const firstMove of firstMoves) {
+        const B1 = applyMove(B, firstMove.from, firstMove.to, {ep:null, castle:{}}).board;
+        if (!inCheck(B1, 'b')) continue;
+        const blackReplies = getLegal(B1, 'b', {ep:null, castle:{}});
+        if (blackReplies.length !== 1) continue;
+        const reply = blackReplies[0];
+        const B2 = applyMove(B1, reply.from, reply.to, {ep:null, castle:{}}).board;
+        const mateMoves = getLegal(B2, 'w', {ep:null, castle:{}}).filter(m => puzzleIsMateMove(B2, m));
+        if (!mateMoves.length) continue;
+        const puzzle = generatedPuzzle(
+          `gm2${out.length + 1}`,
+          'Checkmate in 2',
+          firstPiece === 'n' ? 'Knight Setup Mate' : firstPiece === 'b' ? 'Bishop Setup Mate' : firstPiece === 'r' ? 'Rook Setup Mate' : 'Queen Setup Mate',
+          'Find the forcing first move. Black has one reply, then finish the checkmate.',
+          B,
+          [firstMove, reply, mateMoves[0]],
+          words[out.length % words.length]
+        );
+        const key = puzzleGeneratorKey(puzzle);
+        if (seen.has(key)) continue;
+        seen.add(key); out.push(puzzle); specCount++;
+        break;
       }
     }
   }
@@ -7402,7 +7777,11 @@ function buildGeneratedForkPuzzles(allSquares, limit = 140) {
     { piece:'n', tactic:'Knight Fork', desc:'One knight move attacks two pieces simultaneously. Find the fork.' },
     { piece:'q', tactic:'Queen Fork', desc:'Your queen can check the king and attack another piece in one move.' },
   ];
-  for (const spec of specs) for (const dest of allSquares) {
+  const perSpec = Math.ceil(limit / specs.length);
+  for (const spec of specs) {
+    let specCount = 0;
+    specLoop:
+    for (const dest of allSquares) {
     const attacked = allSquares.filter(s => generatedPieceAttacks(spec.piece, dest, s));
     for (const blackKing of attacked) {
       if (!(blackKing[0] === 0 || blackKing[0] === 7 || blackKing[1] === 0 || blackKing[1] === 7)) continue;
@@ -7418,12 +7797,14 @@ function buildGeneratedForkPuzzles(allSquares, limit = 140) {
             const puzzle = generatedPuzzle(`gf${out.length + 1}`, 'Fork', spec.tactic, spec.desc, B, move, words[out.length % words.length]);
             const key = puzzleGeneratorKey(puzzle);
             if (seen.has(key)) continue;
-            seen.add(key); out.push(puzzle);
+            seen.add(key); out.push(puzzle); specCount++;
             if (out.length >= limit) return out;
+            if (specCount >= perSpec) break specLoop;
           }
         }
       }
     }
+  }
   }
   return out;
 }
@@ -7442,12 +7823,12 @@ function buildGeneratedPinPuzzles(allSquares, limit = 140) {
       for (const start of allSquares) {
         if ((start[0] === dest[0] && start[1] === dest[1]) || !generatedPieceAttacks('b', start, dest)) continue;
         for (const whiteKing of whiteKingOptions) {
-          const isRelative = out.length % 2 === 1;
-          const B = puzzleBoardFromPieces([{color:'w',type:'k',sq:whiteKing},{color:'w',type:'b',sq:start},{color:'b',type:isRelative?'r':'n',sq:blackPiece},{color:'b',type:'k',sq:blackKing}]);
+          const pinnedType = out.length % 2 === 1 ? 'r' : 'n';
+          const B = puzzleBoardFromPieces([{color:'w',type:'k',sq:whiteKing},{color:'w',type:'b',sq:start},{color:'b',type:pinnedType,sq:blackPiece},{color:'b',type:'k',sq:blackKing}]);
           if (!B || !puzzleStartIsLegal(B)) continue;
           const move = { from:start, to:dest };
           if (!isPuzzleMoveCorrect({ type:'Pin', solution:[move] }, B, move, 0)) continue;
-          const puzzle = generatedPuzzle(`gp${out.length + 1}`, 'Pin', isRelative ? 'Relative Pin' : 'Absolute Pin', 'Move your bishop to line up a pin against the king.', B, move, words[out.length % words.length]);
+          const puzzle = generatedPuzzle(`gp${out.length + 1}`, 'Pin', 'Absolute Pin', 'Move your bishop to pin the piece to the king.', B, move, words[out.length % words.length]);
           const key = puzzleGeneratorKey(puzzle);
           if (seen.has(key)) continue;
           seen.add(key); out.push(puzzle);
@@ -7459,30 +7840,207 @@ function buildGeneratedPinPuzzles(allSquares, limit = 140) {
   return out;
 }
 
+function buildGeneratedSkewerPuzzles(allSquares, limit = 90) {
+  const out = [], seen = new Set();
+  const words = ['INCISIVE','EXPLOIT','ASTUTE','UNDERMINE','HINDER','COMPELLING'];
+  const whiteKingOptions = ['e1','h1','a1','e8','h8','d4','e5'].map(puzzleSq);
+  const specs = [
+    { piece:'r', tactic:'Rook Skewer', dirs:[[-1,0],[1,0],[0,-1],[0,1]], desc:'Line up the rook so the king must move and reveal the piece behind it.' },
+    { piece:'b', tactic:'Bishop Skewer', dirs:[[-1,-1],[-1,1],[1,-1],[1,1]], desc:'Line up the bishop so the more valuable piece has to move away.' },
+    { piece:'q', tactic:'Queen Skewer', dirs:[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]], desc:'Use the queen to skewer two black pieces on one line.' },
+  ];
+  const perSpec = Math.ceil(limit / specs.length);
+  for (const spec of specs) {
+    let specCount = 0;
+    specLoop:
+    for (const dest of allSquares) for (const [dr, dc] of spec.dirs) {
+    for (let gap1 = 1; gap1 <= 3; gap1++) {
+      const front = [dest[0] + dr * gap1, dest[1] + dc * gap1];
+      if (!inB(front[0], front[1])) continue;
+      for (let gap2 = 1; gap2 <= 3; gap2++) {
+        const back = [front[0] + dr * gap2, front[1] + dc * gap2];
+        if (!inB(back[0], back[1])) continue;
+        for (const start of allSquares) {
+          if (puzzleSquaresSame(start, dest) || !generatedPieceAttacks(spec.piece, start, dest)) continue;
+          for (const whiteKing of whiteKingOptions) {
+            const B = puzzleBoardFromPieces([
+              {color:'w',type:'k',sq:whiteKing},
+              {color:'w',type:spec.piece,sq:start},
+              {color:'b',type:'k',sq:front},
+              {color:'b',type:out.length % 2 ? 'q' : 'r',sq:back},
+            ]);
+            if (!B || !puzzleStartIsLegal(B)) continue;
+            const move = { from:start, to:dest };
+            if (!puzzleIsSkewerMove(B, move)) continue;
+            const puzzle = generatedPuzzle(`gs${out.length + 1}`, 'Skewer', spec.tactic, spec.desc, B, move, words[out.length % words.length]);
+            const key = puzzleGeneratorKey(puzzle);
+            if (seen.has(key)) continue;
+            seen.add(key); out.push(puzzle); specCount++;
+            if (out.length >= limit) return out;
+            if (specCount >= perSpec) break specLoop;
+          }
+        }
+      }
+    }
+  }
+  }
+  return out;
+}
+
+function buildGeneratedDiscoveredAttackPuzzles(allSquares, limit = 90) {
+  const out = [], seen = new Set();
+  const words = ['ASTUTE','ELUSIVE','EXPLOIT','AMBIGUITY','INCISIVE','UNDERMINE'];
+  const whiteKingOptions = ['e1','h1','a1','e8','h8','d4','e5'].map(puzzleSq);
+  const specs = [
+    { slider:'r', blocker:'n', dirs:[[-1,0],[1,0],[0,-1],[0,1]], tactic:'Discovered Rook Check' },
+    { slider:'b', blocker:'n', dirs:[[-1,-1],[-1,1],[1,-1],[1,1]], tactic:'Discovered Bishop Check' },
+    { slider:'q', blocker:'b', dirs:[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]], tactic:'Discovered Queen Check' },
+  ];
+  const perSpec = Math.ceil(limit / specs.length);
+  for (const spec of specs) {
+    let specCount = 0;
+    specLoop:
+    for (const sliderSq of allSquares) for (const [dr, dc] of spec.dirs) {
+    for (let blockGap = 1; blockGap <= 3; blockGap++) {
+      const blockerSq = [sliderSq[0] + dr * blockGap, sliderSq[1] + dc * blockGap];
+      if (!inB(blockerSq[0], blockerSq[1])) continue;
+      for (let targetGap = 1; targetGap <= 4; targetGap++) {
+        const targetSq = [blockerSq[0] + dr * targetGap, blockerSq[1] + dc * targetGap];
+        if (!inB(targetSq[0], targetSq[1])) continue;
+        for (const whiteKing of whiteKingOptions) {
+            const base = puzzleBoardFromPieces([
+              {color:'w',type:'k',sq:whiteKing},
+              {color:'w',type:spec.slider,sq:sliderSq},
+              {color:'w',type:spec.blocker,sq:blockerSq},
+              {color:'b',type:'k',sq:targetSq},
+            ]);
+            if (!base || !puzzleStartIsLegal(base)) continue;
+            const moves = getLegal(base, 'w', {ep:null, castle:{}})
+              .filter(m => puzzleSquaresSame(m.from, blockerSq) && !puzzleSquaresSame(m.to, [blockerSq[0] + dr, blockerSq[1] + dc]));
+            for (const move of moves) {
+              if (!puzzleIsDiscoveredAttackMove(base, move)) continue;
+              const puzzle = generatedPuzzle(
+                `gd${out.length + 1}`,
+                'Discovered Check',
+                spec.tactic,
+                'Move the front piece to reveal check from the piece behind it.',
+                base,
+                move,
+                words[out.length % words.length]
+              );
+              const key = puzzleGeneratorKey(puzzle);
+              if (seen.has(key)) continue;
+              seen.add(key); out.push(puzzle); specCount++;
+              if (out.length >= limit) return out;
+              if (specCount >= perSpec) break specLoop;
+              break;
+            }
+        }
+      }
+    }
+  }
+  }
+  return out;
+}
+
 function buildGeneratedChessPuzzles() {
   const allSquares = puzzleAllSquares();
   const edgeSquares = allSquares.filter(([r, c]) => r === 0 || r === 7 || c === 0 || c === 7);
   return [
     ...buildGeneratedMatePuzzles(allSquares, edgeSquares),
+    ...buildGeneratedMateTwoPuzzles(allSquares, edgeSquares),
     ...buildGeneratedForkPuzzles(allSquares),
     ...buildGeneratedPinPuzzles(allSquares),
+    ...buildGeneratedSkewerPuzzles(allSquares),
   ];
 }
 
+function puzzleFamily(puzzle) {
+  if (puzzle.type === 'Checkmate in 1') return 'Mate in 1';
+  if (puzzle.type === 'Checkmate in 2') return 'Mate in 2';
+  if (puzzle.type === 'Discovered Check') return 'Discovered Check';
+  return puzzle.type;
+}
+
+function puzzleOpeningPiece(puzzle) {
+  const B = puzzle.board || makePuzzleBoard(puzzle.fen);
+  const move = puzzle.solution[0];
+  return B?.[move.from[0]]?.[move.from[1]]?.type || '?';
+}
+
+function balancePuzzleBank(puzzles) {
+  const quotas = {
+    'Checkmate in 1': 55,
+    'Checkmate in 2': 95,
+    Fork: 95,
+    Pin: 85,
+    Skewer: 75,
+  };
+  const groups = {};
+  const curated = puzzles.filter(puzzle => puzzle.source === 'curated');
+  const generated = shufflePuzzleDeckRaw(puzzles.filter(puzzle => puzzle.source !== 'curated'));
+  for (const puzzle of curated) {
+    groups[puzzle.type] = groups[puzzle.type] || [];
+    groups[puzzle.type].push(puzzle);
+  }
+  for (const puzzle of generated) {
+    const quota = quotas[puzzle.type] || 40;
+    groups[puzzle.type] = groups[puzzle.type] || [];
+    if (groups[puzzle.type].length < quota) groups[puzzle.type].push(puzzle);
+  }
+  const types = Object.keys(groups);
+  const deck = [];
+  while (Object.values(groups).some(group => group.length)) {
+    const last = deck[deck.length - 1];
+    let placedThisRound = false;
+    for (const type of shufflePuzzleDeckRaw(types)) {
+      const group = groups[type];
+      if (!group?.length) continue;
+      const next = group[0];
+      if (last && (puzzleFamily(next) === puzzleFamily(last) || next.tactic === last.tactic || puzzleOpeningPiece(next) === puzzleOpeningPiece(last))) {
+        const swapIdx = group.findIndex(candidate =>
+          puzzleFamily(candidate) !== puzzleFamily(last) &&
+          candidate.tactic !== last.tactic &&
+          puzzleOpeningPiece(candidate) !== puzzleOpeningPiece(last)
+        );
+        if (swapIdx > 0) [group[0], group[swapIdx]] = [group[swapIdx], group[0]];
+        else if (Object.values(groups).some(other => other.length && other !== group)) continue;
+      }
+      deck.push(group.shift());
+      placedThisRound = true;
+    }
+    if (!placedThisRound) {
+      const fallback = Object.entries(groups).filter(([, group]) => group.length).sort((a, b) => b[1].length - a[1].length)[0];
+      if (fallback) deck.push(fallback[1].shift());
+    }
+  }
+  return deck;
+}
+
+let PLAYABLE_CHESS_PUZZLES_CACHE = null;
+
 function getPlayableChessPuzzles() {
+  if (PLAYABLE_CHESS_PUZZLES_CACHE) return PLAYABLE_CHESS_PUZZLES_CACHE;
   const seen = new Set();
-  const playable = [...buildGeneratedChessPuzzles(), ...CHESS_PUZZLES]
+  const curated = CURATED_CHESS_PUZZLES
     .filter(isPuzzlePlayable)
+    .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
+  const legacy = CHESS_PUZZLES
+    .map(puzzle => ({ ...puzzle, exact: true, source: 'curated' }))
+    .filter(isPuzzlePlayable)
+    .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
+  const playable = [...curated, ...legacy]
     .filter(puzzle => {
       const key = puzzleGeneratorKey(puzzle);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  return playable.length ? playable : CHESS_PUZZLES;
+  PLAYABLE_CHESS_PUZZLES_CACHE = playable.length ? balancePuzzleBank(playable) : CHESS_PUZZLES;
+  return PLAYABLE_CHESS_PUZZLES_CACHE;
 }
 
-function shufflePuzzleDeck(puzzles) {
+function shufflePuzzleDeckRaw(puzzles) {
   const deck = [...puzzles];
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -7491,19 +8049,28 @@ function shufflePuzzleDeck(puzzles) {
   return deck;
 }
 
-function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function shufflePuzzleDeck(puzzles) {
+  return balancePuzzleBank(puzzles);
+}
+
+function shufflePuzzleChoices(choices) {
+  return shufflePuzzleDeckRaw(choices);
+}
+
+function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = '#f59e0b'; // amber for puzzles
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   const [userBoard, setUserBoard] = useState(null);
   const [selected, setSelected] = useState(null);
   const [legalDests, setLegalDests] = useState([]);
-  const [status, setStatus] = useState('idle'); // idle | wrong | revealed | quiz | quizRight | quizWrong | done
+  const [status, setStatus] = useState('idle'); // idle | wrong | revealed | solved | quiz | quizRight | quizWrong
   const [msg, setMsg] = useState('');
   const [wrongGuesses, setWrongGuesses] = useState(0);
   const MAX_GUESSES = 3;
   const [moveStep, setMoveStep] = useState(0);
   const [quizChoices, setQuizChoices] = useState([]); // shuffled sentences
   const [quizPicked, setQuizPicked] = useState(null); // index picked
+  const [showSolvedPopup, setShowSolvedPopup] = useState(false);
   const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth, 420) - 32 - 64) / 8));
 
   const [shuffledPuzzles, setShuffledPuzzles] = useState(() => shufflePuzzleDeck(getPlayableChessPuzzles()));
@@ -7514,9 +8081,9 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   useEffect(() => {
     setUserBoard((puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => [...r]));
     setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
-    setMoveStep(0); setQuizPicked(null); setWrongGuesses(0);
+    setMoveStep(0); setQuizPicked(null); setWrongGuesses(0); setShowSolvedPopup(false);
     // Shuffle the sentences, remembering which is correct
-    const shuffled = shufflePuzzleDeck(puzzle.sentences);
+    const shuffled = shufflePuzzleChoices(puzzle.sentences);
     setQuizChoices(shuffled);
   }, [puzzleIdx, puzzle.id]);
 
@@ -7529,22 +8096,28 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   };
 
   const launchQuiz = () => {
+    setShowSolvedPopup(false);
     setStatus('quiz');
     setMsg('');
   };
 
+  const showPuzzleSolved = () => {
+    setSelected(null);
+    setLegalDests([]);
+    setStatus('solved');
+    setShowSolvedPopup(true);
+  };
+
   const handleQuizPick = (idx) => {
     if (quizPicked !== null) return;
-    setQuizPicked(idx);
-    if (quizChoices[idx].correct) {
-      setStatus('quizRight');
-      onScore(30);
-      onCorrect(puzzle.word);
-    } else {
-      setStatus('quizWrong');
-      onScore(10); // partial credit for solving the chess part
-    }
-  };
+	    setQuizPicked(idx);
+	    if (quizChoices[idx].correct) {
+	      setStatus('quizRight');
+	      onCorrect(puzzle.word);
+	    } else {
+	      setStatus('quizWrong');
+	    }
+	  };
 
   const handleSquare = (r, c) => {
     if (status !== 'idle' && status !== 'wrong') return;
@@ -7557,22 +8130,22 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         const attemptedMove = { from: selected, to: [r, c] };
         const isCorrect = isPuzzleMoveCorrect(puzzle, userBoard, attemptedMove, moveStep);
 
-        if (isCorrect) {
-          const nb = userBoard.map(row => [...row]);
-          nb[r][c] = nb[selected[0]][selected[1]];
-          if (nb[r][c]?.type === 'p' && (r === 0 || r === 7)) nb[r][c] = { ...nb[r][c], type: 'q' };
-          nb[selected[0]][selected[1]] = null;
+          if (isCorrect) {
+            const nb = userBoard.map(row => [...row]);
+            nb[r][c] = nb[selected[0]][selected[1]];
+            if (nb[r][c]?.type === 'p' && (r === 0 || r === 7)) nb[r][c] = { ...nb[r][c], type: 'q' };
+            nb[selected[0]][selected[1]] = null;
           setUserBoard(nb);
           setSelected(null); setLegalDests([]);
 
-          if (moveStep + 1 >= puzzle.solution.length) {
-            // Chess solved — now launch the vocab quiz
-            setTimeout(launchQuiz, 400);
-          } else {
-            setMoveStep(s => s + 1);
-            setTimeout(() => {
-              const aiSol = puzzle.solution[moveStep + 1];
-              if (aiSol) {
+            if (moveStep + 1 >= puzzle.solution.length) {
+              // Chess solved — celebrate first, then let the player start the vocab quiz.
+              setTimeout(showPuzzleSolved, 250);
+            } else {
+              setMoveStep(s => s + 1);
+              setTimeout(() => {
+                const aiSol = puzzle.solution[moveStep + 1];
+                if (aiSol) {
                 const nb2 = nb.map(row => [...row]);
                 nb2[aiSol.to[0]][aiSol.to[1]] = nb2[aiSol.from[0]][aiSol.from[1]];
                 nb2[aiSol.from[0]][aiSol.from[1]] = null;
@@ -7584,12 +8157,16 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           const newWrong = wrongGuesses + 1;
           setWrongGuesses(newWrong);
           setSelected(null); setLegalDests([]);
-          if (newWrong >= MAX_GUESSES) {
-            // Show the correct move
-            const sol = puzzle.solution[moveStep];
-            setMsg(`One correct move is ${puzzleMoveLabel(sol)}.`);
-            setStatus('revealed');
-          } else {
+	          if (newWrong >= MAX_GUESSES) {
+	            // Show the correct move
+	            const sol = puzzle.solution[moveStep];
+	            const answerLabel = puzzleUsesExactSolution(puzzle) ? 'Best move' : 'One correct move';
+	            const explain = puzzle.explanation ? ` ${puzzle.explanation}` : '';
+	            setMsg(puzzle.solution.length > 1
+	              ? `Correct line: ${puzzleSolutionLineLabel(puzzle, moveStep)}.${explain}`
+	              : `${answerLabel} is ${puzzleMoveLabel(sol)}.${explain}`);
+	            setStatus('revealed');
+	          } else {
             setStatus('wrong');
             setMsg(`Not quite — ${MAX_GUESSES - newWrong} guess${MAX_GUESSES - newWrong === 1 ? '' : 'es'} remaining.`);
             setTimeout(() => { setStatus('idle'); setMsg(''); }, 1800);
@@ -7630,9 +8207,14 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:1,fontWeight:700}}>{puzzle.type}</span>
                 <span style={{fontSize:11,color:theme.textMuted,fontStyle:'italic'}}>{puzzle.tactic}</span>
-              </div>
-              <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>{puzzle.desc}</div>
-              {/* Guess counter */}
+	              </div>
+	              <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>{puzzle.desc}</div>
+	              {puzzle.solution.length > 1 && moveStep > 0 && status !== 'solved' && (
+	                <div style={{marginTop:8,fontSize:12,color:C,fontWeight:700,lineHeight:1.4}}>
+	                  Black replied. Find the finishing move.
+	                </div>
+	              )}
+	              {/* Guess counter */}
               {wrongGuesses > 0 && status !== 'revealed' && (
                 <div style={{marginTop:6,display:'flex',gap:4}}>
                   {Array.from({length:MAX_GUESSES}).map((_,i) => (
@@ -7678,8 +8260,8 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
             <button onClick={() => {
               setUserBoard((puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => [...r]));
               setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
-              setMoveStep(0); setQuizPicked(null); setWrongGuesses(0);
-              setQuizChoices(shufflePuzzleDeck(puzzle.sentences));
+              setMoveStep(0); setQuizPicked(null); setWrongGuesses(0); setShowSolvedPopup(false);
+              setQuizChoices(shufflePuzzleChoices(puzzle.sentences));
             }} style={{
               padding:'8px 20px', borderRadius:8, background:'none',
               border:`1px solid ${theme.border}`, color:theme.textMuted,
@@ -7692,11 +8274,8 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
         {(status === 'quiz' || status === 'quizRight' || status === 'quizWrong') && (
           <div style={{width:'100%',maxWidth:`${cellSize*8+4}px`,display:'flex',flexDirection:'column',gap:12,animation:'fadeIn 0.3s ease'}}>
 
-            {/* Header */}
-            <div style={{background:theme.surface,borderRadius:10,padding:'14px',border:`1px solid ${C}44`}}>
-              <div style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:1,marginBottom:6}}>
-                ✓ {puzzle.tactic} — NOW THE VOCAB CHALLENGE
-              </div>
+	            {/* Header */}
+	            <div style={{background:theme.surface,borderRadius:10,padding:'16px 14px',border:`1px solid ${C}44`}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontFamily:theme.fontMono,fontSize:16,fontWeight:700,color:'#fff',letterSpacing:2}}>{puzzle.word.charAt(0) + puzzle.word.slice(1).toLowerCase()}</span>
                 {wordEntry && <span style={{fontSize:11,color:C+'aa',fontStyle:'italic',background:C+'22',borderRadius:4,padding:'1px 7px'}}>
@@ -7741,7 +8320,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               <div style={{animation:'fadeIn 0.2s ease'}}>
                 {status === 'quizRight' ? (
                   <div style={{background:theme.success+'18',borderRadius:10,padding:'12px 14px',border:`1px solid ${theme.success}44`,marginBottom:8}}>
-                    <div style={{fontSize:13,fontWeight:700,color:theme.success,marginBottom:4}}>Correct! +30 pts</div>
+	                    <div style={{fontSize:13,fontWeight:700,color:theme.success,marginBottom:4}}>Correct!</div>
                     {wordEntry?.def && (
                       <div style={{fontSize:12,color:theme.textMuted,lineHeight:1.45}}>
                         <span style={{color:theme.success,fontWeight:700}}>Definition:</span> {wordEntry.def}
@@ -7751,7 +8330,7 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                 ) : (
                   <div style={{background:theme.danger+'18',borderRadius:10,padding:'12px 14px',border:`1px solid ${theme.danger}44`,marginBottom:8}}>
                     <div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.5}}>
-                      Not quite — the correct sentence is highlighted above. +10 pts for solving the chess puzzle.
+	                      Not quite — the correct sentence is highlighted above.
                     </div>
                     {wordEntry?.def && (
                       <div style={{marginTop:6,fontSize:12,color:theme.textMuted,lineHeight:1.45}}>
@@ -7771,10 +8350,58 @@ function ChessPuzzles({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           </div>
         )}
 
-      </div>
-    </div>
-  );
-}
+	      </div>
+	      {showSolvedPopup && status === 'solved' && ReactDOM.createPortal(
+	        <div style={{
+	          position:'fixed',inset:0,zIndex:9998,
+	          display:'flex',alignItems:'center',justifyContent:'center',
+	          background:'rgba(0,0,0,0.78)',padding:20,animation:'fadeIn 0.2s ease'
+	        }}>
+	          <div style={{
+	            width:'100%',maxWidth:360,background:theme.surface,borderRadius:16,
+	            border:`1.5px solid ${C}cc`,boxShadow:`0 0 32px ${C}44, 0 10px 40px rgba(0,0,0,0.55)`,
+	            padding:'24px 22px',textAlign:'center'
+	          }}>
+	            <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:C,letterSpacing:2,marginBottom:16,lineHeight:1.5}}>
+	              PUZZLE SOLVED
+	            </div>
+	            <div style={{
+	              fontFamily:"'Press Start 2P', monospace",fontSize:18,fontWeight:400,color:'#fff',
+	              letterSpacing:1.4,lineHeight:1.55,marginBottom:16
+	            }}>
+	              NICE TACTIC
+	            </div>
+	            <div style={{fontSize:14,color:theme.text,lineHeight:1.55,marginBottom:18}}>
+	              <div>You found the</div>
+	              <div style={{
+	                display:'inline-block',margin:'8px 0 6px',padding:'5px 9px',
+	                borderRadius:6,background:C+'1f',border:`1px solid ${C}55`,
+	                color:C,fontFamily:"'Press Start 2P', monospace",fontSize:9,fontWeight:400,
+	                letterSpacing:1.2,lineHeight:1.6,textTransform:'uppercase'
+	              }}>
+	                {puzzle.tactic}
+	              </div>
+	              {puzzle.explanation && (
+	                <div style={{fontSize:12,color:theme.textMuted,lineHeight:1.45,margin:'4px 0 10px'}}>
+	                  {puzzle.explanation}
+	                </div>
+	              )}
+	              <div>Now answer the vocab challenge to finish it.</div>
+	            </div>
+	            <button onClick={launchQuiz} style={{
+	              width:'100%',padding:'14px 16px',borderRadius:10,border:'none',
+	              background:C,color:'#0a0a14',fontFamily:"'Press Start 2P', monospace",fontSize:9,
+	              fontWeight:400,letterSpacing:1,cursor:'pointer',boxShadow:`0 3px 0 #a06800`,lineHeight:1.6
+	            }}>
+	              START VOCAB CHALLENGE
+	            </button>
+	          </div>
+	        </div>,
+	        document.body
+	      )}
+	    </div>
+	  );
+	}
 
 function getOpeningName(history) {
   if (!history || history.length < 2) return null;
@@ -7822,7 +8449,7 @@ function getOpeningName(history) {
   return best ? best.name : null;
 }
 
-function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#3d8ef5"; // game color
   const { sfReady, sfError, getBestMove, getBestMoveForHint } = useStockfishWorker();
   const [difficulty, setDifficulty] = useState(null); // null = not chosen yet
@@ -7839,7 +8466,6 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
   const [lastAiMove, setLastAiMove] = useState(null);
   const [moveHistory, setMoveHistory] = useState([]);
   const [shownTips, setShownTips] = useState(new Set());
-  const [score, setScore] = useState(0);
   const [msg, setMsg] = useState('');
   const [coachMsg, setCoachMsg] = useState('');
   const [lastWord, setLastWord] = useState(null); // { word, def, correct }
@@ -8060,10 +8686,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
                   setCaptured(prev=>({...prev,w:[...prev.w,capPiece.type]}));
                   onCorrect(wordEntry.word);
                   setLastWord({ word: wordEntry.word, def: wordEntry.def, correct: true });
-                  const pts = PIECE_VALUES[capPiece.type]||10;
-                  setScore(s=>s+pts);
-                  onScore(pts);
-                  showMsg(`✓ ${pieceName} claimed!`);
+	                  showMsg(`✓ ${pieceName} claimed!`);
                   setMoveHistory(h => [...h, {from:selected, to:[r,c]}]);
                   // #5 Streak tracking
                   setCorrectStreak(s => {
@@ -8177,7 +8800,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
     const g = createGame();
     setGame(g); setSelected(null); setLegalDests([]); setLastMove(null);
     setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
-    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
+	    setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null); setLastAiMove(null); setMoveHistory([]); setShownTips(new Set()); setMsg(''); setCoachMsg(''); setBlunderWarn(null); setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
     setCorrectStreak(0); setStreakFlash(false); setOpeningName(null); setWordsThisGame([]); setShowWordReview(false); setShowWinPopup(false); setShowLossPopup(false); setShowDrawPopup(false); setThreatArrows([]);
   };
 
@@ -8219,17 +8842,17 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
           <div style={{width:60}}/>
         </div>
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',gap:12}}>
-          <div style={{fontFamily:theme.fontMono,fontSize:13,color:'#fff',letterSpacing:2,marginBottom:8}}>SELECT MODE</div>
+          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:'#fff',letterSpacing:2,marginBottom:8,lineHeight:1.6}}>SELECT MODE</div>
           {/* Puzzles option at top */}
           <button onClick={() => setDifficulty('puzzles')} style={{
             width:'100%', maxWidth:320, padding:'18px 20px', borderRadius:12,
             background:'#f59e0b18', border:`2px solid #f59e0b88`,
             cursor:'pointer', textAlign:'left', transition:'all 0.15s',
           }}>
-            <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:'#f59e0b',letterSpacing:2,marginBottom:4}}>PUZZLES</div>
+            <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:'#f59e0b',letterSpacing:2,marginBottom:8,lineHeight:1.6}}>PUZZLES</div>
             <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>Tactics training — fork, pin, checkmate</div>
           </button>
-          <div style={{fontFamily:theme.fontMono,fontSize:10,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'4px 0'}}>── VS OPPONENT ──</div>
+          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:7,fontWeight:400,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'6px 0',lineHeight:1.6}}>-- VS OPPONENT --</div>
           {[
             {id:'easy',   label:'EASY',   sub:'For learning — forgiving opponent', color:'#00cc66'},
             {id:'medium', label:'MEDIUM', sub:'Tries to punish mistakes',          color:C},
@@ -8240,7 +8863,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
               background:d.color+'18', border:`2px solid ${d.color}66`,
               cursor:'pointer', textAlign:'left', transition:'all 0.15s',
             }}>
-              <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:d.color,letterSpacing:2,marginBottom:4}}>{d.label}</div>
+              <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:d.color,letterSpacing:2,marginBottom:8,lineHeight:1.6}}>{d.label}</div>
               <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>{d.sub}</div>
             </button>
           ))}
@@ -8251,7 +8874,7 @@ function VocabChess({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
 
   // Puzzles mode — render inline within VocabChess flow
   if (difficulty === 'puzzles') {
-    return <ChessPuzzles onBack={() => setDifficulty(null)} onScore={onScore} onCorrect={onCorrect} wordBank={wordBank} />;
+    return <ChessPuzzles onBack={() => setDifficulty(null)} onCorrect={onCorrect} wordBank={wordBank} />;
   }
 
   return (
@@ -9135,7 +9758,7 @@ function useStockfishWorker() {
 }
 
 // ─── VOCAB CHESS STOCKFISH ────────────────────────────────────────────────────
-function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK }) {
+function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#a78bfa"; // purple to distinguish from classic blue
   const { sfReady, sfError, getBestMove, getBestMoveForHint } = useStockfishWorker();
 
@@ -9153,7 +9776,6 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
   const [lastAiMove, setLastAiMove] = useState(null);
   const [moveHistory, setMoveHistory] = useState([]);
   const [shownTips, setShownTips] = useState(new Set());
-  const [score, setScore] = useState(0);
   const [msg, setMsg] = useState('');
   const [coachMsg, setCoachMsg] = useState('');
   const [lastWord, setLastWord] = useState(null);
@@ -9194,7 +9816,7 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
     setCaptured({w:[],b:[]}); setTurn('w'); setGameOver(null);
     setQuiz(null); setWinBackQuiz(null); setReversing(null); setAiFlash(null);
     setLastAiMove(null); setMoveHistory([]); setShownTips(new Set());
-    setScore(0); setMsg(''); setCoachMsg(''); setBlunderWarn(null);
+	    setMsg(''); setCoachMsg(''); setBlunderWarn(null);
     setHint(null); setHintsUsed(0); setBookSeed(Math.random()); resetAiSeed();
     setCorrectStreak(0); setStreakFlash(false); setOpeningName(null);
     setWordsThisGame([]); setShowWordReview(false); setThreatArrows([]);
@@ -9320,17 +9942,17 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
           </div>
           {sfError && <div style={{fontSize:12,color:theme.danger,textAlign:'center',maxWidth:300}}>{sfError}</div>}
 
-          <div style={{fontFamily:theme.fontMono,fontSize:13,color:'#fff',letterSpacing:2,marginBottom:4}}>SELECT MODE</div>
+          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:'#fff',letterSpacing:2,marginBottom:4,lineHeight:1.6}}>SELECT MODE</div>
 
           <button onClick={() => setDifficulty('puzzles')} style={{
             width:'100%',maxWidth:320,padding:'18px 20px',borderRadius:12,
             background:'#f59e0b18',border:`2px solid #f59e0b88`,cursor:'pointer',textAlign:'left',
           }}>
-            <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:'#f59e0b',letterSpacing:2,marginBottom:4}}>PUZZLES</div>
+            <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:'#f59e0b',letterSpacing:2,marginBottom:8,lineHeight:1.6}}>PUZZLES</div>
             <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>Stockfish-validated tactics + vocab</div>
           </button>
 
-          <div style={{fontFamily:theme.fontMono,fontSize:10,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'4px 0'}}>── VS OPPONENT ──</div>
+          <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:7,fontWeight:400,color:'rgba(255,255,255,0.5)',letterSpacing:2,margin:'6px 0',lineHeight:1.6}}>-- VS OPPONENT --</div>
 
           {[
             {id:'sf-easy',   label:'EASY',   sub:'~800 Elo  (UCI_Elo limited)',  color:'#00cc66', disabled:!sfReady},
@@ -9342,7 +9964,7 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
               background:d.color+'18',border:`2px solid ${d.disabled?theme.border:d.color+'66'}`,
               cursor:d.disabled?'not-allowed':'pointer',textAlign:'left',opacity:d.disabled?0.5:1,
             }}>
-              <div style={{fontFamily:theme.fontMono,fontSize:13,fontWeight:700,color:d.disabled?theme.textMuted:d.color,letterSpacing:2,marginBottom:4}}>{d.label}</div>
+              <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:d.disabled?theme.textMuted:d.color,letterSpacing:2,marginBottom:8,lineHeight:1.6}}>{d.label}</div>
               <div style={{fontSize:13,color:'rgba(255,255,255,0.8)'}}>{d.disabled ? 'Waiting for engine…' : d.sub}</div>
             </button>
           ))}
@@ -9352,7 +9974,7 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
   }
 
   if (difficulty === 'puzzles') {
-    return <ChessPuzzles onBack={() => setDifficulty(null)} onScore={onScore} onCorrect={onCorrect} wordBank={wordBank} />;
+    return <ChessPuzzles onBack={() => setDifficulty(null)} onCorrect={onCorrect} wordBank={wordBank} />;
   }
 
   // ── Main game board (identical UI to VocabChess) ───────────────────────────
@@ -9395,9 +10017,7 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
                   setCaptured(prev=>({...prev,w:[...prev.w,capPiece.type]}));
                   onCorrect(wordEntry.word);
                   setLastWord({word:wordEntry.word,def:wordEntry.def,correct:true});
-                  const pts = PIECE_VALUES[capPiece.type]||10;
-                  setScore(s=>s+pts); onScore(pts);
-                  showMsg(`✓ ${PIECE_NAMES[capPiece.type]} claimed!`);
+	                  showMsg(`✓ ${PIECE_NAMES[capPiece.type]} claimed!`);
                   setMoveHistory(h => {
                     const nh=[...h,{from:selected,to:[r,c]}];
                     const oName=getOpeningName(nh);
@@ -9526,17 +10146,16 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
         </div>
       )}
 
-      {/* Score */}
-      {!gameOver && (
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 20px',borderBottom:`1px solid ${theme.border}22`}}>
-          <div style={{fontFamily:theme.fontMono,fontSize:13,color:theme.gold}}>⚡ {score} pts</div>
-          <div style={{display:'flex',gap:12,alignItems:'center'}}>
-            <div style={{fontSize:11,color:theme.textMuted}}>
-              ♙{captured.w.filter(p=>p==='p').length} ♘{captured.w.filter(p=>p==='n').length} ♗{captured.w.filter(p=>p==='b').length} ♖{captured.w.filter(p=>p==='r').length} ♕{captured.w.filter(p=>p==='q').length}
-            </div>
-          </div>
-        </div>
-      )}
+	      {/* Captured pieces */}
+	      {!gameOver && (
+	        <div style={{display:'flex',justifyContent:'center',alignItems:'center',padding:'8px 20px',borderBottom:`1px solid ${theme.border}22`}}>
+	          <div style={{display:'flex',gap:12,alignItems:'center'}}>
+	            <div style={{fontSize:11,color:theme.textMuted}}>
+	              Captured: ♙{captured.w.filter(p=>p==='p').length} ♘{captured.w.filter(p=>p==='n').length} ♗{captured.w.filter(p=>p==='b').length} ♖{captured.w.filter(p=>p==='r').length} ♕{captured.w.filter(p=>p==='q').length}
+	            </div>
+	          </div>
+	        </div>
+	      )}
 
       {/* Quiz overlay */}
       {quiz && ReactDOM.createPortal(
@@ -9655,7 +10274,6 @@ function VocabChessStockfish({ onBack, onScore, onCorrect, wordBank = WORD_BANK 
 function App() {
   const [screen, setScreen] = useState("home");
   const [onboarded, setOnboarded] = React.useState(() => !!localStorage.getItem('satarcade_onboarded'));
-  const [scores, setScores] = useState({ hangman: 0, crossword: 0, detective: 0, oddoneout: 0, eartrainer: 0, chess: 0, total: 0 });
   const [profile, setProfile] = useState(() => localStorage.getItem('satarcade_profile') || 'sat');
   const activeWords = WORD_BANK.filter(w => profile === 'sat' ? w.tier <= 3 : true);
 
@@ -9737,10 +10355,6 @@ function App() {
     });
   };
 
-  const addScore = (game, pts) => {
-    setScores(s => ({ ...s, [game]: Math.max(s[game], pts), total: s.total + pts }));
-  };
-
   if (!onboarded) return <OnboardingScreen onDone={(chosenProfile) => {
     localStorage.setItem('satarcade_onboarded', '1');
     localStorage.setItem('satarcade_profile', chosenProfile || 'sat');
@@ -9757,17 +10371,17 @@ function App() {
           <div style={{ position: "absolute", bottom: "15%", right: "5%", width: 350, height: 350, borderRadius: "50%", background: `radial-gradient(circle, ${theme.gold}10 0%, transparent 70%)`, filter: "blur(50px)" }} />
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
-          {screen === "home" && <HomeScreen onSelect={setScreen} scores={scores} mastered={mastered} wordStats={wordStats} activeWords={activeWords} profile={profile} setProfile={setProfile} />}
+          {screen === "home" && <HomeScreen onSelect={setScreen} mastered={mastered} wordStats={wordStats} activeWords={activeWords} profile={profile} setProfile={setProfile} />}
           {screen === "stats" && <StatsScreen onBack={() => setScreen("home")} mastered={mastered} wordStats={wordStats} activeWords={activeWords} profile={profile} onTestFinalBoss={(boss) => setFinalBoss(boss)} onReset={() => {
             localStorage.clear();
             window.location.reload();
           }} />}
-          {screen === "hangman" && <HangmanGame onBack={() => setScreen("home")} onScore={pts => addScore("hangman", pts)} onCorrect={w => markCorrect(w, "hangman")} wordBank={activeWords} />}
-          {screen === "crossword" && <FreeformCrossword onBack={() => setScreen("home")} onScore={pts => addScore("crossword", pts)} onCorrect={w => markCorrect(w, "crossword")} wordBank={activeWords} />}
-          {screen === "detective" && <WordDetective onBack={() => setScreen("home")} onScore={pts => addScore("detective", pts)} onCorrect={w => markCorrect(w, "detective")} wordBank={activeWords} />}
-          {screen === "oddoneout" && <OddOneOut onBack={() => setScreen("home")} onScore={pts => addScore("oddoneout", pts)} onCorrect={w => markCorrect(w, "oddoneout")} wordBank={activeWords} />}
-          {screen === "eartrainer" && <EarTrainer onBack={() => setScreen("home")} onScore={pts => addScore("eartrainer", pts)} onCorrect={w => markCorrect(w, "eartrainer")} wordBank={activeWords} />}
-          {screen === "chess" && <VocabChess onBack={() => setScreen("home")} onScore={pts => addScore("chess", pts)} onCorrect={w => markCorrect(w, "chess")} wordBank={activeWords} />}
+          {screen === "hangman" && <HangmanGame onBack={() => setScreen("home")} onCorrect={w => markCorrect(w, "hangman")} wordBank={activeWords} />}
+          {screen === "crossword" && <FreeformCrossword onBack={() => setScreen("home")} onCorrect={w => markCorrect(w, "crossword")} wordBank={activeWords} />}
+          {screen === "detective" && <WordDetective onBack={() => setScreen("home")} onCorrect={w => markCorrect(w, "detective")} wordBank={activeWords} />}
+          {screen === "oddoneout" && <OddOneOut onBack={() => setScreen("home")} onCorrect={w => markCorrect(w, "oddoneout")} wordBank={activeWords} />}
+          {screen === "eartrainer" && <EarTrainer onBack={() => setScreen("home")} onCorrect={w => markCorrect(w, "eartrainer")} wordBank={activeWords} />}
+          {screen === "chess" && <VocabChess onBack={() => setScreen("home")} onCorrect={w => markCorrect(w, "chess")} wordBank={activeWords} />}
         </div>
       </div>
       {/* Final Boss modal */}

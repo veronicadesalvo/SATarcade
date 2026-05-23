@@ -58,9 +58,10 @@
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/hangman.png" as="image"/>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/crossword.png" as="image"/>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png" as="image"/>
-  <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png" as="image"/>
-  <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png" as="image"/>
-  <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ship.png" as="image"/>
+<link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png" as="image"/>
+<link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png" as="image"/>
+<link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ship.png" as="image"/>
+<link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/bolt.png" as="image"/>
   <link rel="preconnect" href="https://raw.githubusercontent.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -2250,7 +2251,7 @@ const globalStyle = `
   }
   @keyframes homeShipBob {
     0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+    50% { transform: translateY(-1px); }
   }
   @keyframes homeShipLaser {
     0% { opacity: 0; transform: translateX(-50%) translateY(0); }
@@ -2291,7 +2292,7 @@ const globalStyle = `
     display: block;
     image-rendering: pixelated;
     filter: drop-shadow(0 0 3px #00e5ffcc) drop-shadow(0 0 7px #7c5cfc88);
-    animation: homeShipBob 0.9s steps(2, end) infinite;
+    animation: homeShipBob 1.25s steps(2, end) infinite;
   }
   .home-ship-laser {
     position: absolute;
@@ -2762,6 +2763,27 @@ const HOME_GAME_ICON_SOURCES = {
   eartrainer: 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png',
   chess: 'https://lichess1.org/assets/piece/pixel/wN.svg',
 };
+const PIXEL_BOLT_SRC = 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/bolt.png';
+
+function PixelBolt({ size = 18, style = {} }) {
+  return (
+    <img
+      src={PIXEL_BOLT_SRC}
+      alt=""
+      aria-hidden="true"
+      style={{
+        width: size,
+        height: size,
+        objectFit: 'contain',
+        imageRendering: 'pixelated',
+        filter: 'drop-shadow(0 0 4px #f700ff99)',
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        ...style,
+      }}
+    />
+  );
+}
 
 function GameHeaderTitle({ game, title, color, detail, fontSize = 15 }) {
   const src = HOME_GAME_ICON_SOURCES[game];
@@ -2795,9 +2817,13 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
   const pct = Math.round((masteredCount / total) * 100);
   const [showMastered, setShowMastered] = useState(false);
   const [loadedIcons, setLoadedIcons] = useState({});
-  const [shipLaserId, setShipLaserId] = useState(0);
+  const [shipLasers, setShipLasers] = useState([]);
   const ICON_KEYS = ['hangman','crossword','search','oddoneout','ear','chess'];
   const allIconsLoaded = ICON_KEYS.every(k => loadedIcons[k]);
+  const fireShipLaser = () => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setShipLasers(lasers => [...lasers, id]);
+  };
   const toggleProfile = () => {
     const next = profile === 'sat' ? 'vocab' : 'sat';
     setProfile(next);
@@ -3006,6 +3032,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
       ['search', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png'],
       ['oddoneout', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png'],
       ['ear', 'https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png'],
+      ['bolt', PIXEL_BOLT_SRC],
     ];
     sources.forEach(([key, src]) => {
       const img = new Image();
@@ -3093,7 +3120,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
             onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 28px #00e5ff55, inset 0 0 30px #00e5ff14`; e.currentTarget.style.border = `2px solid #00e5ff`; }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 0 18px #00e5ff33, inset 0 0 30px #00e5ff0a`; e.currentTarget.style.border = `2px solid #00e5ffbb`; }}
           >
-            <span style={{ fontSize: 24 }}>⚡</span>
+            <PixelBolt size={28} style={{ flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#00e5ff', fontFamily: theme.fontMono, letterSpacing: 0.5 }}>
                 {closeCount} word{closeCount > 1 ? 's' : ''} close to mastery
@@ -3167,9 +3194,15 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
           type="button"
           className="home-ship-track"
           aria-label="Shoot laser"
-          onClick={() => setShipLaserId(id => id + 1)}
+          onClick={fireShipLaser}
         >
-          {shipLaserId > 0 && <span key={shipLaserId} className="home-ship-laser" />}
+          {shipLasers.map(id => (
+            <span
+              key={id}
+              className="home-ship-laser"
+              onAnimationEnd={() => setShipLasers(lasers => lasers.filter(laserId => laserId !== id))}
+            />
+          ))}
           <img
             className="home-ship-sprite"
             src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ship.png"
@@ -7834,8 +7867,57 @@ function puzzleSentencesFor(word) {
   return lines.map((text, i) => ({ text, correct: i === 0 }));
 }
 
+function puzzleWordPos(pos) {
+  if (pos === 'v' || pos === 'verb') return 'verb';
+  if (pos === 'n' || pos === 'noun') return 'noun';
+  if (pos === 'adv' || pos === 'adverb') return 'adverb';
+  return 'adjective';
+}
+
+function puzzleDefinitionPhrase(entry) {
+  return (entry?.def || 'matching the position')
+    .replace(/\.$/, '')
+    .replace(/^to\s+/i, '')
+    .toLowerCase();
+}
+
+function buildPuzzleVocabChoices(entry, puzzle) {
+  if (!entry?.word) return puzzle.sentences || puzzleSentencesFor(puzzle.word);
+  const pos = puzzleWordPos(entry.pos);
+  const def = puzzleDefinitionPhrase(entry);
+  const correctByPos = {
+    adjective: `In the chess review, the coach used ___ to mean ${def}.`,
+    verb: `In the chess review, to ___ meant to ${def}.`,
+    noun: `In the chess review, ___ meant ${def}.`,
+    adverb: `In the chess review, White moved ___, meaning ${def}.`,
+  };
+  const wrongByPos = {
+    adjective: [
+      'White tried to ___ the rook with a knight check.',
+      'The queen gained a ___ after black moved the king.'
+    ],
+    verb: [
+      'The ___ rook gave check along the open file.',
+      'Black found a ___ on the back rank after the fork.'
+    ],
+    noun: [
+      'The bishop tried to ___ the pinned knight.',
+      'The ___ queen moved to the open diagonal.'
+    ],
+    adverb: [
+      'The ___ bishop pinned the knight to the king.',
+      'White tried to ___ the queen with a discovered attack.'
+    ],
+  };
+  return [
+    { text: correctByPos[pos] || correctByPos.adjective, correct: true },
+    { text: wrongByPos[pos][0], correct: false },
+    { text: wrongByPos[pos][1], correct: false },
+  ];
+}
+
 function generatedPuzzle(id, type, tactic, desc, B, solution, word) {
-  return { id, type, tactic, desc, fen: puzzleBoardToFen(B), solution: Array.isArray(solution) ? solution : [solution], word, sentences: puzzleSentencesFor(word) };
+  return { id, type, tactic, desc, fen: puzzleBoardToFen(B), solution: Array.isArray(solution) ? solution : [solution], word, source: 'generated', sentences: puzzleSentencesFor(word) };
 }
 
 function puzzleMoveFromUci(uci) {
@@ -8354,21 +8436,26 @@ function balancePuzzleBank(puzzles) {
     Pin: 85,
     Skewer: 75,
   };
-  const groups = {};
   const randomizedPuzzles = shufflePuzzleDeckRaw(puzzles);
-  const curated = randomizedPuzzles.filter(puzzle => puzzle.source === 'curated');
-  const generated = randomizedPuzzles.filter(puzzle => puzzle.source !== 'curated');
-  for (const puzzle of curated) {
-    groups[puzzle.type] = groups[puzzle.type] || [];
-    groups[puzzle.type].push(puzzle);
+  const primaryGroups = {};
+  const secondaryGroups = {};
+  for (const puzzle of randomizedPuzzles.filter(puzzle => puzzle.source === 'curated')) {
+    primaryGroups[puzzle.type] = primaryGroups[puzzle.type] || [];
+    primaryGroups[puzzle.type].push(puzzle);
   }
-  for (const puzzle of generated) {
+  for (const puzzle of randomizedPuzzles.filter(puzzle => puzzle.source !== 'curated')) {
     const quota = quotas[puzzle.type] || 40;
-    groups[puzzle.type] = groups[puzzle.type] || [];
-    if (groups[puzzle.type].length < quota) groups[puzzle.type].push(puzzle);
+    const primaryCount = primaryGroups[puzzle.type]?.length || 0;
+    const secondaryCount = secondaryGroups[puzzle.type]?.length || 0;
+    secondaryGroups[puzzle.type] = secondaryGroups[puzzle.type] || [];
+    if (primaryCount + secondaryCount < quota) secondaryGroups[puzzle.type].push(puzzle);
   }
-  for (const type of Object.keys(groups)) {
-    groups[type] = shufflePuzzleDeckRaw(groups[type]);
+  const groups = {};
+  for (const type of Array.from(new Set([...Object.keys(primaryGroups), ...Object.keys(secondaryGroups)]))) {
+    groups[type] = [
+      ...shufflePuzzleDeckRaw(primaryGroups[type] || []),
+      ...shufflePuzzleDeckRaw(secondaryGroups[type] || []),
+    ];
   }
   const types = Object.keys(groups);
   const deck = [];
@@ -8408,7 +8495,7 @@ function getPlayableChessPuzzles() {
     .filter(isPuzzlePlayable)
     .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
   const legacy = CHESS_PUZZLES
-    .map(puzzle => ({ ...puzzle, exact: true, source: 'curated' }))
+    .map(puzzle => ({ ...puzzle, exact: true, source: 'legacy' }))
     .filter(isPuzzlePlayable)
     .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
   const playable = [...curated, ...legacy]
@@ -8435,12 +8522,42 @@ function shufflePuzzleDeck(puzzles) {
   return balancePuzzleBank(shufflePuzzleDeckRaw(puzzles));
 }
 
+const CHESS_PUZZLE_RECENT_KEY = 'chess_puzzle_recent_ids';
+const CHESS_PUZZLE_RECENT_LIMIT = 12;
+
+function getRecentChessPuzzleIds() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(CHESS_PUZZLE_RECENT_KEY) || '[]');
+    return Array.isArray(ids) ? ids : [];
+  } catch(e) {
+    return [];
+  }
+}
+
+function rememberChessPuzzle(id) {
+  if (!id) return;
+  try {
+    const ids = getRecentChessPuzzleIds().filter(existing => existing !== id);
+    ids.unshift(id);
+    localStorage.setItem(CHESS_PUZZLE_RECENT_KEY, JSON.stringify(ids.slice(0, CHESS_PUZZLE_RECENT_LIMIT)));
+  } catch(e) {}
+}
+
+function buildPuzzleSessionDeck() {
+  const deck = shufflePuzzleDeck(getPlayableChessPuzzles());
+  const recent = new Set(getRecentChessPuzzleIds());
+  const fresh = deck.filter(puzzle => !recent.has(puzzle.id));
+  const delayed = deck.filter(puzzle => recent.has(puzzle.id));
+  return fresh.length >= Math.min(8, Math.ceil(deck.length * 0.35)) ? [...fresh, ...delayed] : deck;
+}
+
 function shufflePuzzleChoices(choices) {
   return shuffleWithBalancedCorrect(choices, choice => choice.correct, 'chess_puzzle_sentence');
 }
 
 function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = '#f59e0b'; // amber for puzzles
+  const PUZZLES_PER_VOCAB = 3;
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   const [userBoard, setUserBoard] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -8453,31 +8570,37 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const [quizChoices, setQuizChoices] = useState([]); // shuffled sentences
   const [quizPicked, setQuizPicked] = useState(null); // index picked
   const [showSolvedPopup, setShowSolvedPopup] = useState(false);
+  const [quizWord, setQuizWord] = useState(null);
+  const [puzzleCheckpointStreak, setPuzzleCheckpointStreak] = useState(0);
+  const [checkpointCount, setCheckpointCount] = useState(PUZZLES_PER_VOCAB);
   const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth, 420) - 32 - 64) / 8));
 
-  const [shuffledPuzzles, setShuffledPuzzles] = useState(() => shufflePuzzleDeck(getPlayableChessPuzzles()));
+  const [shuffledPuzzles, setShuffledPuzzles] = useState(() => buildPuzzleSessionDeck());
   const puzzle = shuffledPuzzles[puzzleIdx % shuffledPuzzles.length];
 
-  const wordEntry = wordBank.find(w => w.word === puzzle.word);
+  const wordEntry = quizWord || wordBank.find(w => w.word === puzzle.word) || wordBank[0];
 
   useEffect(() => {
+    rememberChessPuzzle(puzzle.id);
     setUserBoard((puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => [...r]));
     setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
     setMoveStep(0); setQuizPicked(null); setWrongGuesses(0); setShowSolvedPopup(false);
-    // Shuffle the sentences, remembering which is correct
-    const shuffled = shufflePuzzleChoices(puzzle.sentences);
-    setQuizChoices(shuffled);
+    setQuizWord(null);
+    setQuizChoices([]);
   }, [puzzleIdx, puzzle.id]);
 
   const goToNextPuzzle = () => {
     setShuffledPuzzles(deck => {
       if (puzzleIdx + 1 < deck.length) return deck;
-      return shufflePuzzleDeck(getPlayableChessPuzzles());
+      return buildPuzzleSessionDeck();
     });
     setPuzzleIdx(i => (i + 1 < shuffledPuzzles.length ? i + 1 : 0));
   };
 
   const launchQuiz = () => {
+    const nextWord = getNextWord('chess_puzzle_vocab_queue', wordBank) || wordEntry;
+    setQuizWord(nextWord);
+    setQuizChoices(shufflePuzzleChoices(buildPuzzleVocabChoices(nextWord, puzzle)));
     setShowSolvedPopup(false);
     setStatus('quiz');
     setMsg('');
@@ -8486,16 +8609,31 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const showPuzzleSolved = () => {
     setSelected(null);
     setLegalDests([]);
+    const nextStreak = puzzleCheckpointStreak + 1;
+    setPuzzleCheckpointStreak(nextStreak);
     setStatus('solved');
-    setShowSolvedPopup(true);
+    if (nextStreak >= PUZZLES_PER_VOCAB) {
+      setCheckpointCount(nextStreak);
+      setMsg('');
+      setShowSolvedPopup(true);
+    } else {
+      const remaining = PUZZLES_PER_VOCAB - nextStreak;
+      setShowSolvedPopup(false);
+      setMsg(`Nice tactic — ${remaining} more before vocab.`);
+      setTimeout(() => {
+        setMsg('');
+        goToNextPuzzle();
+      }, 900);
+    }
   };
 
   const handleQuizPick = (idx) => {
     if (quizPicked !== null) return;
 	    setQuizPicked(idx);
+	    setPuzzleCheckpointStreak(0);
 	    if (quizChoices[idx].correct) {
 	      setStatus('quizRight');
-	      onCorrect(puzzle.word);
+	      if (wordEntry?.word) onCorrect(wordEntry.word);
 	    } else {
 	      setStatus('quizWrong');
 	    }
@@ -8521,7 +8659,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
           setSelected(null); setLegalDests([]);
 
             if (moveStep + 1 >= puzzle.solution.length) {
-              // Chess solved — celebrate first, then let the player start the vocab quiz.
+              // Chess solved — keep tactics flowing until the checkpoint quiz.
               setTimeout(showPuzzleSolved, 250);
             } else {
               setMoveStep(s => s + 1);
@@ -8540,6 +8678,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
           setWrongGuesses(newWrong);
           setSelected(null); setLegalDests([]);
 	          if (newWrong >= MAX_GUESSES) {
+	            setPuzzleCheckpointStreak(0);
 	            // Show the correct move
 	            const sol = puzzle.solution[moveStep];
 	            const answerLabel = puzzleUsesExactSolution(puzzle) ? 'Best move' : 'One correct move';
@@ -8606,7 +8745,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
                 </div>
               )}
               {msg && <div style={{marginTop:8,fontSize:13,fontWeight:600,
-                color: status==='revealed' ? theme.textMuted : theme.danger}}>{msg}</div>}
+                color: status==='solved' ? theme.success : status==='revealed' ? theme.textMuted : theme.danger}}>{msg}</div>}
               {status === 'revealed' && (
                 <button onClick={goToNextPuzzle} style={{
                   marginTop:10, padding:'8px 20px', borderRadius:8,
@@ -8643,7 +8782,8 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
               setUserBoard((puzzle.board || makePuzzleBoard(puzzle.fen)).map(r => [...r]));
               setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
               setMoveStep(0); setQuizPicked(null); setWrongGuesses(0); setShowSolvedPopup(false);
-              setQuizChoices(shufflePuzzleChoices(puzzle.sentences));
+              setQuizWord(null);
+              setQuizChoices([]);
             }} style={{
               padding:'8px 20px', borderRadius:8, background:'none',
               border:`1px solid ${theme.border}`, color:theme.textMuted,
@@ -8659,13 +8799,13 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
 	            {/* Header */}
 	            <div style={{background:theme.surface,borderRadius:10,padding:'16px 14px',border:`1px solid ${C}44`}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                <span style={{fontFamily:theme.fontMono,fontSize:16,fontWeight:700,color:'#fff',letterSpacing:2}}>{puzzle.word.charAt(0) + puzzle.word.slice(1).toLowerCase()}</span>
+                <span style={{fontFamily:theme.fontMono,fontSize:16,fontWeight:700,color:'#fff',letterSpacing:2}}>{wordEntry.word.charAt(0) + wordEntry.word.slice(1).toLowerCase()}</span>
                 {wordEntry && <span style={{fontSize:11,color:C+'aa',fontStyle:'italic',background:C+'22',borderRadius:4,padding:'1px 7px'}}>
-                  {wordEntry.pos==='v'?'verb':wordEntry.pos==='n'?'noun':wordEntry.pos==='adj'?'adjective':wordEntry.pos}
+                  {wordEntry.pos==='v'?'verb':wordEntry.pos==='n'?'noun':wordEntry.pos==='adj'?'adjective':wordEntry.pos==='adv'?'adverb':wordEntry.pos}
                 </span>}
               </div>
               <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>
-                Which sentence uses <strong>{puzzle.word}</strong> in a way that matches what just happened on the board?
+                Which chess sentence uses <strong>{wordEntry.word}</strong> correctly?
               </div>
             </div>
 
@@ -8677,8 +8817,8 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
                 else if (i === quizPicked) { bg = theme.danger+'22'; border = theme.danger; color = theme.danger; }
                 else { color = 'rgba(255,255,255,0.3)'; }
               }
-              const wordSC = puzzle.word.charAt(0).toUpperCase() + puzzle.word.slice(1).toLowerCase();
-              const wordLC = puzzle.word.toLowerCase();
+              const wordSC = wordEntry.word.charAt(0).toUpperCase() + wordEntry.word.slice(1).toLowerCase();
+              const wordLC = wordEntry.word.toLowerCase();
               const displayText = choice.text.startsWith('___') ? choice.text.replace('___', wordSC) : choice.text.replace('___', wordLC);
               return (
                 <button key={i} onClick={() => handleQuizPick(i)} disabled={quizPicked !== null} style={{
@@ -8745,32 +8885,32 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
 	            padding:'24px 22px',textAlign:'center'
 	          }}>
 	            <div style={{fontFamily:"'Press Start 2P', monospace",fontSize:10,fontWeight:400,color:C,letterSpacing:2,marginBottom:16,lineHeight:1.5}}>
-	              PUZZLE SOLVED
+	              VOCAB CHECKPOINT
 	            </div>
 	            <div style={{
 	              fontFamily:"'Press Start 2P', monospace",fontSize:18,fontWeight:400,color:'#fff',
 	              letterSpacing:1.4,lineHeight:1.55,marginBottom:16
 	            }}>
-	              NICE TACTIC
+	              {checkpointCount} TACTICS
 	            </div>
 	            <div style={{fontSize:14,color:theme.text,lineHeight:1.55,marginBottom:18}}>
-	              <div>You found the</div>
+	              <div>You solved</div>
 	              <div style={{
 	                display:'inline-block',margin:'8px 0 6px',padding:'5px 9px',
 	                borderRadius:6,background:C+'1f',border:`1px solid ${C}55`,
 	                color:C,fontFamily:"'Press Start 2P', monospace",fontSize:9,fontWeight:400,
 	                letterSpacing:1.2,lineHeight:1.6,textTransform:'uppercase'
 	              }}>
-	                {puzzle.tactic}
+	                {PUZZLES_PER_VOCAB} IN A ROW
 	              </div>
-	              <div>Now answer the vocab challenge to finish it.</div>
+	              <div>Now answer one vocab challenge.</div>
 	            </div>
 	            <button onClick={launchQuiz} style={{
 	              width:'100%',padding:'14px 16px',borderRadius:10,border:'none',
 	              background:C,color:'#0a0a14',fontFamily:"'Press Start 2P', monospace",fontSize:9,
 	              fontWeight:400,letterSpacing:1,cursor:'pointer',boxShadow:`0 3px 0 #a06800`,lineHeight:1.6
 	            }}>
-	              START VOCAB CHALLENGE
+	              START VOCAB CHECKPOINT
 	            </button>
 	          </div>
 	        </div>,
@@ -10368,7 +10508,7 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
           const from = toSq(move.from[0], move.from[1]);
           const to = toSq(move.to[0], move.to[1]);
           const piece = gameRef.current.board[move.from[0]][move.from[1]];
-          nextHint = { move, label: 'STOCKFISH', reason: `⚡ ${PIECE_NAMES[piece?.type] || 'Piece'} from ${from} to ${to}` };
+          nextHint = { move, label: 'STOCKFISH', reason: `${PIECE_NAMES[piece?.type] || 'Piece'} from ${from} to ${to}` };
         }
       }
     } catch(e) { console.error('SF hint error:', e); }
@@ -10585,7 +10725,7 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
             color:turn==='w'?theme.success:turn==='b'?theme.danger:theme.gold}}>
             {turn==='w'?'● YOUR TURN (WHITE)':turn==='b'?'○ OPPONENT THINKING…':turn==='quiz'?'📖 VOCAB CHALLENGE':''}
           </span>
-          {turn==='b' && <span style={{marginLeft:8,fontSize:10,color:C,fontFamily:theme.fontMono}}>⚡ Stockfish</span>}
+          {turn==='b' && <span style={{marginLeft:8,fontSize:10,color:C,fontFamily:theme.fontMono,display:'inline-flex',alignItems:'center',gap:4,verticalAlign:'middle'}}><PixelBolt size={12} /> Stockfish</span>}
           {correctStreak>=3&&<span style={{marginLeft:10,fontSize:11,color:theme.gold,fontFamily:theme.fontMono}}>🔥 {correctStreak} streak</span>}
         </div>
       )}
@@ -10687,14 +10827,14 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
         {/* Hint button */}
         {turn==='w'&&!gameOver&&(
           <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'center',padding:'8px 0'}}>
-            <button onClick={getHintSF} disabled={hintLoading||!sfReady} style={{background:hintLoading?'#7dd3fc':'none',border:`1px solid ${hintLoading?'#bae6fd':C}`,color:hintLoading?'#082f49':C,borderRadius:8,padding:'6px 14px',fontSize:12,cursor:hintLoading?'wait':'pointer',fontFamily:theme.fontBody,fontWeight:700,opacity:sfReady?1:0.5,boxShadow:hintLoading?'0 0 14px rgba(125,211,252,0.35)':'none'}}>
-              {hintLoading?'COMPUTING BEST IDEA':'⚡ Hint'}
+            <button onClick={getHintSF} disabled={hintLoading||!sfReady} style={{background:hintLoading?'#7dd3fc':'none',border:`1px solid ${hintLoading?'#bae6fd':C}`,color:hintLoading?'#082f49':C,borderRadius:8,padding:'6px 14px',fontSize:12,cursor:hintLoading?'wait':'pointer',fontFamily:theme.fontBody,fontWeight:700,opacity:sfReady?1:0.5,boxShadow:hintLoading?'0 0 14px rgba(125,211,252,0.35)':'none',display:'inline-flex',alignItems:'center',gap:6}}>
+              {hintLoading ? 'COMPUTING BEST IDEA' : <><PixelBolt size={13} /> Hint</>}
             </button>
           </div>
         )}
         {hint&&<div style={{fontFamily:theme.fontMono,fontSize:11,color:C,textAlign:'center',padding:'4px 12px',background:C+'18',borderRadius:8,border:`1px solid ${C}33`}}>
           <div style={{fontWeight:700,marginBottom:2}}>{hint.label}</div>
-          <div style={{opacity:0.85}}>{hint.reason}</div>
+          <div style={{opacity:0.85,display:'inline-flex',alignItems:'center',justifyContent:'center',gap:5}}><PixelBolt size={12} /> {hint.reason}</div>
         </div>}
         {(msg||coachMsg)&&<div style={{textAlign:'center',fontFamily:theme.fontMono,fontSize:11,color:msg?theme.gold:C,padding:'4px 12px',background:'rgba(0,0,0,0.3)',borderRadius:8}}>{msg||coachMsg}</div>}
         {streakFlash&&<div style={{position:'fixed',inset:0,zIndex:200,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{fontFamily:theme.fontMono,fontSize:22,fontWeight:700,color:theme.gold,letterSpacing:3,textShadow:`0 0 20px ${theme.gold}`,background:'rgba(0,0,0,0.6)',padding:'12px 24px',borderRadius:12,border:`2px solid ${theme.gold}66`}}>🔥 {correctStreak} WORD STREAK!</div></div>}

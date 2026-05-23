@@ -8355,8 +8355,9 @@ function balancePuzzleBank(puzzles) {
     Skewer: 75,
   };
   const groups = {};
-  const curated = puzzles.filter(puzzle => puzzle.source === 'curated');
-  const generated = shufflePuzzleDeckRaw(puzzles.filter(puzzle => puzzle.source !== 'curated'));
+  const randomizedPuzzles = shufflePuzzleDeckRaw(puzzles);
+  const curated = randomizedPuzzles.filter(puzzle => puzzle.source === 'curated');
+  const generated = randomizedPuzzles.filter(puzzle => puzzle.source !== 'curated');
   for (const puzzle of curated) {
     groups[puzzle.type] = groups[puzzle.type] || [];
     groups[puzzle.type].push(puzzle);
@@ -8365,6 +8366,9 @@ function balancePuzzleBank(puzzles) {
     const quota = quotas[puzzle.type] || 40;
     groups[puzzle.type] = groups[puzzle.type] || [];
     if (groups[puzzle.type].length < quota) groups[puzzle.type].push(puzzle);
+  }
+  for (const type of Object.keys(groups)) {
+    groups[type] = shufflePuzzleDeckRaw(groups[type]);
   }
   const types = Object.keys(groups);
   const deck = [];
@@ -8414,7 +8418,7 @@ function getPlayableChessPuzzles() {
       seen.add(key);
       return true;
     });
-  PLAYABLE_CHESS_PUZZLES_CACHE = playable.length ? balancePuzzleBank(playable) : CHESS_PUZZLES;
+  PLAYABLE_CHESS_PUZZLES_CACHE = playable.length ? playable : CHESS_PUZZLES;
   return PLAYABLE_CHESS_PUZZLES_CACHE;
 }
 
@@ -8428,7 +8432,7 @@ function shufflePuzzleDeckRaw(puzzles) {
 }
 
 function shufflePuzzleDeck(puzzles) {
-  return balancePuzzleBank(puzzles);
+  return balancePuzzleBank(shufflePuzzleDeckRaw(puzzles));
 }
 
 function shufflePuzzleChoices(choices) {

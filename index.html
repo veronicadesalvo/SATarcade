@@ -60,6 +60,7 @@
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/search.png" as="image"/>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/oddoneout.png" as="image"/>
   <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ear.png" as="image"/>
+  <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ship.png" as="image"/>
   <link rel="preconnect" href="https://raw.githubusercontent.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -2243,6 +2244,40 @@ const globalStyle = `
   @keyframes bossEntrance { 0%{transform:scale(0.3) rotate(-10deg);opacity:0} 60%{transform:scale(1.15) rotate(3deg);opacity:1} 80%{transform:scale(0.95) rotate(-1deg)} 100%{transform:scale(1) rotate(0deg)} }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
   @keyframes glow { 0%,100% { box-shadow: 0 0 10px ${theme.accentGlow}; } 50% { box-shadow: 0 0 30px ${theme.accentGlow}, 0 0 60px ${theme.accentGlow}; } }
+  @keyframes homeShipCruise {
+    0% { left: 12px; }
+    100% { left: calc(100% - 64px); }
+  }
+  @keyframes homeShipBob {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  .home-ship-lane {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 64px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .home-ship-track {
+    position: absolute;
+    bottom: 6px;
+    width: 52px;
+    height: 52px;
+    animation: homeShipCruise 7.2s linear infinite alternate;
+  }
+  .home-ship-sprite {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    display: block;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 3px #00e5ffcc) drop-shadow(0 0 7px #7c5cfc88);
+    animation: homeShipBob 0.9s steps(2, end) infinite;
+  }
   @keyframes firePieceGlow {
     0%,100% { filter: drop-shadow(0 0 1px #fff6b0) drop-shadow(0 -1px 1px #ffd43b) drop-shadow(0 -2px 1px #ff4a16); }
     50% { filter: drop-shadow(0 0 1px #fffbe0) drop-shadow(0 -2px 1px #ffbf1a) drop-shadow(0 -3px 2px #e82d12); }
@@ -2423,6 +2458,8 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
   const [restoreText, setRestoreText] = React.useState('');
   const [restoreStatus, setRestoreStatus] = React.useState(null); // 'ok' | 'error'
   const [showRestore, setShowRestore] = React.useState(false);
+  const [showMasteredWords, setShowMasteredWords] = React.useState(false);
+  const [showCloseToMastery, setShowCloseToMastery] = React.useState(false);
 
   const BACKUP_KEYS = ['word_stats', 'satarcade_profile', 'satarcade_onboarded',
     'hangman_queue', 'crossword_queue', 'detective_queue', 'eartrainer_queue'];
@@ -2508,47 +2545,19 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
           </div>
         </div>
 
-        {/* Close to mastery */}
-        {closeToMastery.length > 0 && (() => {
-          const [open, setOpen] = React.useState(false);
-          return (
-            <div style={{ marginBottom: 28 }}>
-              <button onClick={() => setOpen(o => !o)} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', background: `color-mix(in srgb, ${theme.gold} 10%, ${theme.surface})`,
-                border: `1px solid ${theme.gold}44`, borderRadius: 10, padding: '10px 14px',
-                cursor: 'pointer', marginBottom: open ? 10 : 0,
-              }}>
-                <span style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: theme.gold, letterSpacing: 1, textTransform: 'uppercase' }}>CLOSE TO MASTERY ({closeToMastery.length})</span>
-                <span style={{ color: theme.gold, fontSize: 12 }}>{open ? '▲' : '▼'}</span>
-              </button>
-              {open && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {closeToMastery.map(({ word, count, games }) => {
-                    const def = activeWords.find(w => w.word === word)?.def;
-                    return (
-                      <div key={word} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: theme.surface, borderRadius: 10, border: `1px solid ${theme.border}` }}>
-                        <div>
-                          <div style={{ fontFamily: theme.fontMono, fontWeight: 700, fontSize: 13, color: theme.text }}>{word}</div>
-                          <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{def}</div>
-                        </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-                          <div style={{ fontSize: 10, color: theme.textMuted }}>{count}× seen</div>
-                          <div style={{ fontSize: 10, color: theme.textMuted }}>{games} game{games !== 1 ? 's' : ''}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })()}
-
         {/* Mastered words list */}
         {masteredList.length > 0 && (
-          <div>
-            <div style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: theme.success, letterSpacing: 1, marginBottom: 12, textTransform: 'uppercase' }}>✓ Mastered Words ({masteredList.length})</div>
+          <div style={{ marginBottom: 14 }}>
+            <button onClick={() => setShowMasteredWords(open => !open)} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', background: `color-mix(in srgb, ${theme.success} 9%, ${theme.surface})`,
+              border: `1px solid ${theme.success}44`, borderRadius: 10, padding: '10px 14px',
+              cursor: 'pointer', marginBottom: showMasteredWords ? 10 : 0,
+            }}>
+              <span style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: theme.success, letterSpacing: 1, textTransform: 'uppercase' }}>✓ MASTERED WORDS ({masteredList.length})</span>
+              <span style={{ color: theme.success, fontSize: 12 }}>{showMasteredWords ? '▲' : '▼'}</span>
+            </button>
+            {showMasteredWords && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {masteredList.map(({ word, def }) => (
                 <div key={word} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '8px 14px', background: `color-mix(in srgb, ${theme.success} 6%, ${theme.surface})`, borderRadius: 10, border: `1px solid ${theme.success}22` }}>
@@ -2557,6 +2566,41 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
                 </div>
               ))}
             </div>
+            )}
+          </div>
+        )}
+
+        {/* Close to mastery */}
+        {closeToMastery.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <button onClick={() => setShowCloseToMastery(open => !open)} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', background: `color-mix(in srgb, ${theme.gold} 10%, ${theme.surface})`,
+              border: `1px solid ${theme.gold}44`, borderRadius: 10, padding: '10px 14px',
+              cursor: 'pointer', marginBottom: showCloseToMastery ? 10 : 0,
+            }}>
+              <span style={{ fontFamily: theme.fontMono, fontSize: 11, fontWeight: 700, color: theme.gold, letterSpacing: 1, textTransform: 'uppercase' }}>CLOSE TO MASTERY ({closeToMastery.length})</span>
+              <span style={{ color: theme.gold, fontSize: 12 }}>{showCloseToMastery ? '▲' : '▼'}</span>
+            </button>
+            {showCloseToMastery && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {closeToMastery.map(({ word, count, games }) => {
+                  const def = activeWords.find(w => w.word === word)?.def;
+                  return (
+                    <div key={word} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: theme.surface, borderRadius: 10, border: `1px solid ${theme.border}` }}>
+                      <div>
+                        <div style={{ fontFamily: theme.fontMono, fontWeight: 700, fontSize: 13, color: theme.text }}>{word}</div>
+                        <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{def}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                        <div style={{ fontSize: 10, color: theme.textMuted }}>{count}× seen</div>
+                        <div style={{ fontSize: 10, color: theme.textMuted }}>{games} game{games !== 1 ? 's' : ''}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -2701,7 +2745,7 @@ function GameHeaderTitle({ game, title, color, detail, fontSize = 15 }) {
           src={src}
           width={iconSize}
           height={iconSize}
-          style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 3px ${color}) drop-shadow(0 0 8px ${color}cc) drop-shadow(0 0 14px ${color}66)`,flexShrink:0}}
+          style={{display:'block',imageRendering:'pixelated',filter:`drop-shadow(0 0 2px ${color}ee) drop-shadow(0 0 5px ${color}aa)`,flexShrink:0}}
           alt=""
         />
       )}
@@ -2958,7 +3002,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
   );
 
   return (
-    <div className="fadeIn" style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', padding: "0", overflow: 'hidden', backgroundImage: arcadeBg, backgroundSize: "40px 40px" }}>
+    <div className="fadeIn" style={{ maxWidth: 820, margin: "0 auto", height: '100dvh', display: 'flex', flexDirection: 'column', padding: "0", overflow: 'hidden', backgroundImage: arcadeBg, backgroundSize: "40px 40px", position: 'relative' }}>
 
       {/* Compact header */}
       <div style={{
@@ -3054,7 +3098,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
         </div>
 
       {/* 2×3 game grid */}
-      <div style={{ flex: 1, padding: "8px 14px 14px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gap: 10, alignContent: 'start' }}>
+      <div style={{ flex: '0 0 auto', padding: "6px 14px 8px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, minmax(88px, auto))', gap: 8, alignContent: 'start' }}>
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
             animationDelay: '0.1s', cursor: "pointer",
@@ -3062,7 +3106,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
             borderRadius: 14, transition: "all 0.2s",
             position: "relative", overflow: "hidden",
             display: "flex", flexDirection: 'row', alignItems: "center", gap: 10,
-            padding: '16px 12px',
+            padding: '12px 10px', minHeight: 88,
           }}
             onClick={() => onSelect(g.id)}
             onMouseEnter={e => { e.currentTarget.style.border = `2px solid ${g.color}`; e.currentTarget.style.boxShadow = `0 4px 20px ${g.color}33`; }}
@@ -3087,6 +3131,16 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="home-ship-lane" aria-hidden="true">
+        <div className="home-ship-track">
+          <img
+            className="home-ship-sprite"
+            src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ship.png"
+            alt=""
+          />
+        </div>
       </div>
 
       {/* Mastered words modal */}
@@ -3384,7 +3438,7 @@ function HangmanGame({ onBack, onCorrect, wordBank = WORD_BANK }) {
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
           <GameHeaderTitle game="hangman" title="HANGMAN" color="#ffa500" />
         </div>
-        {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
+        {streak >= 3 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
       </div>
 
       {entry && (
@@ -3718,6 +3772,14 @@ function generateCrossword(wordEntries, targetCount = 8) {
     row: p.row - minR,
     col: p.col - minC,
   }));
+  const intersectionCount = grid.reduce((total, rowCells, r) => {
+    return total + rowCells.reduce((count, letter, c) => {
+      if (!letter) return count;
+      const hasAcross = (c > 0 && grid[r][c - 1] !== null) || (c < cols - 1 && grid[r][c + 1] !== null);
+      const hasDown = (r > 0 && grid[r - 1][c] !== null) || (r < rows - 1 && grid[r + 1][c] !== null);
+      return count + (hasAcross && hasDown ? 1 : 0);
+    }, 0);
+  }, 0);
 
   // Assign numbers: scan top-left to bottom-right
   const numberedCells = {};
@@ -3762,7 +3824,7 @@ function generateCrossword(wordEntries, targetCount = 8) {
     }
   }
 
-  return { grid, rows, cols, numberedCells, acrossClues, downClues };
+  return { grid, rows, cols, numberedCells, acrossClues, downClues, intersectionCount };
 }
 
 // Helper: get all [r,c] cells for a given clue number + direction
@@ -3802,9 +3864,9 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const [wordFlash, setWordFlash] = useState(null); // { word, def, pos, example } — shown briefly when word completed correctly
   const [completedWords, setCompletedWords] = useState(new Set()); // "num-dir" keys already flashed
   const [showReview, setShowReview] = useState(false); // post-solve word review
+  const [showPixelCelebrate, setShowPixelCelebrate] = useState(false);
   const wordFlashTimer = useRef(null);
   const inputRef = useRef(null);
-  const { celebrate, CelebrationCanvas } = useWinCelebration();
 
 
   const generate = useCallback(() => {
@@ -3821,20 +3883,23 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
     setWordFlash(null);
     setCompletedWords(new Set());
     setShowReview(false);
+    setShowPixelCelebrate(false);
     setPuzzleNum(n => n + 1);
     // Run in setTimeout so the "Generating..." screen renders first
     setTimeout(() => {
       let p = null;
       let bestScore = -Infinity;
-      const candidateWords = getNextWords('crossword_queue', wordBank, 60);
-      for (let attempt = 0; attempt < 8; attempt++) {
-        const candidate = generateCrossword(candidateWords, 8);
+      const candidateWords = getNextWords('crossword_queue', wordBank, 90);
+      for (let attempt = 0; attempt < 18; attempt++) {
+        const candidate = generateCrossword(candidateWords, 10);
         if (!candidate) continue;
         const clueCount = Object.keys(candidate.acrossClues).length + Object.keys(candidate.downClues).length;
         if (clueCount < 5) continue;
         const area = candidate.rows * candidate.cols;
         const squareness = Math.abs(candidate.rows - candidate.cols);
-        const score = (clueCount * 10) - area * 0.3 - squareness * 5;
+        const intersections = candidate.intersectionCount || 0;
+        const density = intersections / Math.max(1, clueCount);
+        const score = (clueCount * 10) + (intersections * 18) + (density * 22) - area * 0.35 - squareness * 5;
         if (score > bestScore) { bestScore = score; p = candidate; }
       }
       // Fallback: try with fewer words if still null
@@ -3960,16 +4025,26 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
     }
   };
 
-  // Scroll clue banner into view when mobile keyboard appears
+  // Keep the active clue visible when a mobile keyboard reduces the viewport.
   React.useEffect(() => {
     if (!selected) return;
     const handler = () => {
       const el = document.querySelector('[data-clue-banner="true"]');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!el) return;
+      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
     };
+    handler();
     window.visualViewport?.addEventListener('resize', handler);
-    return () => window.visualViewport?.removeEventListener('resize', handler);
-  }, [selected]);
+    window.visualViewport?.addEventListener('scroll', handler);
+    window.addEventListener('focusin', handler);
+    window.addEventListener('resize', handler);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handler);
+      window.visualViewport?.removeEventListener('scroll', handler);
+      window.removeEventListener('focusin', handler);
+      window.removeEventListener('resize', handler);
+    };
+  }, [selected, activeClue]);
 
   const prevInput = useRef('');
   const handleChange = (e) => {
@@ -4110,13 +4185,18 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
 
   useEffect(() => {
     if (isSolved) {
-      celebrate();
-      setTimeout(() => setShowReview(true), 1200);
+      setShowPixelCelebrate(true);
+      const burstTimer = setTimeout(() => setShowPixelCelebrate(false), 1800);
+      const reviewTimer = setTimeout(() => setShowReview(true), 1200);
       // Mark all words in this puzzle as mastered
       if (puzzle) {
         Object.values(puzzle.acrossClues).forEach(c => onCorrect(c.word));
         Object.values(puzzle.downClues).forEach(c => onCorrect(c.word));
       }
+      return () => {
+        clearTimeout(burstTimer);
+        clearTimeout(reviewTimer);
+      };
     }
   }, [isSolved]);
 
@@ -4178,7 +4258,7 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
         <div style={{ width: 60 }} />
       </div>
 
-      <div data-clue-banner="true">
+      <div data-clue-banner="true" style={{ position: 'sticky', top: 0, zIndex: 25, background: theme.bg, paddingTop: 4, marginTop: -4 }}>
       {/* Word completion flash — shown briefly when a word is correctly filled (check on) */}
       {wordFlash && !isSolved && (
         <div style={{
@@ -4511,7 +4591,12 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
         document.body
       )}
 
-      <CelebrationCanvas />
+      {showPixelCelebrate && ReactDOM.createPortal(
+        <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:9998}}>
+          <PixelWinBurst />
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -4583,7 +4668,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
           <GameHeaderTitle game="detective" title="WORD DETECTIVE" color="#f5e000" />
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
+          {streak >= 3 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
         </div>
       </div>
 
@@ -4655,7 +4740,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
           {chosen && (
             <div className="fadeIn" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 15, color: chosen === current.word ? theme.success : theme.danger, fontWeight: 600 }}>
-                {chosen === current.word ? `🎯 Correct!${streak > 1 ? ` (${streak}x streak!)` : ''}` : `❌ The answer was ${current.word}`}
+                {chosen === current.word ? `✓ Correct!${streak >= 3 ? ` (${streak}x streak!)` : ''}` : `❌ The answer was ${current.word}`}
               </div>
               <Btn variant="primary" color={C} small onClick={next} disabled={idx >= pool.length - 1}>Next →</Btn>
             </div>
@@ -4885,7 +4970,7 @@ function OddOneOut({ onBack, onCorrect, wordBank = WORD_BANK }) {
     const correct = word === current.odd;
     if (correct) {
       setStreak(s => s + 1);
-      current.words.forEach(w => onCorrect(w));
+      onCorrect(current.odd);
     } else {
       setStreak(0);
     }
@@ -4898,7 +4983,6 @@ function OddOneOut({ onBack, onCorrect, wordBank = WORD_BANK }) {
   };
 
   const done = idx >= pool.length - 1 && chosen;
-  const progress = idx / pool.length;
 
   if (!current) return null;
 
@@ -4911,13 +4995,8 @@ function OddOneOut({ onBack, onCorrect, wordBank = WORD_BANK }) {
           <GameHeaderTitle game="oddoneout" title="IMPOSTOR" color="#00c9a7" />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
+          {streak >= 3 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
         </div>
-      </div>
-
-      {/* Progress bar */}
-      <div style={{ height: 3, background: theme.border, borderRadius: 2, marginBottom: 28, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${progress * 100}%`, background: `linear-gradient(90deg, ${C}, ${theme.gold})`, borderRadius: 2, transition: "width 0.4s" }} />
       </div>
 
       {/* Prompt */}
@@ -5014,7 +5093,7 @@ function OddOneOut({ onBack, onCorrect, wordBank = WORD_BANK }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div style={{ fontSize: 15, color: chosen === current.odd ? theme.success : theme.danger, fontWeight: 600 }}>
               {chosen === current.odd
-                ? `🎯 Correct!${streak > 1 ? ` (${streak}x streak)` : ''}`
+                ? `✓ Correct!${streak >= 3 ? ` (${streak}x streak)` : ''}`
                 : `❌ The odd one out was ${current.odd}`}
             </div>
             {done
@@ -5175,13 +5254,8 @@ function EarTrainer({ onBack, onCorrect, wordBank = WORD_BANK }) {
           <GameHeaderTitle game="eartrainer" title="EAR TRAINER" color="#f700ff" />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {streak > 0 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
+          {streak >= 3 && <Badge color={theme.gold}>🔥 {streak}</Badge>}
         </div>
-      </div>
-
-      {/* Progress */}
-      <div style={{ height: 3, background: theme.border, borderRadius: 2, marginBottom: 32, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${(idx / pool.length) * 100}%`, background: `linear-gradient(90deg, ${C}, ${theme.gold})`, borderRadius: 2, transition: "width 0.4s" }} />
       </div>
 
       {/* Speak area */}
@@ -5280,14 +5354,14 @@ function EarTrainer({ onBack, onCorrect, wordBank = WORD_BANK }) {
           {done ? (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 15, color: chosen === current.word ? theme.success : theme.danger, fontWeight: 600 }}>
-                {chosen === current.word ? `🎯 Correct!${streak > 1 ? ` (${streak}x streak!)` : ''}` : '❌ Incorrect'}
+                {chosen === current.word ? `✓ Correct!${streak >= 3 ? ` (${streak}x streak!)` : ''}` : '❌ Incorrect'}
               </div>
               <Btn variant="primary" color={C} onClick={onBack}>Home</Btn>
             </div>
           ) : (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 15, color: chosen === current.word ? theme.success : theme.danger, fontWeight: 600 }}>
-                {chosen === current.word ? `🎯 Correct!${streak > 1 ? ` (${streak}x streak!)` : ''}` : '❌ Incorrect'}
+                {chosen === current.word ? `✓ Correct!${streak >= 3 ? ` (${streak}x streak!)` : ''}` : '❌ Incorrect'}
               </div>
               <Btn variant="primary" color={C} onClick={next}>Next →</Btn>
             </div>
@@ -7874,6 +7948,39 @@ const CURATED_CHESS_PUZZLES = [
     explanation: 'Rg3+ forces Kf8, then Rh8 is mate.',
     difficulty: 'medium',
   }),
+  curatedPuzzle({
+    id: 'cq_opening_scholars_mate_1',
+    type: 'Checkmate in 1',
+    tactic: 'Opening Mate',
+    desc: 'This opening attack is already aimed at f7. Find the finishing move.',
+    fen: 'rnbqkbnr/pppppppp/8/7Q/2B1P3/8/PPPP1PPP/RNB1K1NR',
+    line: ['h5f7'],
+    word: 'DECISIVE',
+    explanation: 'Qxf7 is protected by the bishop on c4, and the boxed-in king has no escape.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_opening_knight_fork_1',
+    type: 'Fork',
+    tactic: 'Opening Royal Fork',
+    desc: 'The knight can jump into the position and attack two high-value targets.',
+    fen: 'rnb1kbnr/pppppppp/8/1N6/4P3/8/PPPP1PPP/R1BQKBNR',
+    line: ['b5c7'],
+    word: 'ASTUTE',
+    explanation: 'Nxc7+ checks the king and attacks the rook on a8.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_opening_bishop_pin_1',
+    type: 'Pin',
+    tactic: 'Opening Bishop Pin',
+    desc: 'Develop the bishop to freeze the knight in front of the king.',
+    fen: 'r1bqkbnr/ppp1pppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR',
+    line: ['f1b5'],
+    word: 'PRECLUDE',
+    explanation: 'Bb5 pins the knight on c6 to the king on e8.',
+    difficulty: 'medium',
+  }),
 ];
 
 function puzzleGeneratorKey(puzzle) {
@@ -9235,7 +9342,7 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
             {isPlayerTurn ? `● YOUR TURN (${playerLabel})` : isOpponentTurn ? `○ OPPONENT THINKING… (${opponentLabel})` : turn==='winback' ? '🛡️ WIN IT BACK!' : ''}
           </span>
           {/* #5 Streak indicator */}
-          {correctStreak >= 2 && (
+          {correctStreak >= 3 && (
             <span style={{marginLeft:10, fontSize:11, color:theme.gold, fontFamily:theme.fontMono,
               animation: streakFlash ? 'pulse 0.4s ease-in-out 3' : 'none'}}>
               🔥 {correctStreak} streak
@@ -9809,9 +9916,6 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
 
 // ─── MASTERY TOAST ───────────────────────────────────────────────────────────
 function MasteryToast({ word, onClose }) {
-  const canvasRef = React.useRef(null);
-  const rafRef = React.useRef(null);
-
   React.useEffect(() => {
     // Congratulatory run-up fanfare
     try {
@@ -9835,68 +9939,12 @@ function MasteryToast({ word, onClose }) {
       play(784, 0.21, 0.09, 'square', 0.14);
       play(1047,0.28, 0.12, 'square', 0.14);
     } catch(e) {}
-
-    // Fireworks
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const W = canvas.width = window.innerWidth;
-    const H = canvas.height = window.innerHeight;
-    const ctx2 = canvas.getContext('2d');
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const COLORS = ['#ffd700','#ff4488','#00e5ff','#a78bfa','#ff9900','#00cc66','#fff'];
-    const particles = [];
-
-    function burst(x, y) {
-      const count = isMobile ? 35 : 55;
-      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-      const color2 = COLORS[Math.floor(Math.random() * COLORS.length)];
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-        const speed = 3 + Math.random() * 6;
-        particles.push({
-          x, y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 2,
-          alpha: 1,
-          color: Math.random() > 0.5 ? color : color2,
-          size: 2.5 + Math.random() * 3,
-          decay: 0.013 + Math.random() * 0.008,
-        });
-      }
-    }
-
-    const launchCount = isMobile ? 6 : 10;
-    for (let i = 0; i < launchCount; i++) {
-      setTimeout(() => {
-        burst(W * (0.1 + Math.random() * 0.8), H * (0.05 + Math.random() * 0.5));
-      }, i * 150);
-    }
-
-    function loop() {
-      ctx2.clearRect(0, 0, W, H);
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        p.vy += 0.15; p.vx *= 0.97;
-        p.alpha -= p.decay;
-        if (p.alpha <= 0) { particles.splice(i, 1); continue; }
-        ctx2.globalAlpha = p.alpha;
-        ctx2.fillStyle = p.color;
-        ctx2.beginPath();
-        ctx2.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx2.fill();
-      }
-      ctx2.globalAlpha = 1;
-      if (particles.length > 0) rafRef.current = requestAnimationFrame(loop);
-    }
-    rafRef.current = requestAnimationFrame(loop);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', animation: 'fadeIn 0.2s ease' }}
       onClick={onClose}>
-      <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 10001 }} />
+      <PixelWinBurst />
       <div onClick={e => e.stopPropagation()} style={{
         background: theme.surface,
         border: '1.5px solid #ffd700cc',
@@ -10499,7 +10547,7 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
             {turn==='w'?'● YOUR TURN (WHITE)':turn==='b'?'○ OPPONENT THINKING…':turn==='quiz'?'📖 VOCAB CHALLENGE':''}
           </span>
           {turn==='b' && <span style={{marginLeft:8,fontSize:10,color:C,fontFamily:theme.fontMono}}>⚡ Stockfish</span>}
-          {correctStreak>=2&&<span style={{marginLeft:10,fontSize:11,color:theme.gold,fontFamily:theme.fontMono}}>🔥 {correctStreak} streak</span>}
+          {correctStreak>=3&&<span style={{marginLeft:10,fontSize:11,color:theme.gold,fontFamily:theme.fontMono}}>🔥 {correctStreak} streak</span>}
         </div>
       )}
       {openingName&&!gameOver&&(

@@ -6059,6 +6059,29 @@ function ChessPiece({ color, type, size, fireGlow = false, rainbowGlow = false, 
   );
 }
 
+function ChessSquareCoordinateLabels({ r, c, displayR = r, displayC = c, isLight }) {
+  const color = isLight ? 'rgba(4, 24, 48, 0.58)' : 'rgba(235, 248, 255, 0.7)';
+  const labelStyle = {
+    position:'absolute',
+    zIndex:7,
+    pointerEvents:'none',
+    userSelect:'none',
+    WebkitUserSelect:'none',
+    fontFamily:theme.fontMono,
+    fontSize:8,
+    fontWeight:700,
+    lineHeight:1,
+    color,
+    textShadow:isLight ? '0 1px 0 rgba(255,255,255,0.18)' : '0 1px 2px rgba(0,0,0,0.35)',
+  };
+  return (
+    <>
+      {displayR === 7 && <span style={{...labelStyle,bottom:2,right:3}}>{'abcdefgh'[c]}</span>}
+      {displayC === 0 && <span style={{...labelStyle,top:2,left:3}}>{8 - r}</span>}
+    </>
+  );
+}
+
 // ── Vocab Quiz ────────────────────────────────────────────────────────────────
 function ChessVocabQuiz({ word, context, timeLimit, onResult, isHard }) {
   const entry = WORD_BANK.find(e => e.word === word);
@@ -7672,8 +7695,11 @@ function puzzleMovedPieceCanBeCaptured(B, move) {
 
 function puzzleIsForkMove(B, move) {
   const targets = puzzleForkTargets(B, move);
-  return targets.some(t => t.type === 'k') &&
-    targets.some(t => t.type !== 'k') &&
+  const valuableTargets = targets.filter(t => t.type === 'k' || (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.n);
+  const checksKingAndWinsMaterial = targets.some(t => t.type === 'k') &&
+    targets.some(t => t.type !== 'k' && (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.n);
+  const forksTwoValuablePieces = valuableTargets.filter(t => t.type !== 'k').length >= 2;
+  return (checksKingAndWinsMaterial || forksTwoValuablePieces) &&
     !puzzleMovedPieceCanBeCaptured(B, move);
 }
 
@@ -7697,7 +7723,9 @@ function puzzlePinTargets(B, move) {
           if (piece.color !== 'b') break;
           firstBlackPiece = piece;
         } else {
-          if (piece.color === 'b' && piece.type === 'k') pinned.push(firstBlackPiece);
+          if (piece.color === 'b' && (piece.type === 'k' || (PIECE_VALUES[piece.type] || 0) > (PIECE_VALUES[firstBlackPiece.type] || 0))) {
+            pinned.push(firstBlackPiece);
+          }
           break;
         }
       }
@@ -7751,12 +7779,30 @@ function puzzleIsSkewerMove(B, move) {
     !puzzleMovedPieceCanBeCaptured(B, move);
 }
 
+function puzzleMovedPieceAddsThreat(B, move) {
+  const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
+  const moved = nb[move.to[0]][move.to[1]];
+  if (!moved) return false;
+  return rawMoves(nb, move.to[0], move.to[1], {ep:null, castle:{}})
+    .some(([r, c]) => {
+      const target = nb[r][c];
+      return target?.color === 'b' && (target.type === 'k' || (PIECE_VALUES[target.type] || 0) >= PIECE_VALUES.r);
+    });
+}
+
 function puzzleIsDiscoveredAttackMove(B, move) {
   if (!puzzleIsLegalMove(B, move)) return false;
   const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
   return !!detectsDiscoveredAttack(B, move.from, move.to) &&
-    inCheck(nb, 'b') &&
+    (inCheck(nb, 'b') || puzzleMovedPieceAddsThreat(B, move)) &&
     !puzzleMovedPieceCanBeCaptured(B, move);
+}
+
+function puzzleIsWinningCaptureMove(B, move) {
+  if (!puzzleIsLegalMove(B, move)) return false;
+  const captured = B[move.to[0]]?.[move.to[1]];
+  if (!captured || captured.color !== 'b' || captured.type === 'k') return false;
+  return exchangeScore(B, move.from, move.to) >= PIECE_VALUES.n;
 }
 
 function puzzleIsFinalPlayerMove(puzzle, moveStep) {
@@ -7764,7 +7810,7 @@ function puzzleIsFinalPlayerMove(puzzle, moveStep) {
 }
 
 function puzzleUsesExactSolution(puzzle) {
-  return !!(puzzle?.exact || puzzle?.source === 'curated');
+  return !!puzzle?.exact;
 }
 
 function puzzleMoveMatchesTheme(puzzle, B, move) {
@@ -7773,6 +7819,7 @@ function puzzleMoveMatchesTheme(puzzle, B, move) {
   if (puzzle.type === 'Pin') return puzzleIsPinMove(B, move);
   if (puzzle.type === 'Skewer') return puzzleIsSkewerMove(B, move);
   if (puzzle.type === 'Discovered Attack' || puzzle.type === 'Discovered Check') return puzzleIsDiscoveredAttackMove(B, move);
+  if (puzzle.type === 'Winning Capture') return puzzleIsWinningCaptureMove(B, move);
   return false;
 }
 
@@ -7783,8 +7830,8 @@ function isPuzzleMoveCorrect(puzzle, B, move, moveStep) {
   if (!puzzleIsFinalPlayerMove(puzzle, moveStep) && puzzle.solution.length > 1) {
     return puzzleMovesSame(move, puzzle.solution[moveStep]);
   }
-  if (puzzleMoveMatchesTheme(puzzle, B, move)) return true;
-  return puzzleMovesSame(move, puzzle.solution[moveStep]);
+  if (puzzleMoveMatchesTheme(puzzle, B, move) && puzzleHasClearWhitePayoff(puzzle, B, move)) return true;
+  return false;
 }
 
 function puzzleCorrectMoves(puzzle, B, moveStep = 0) {
@@ -7797,18 +7844,21 @@ function puzzleHasClearWhitePayoff(puzzle, B, move) {
   const { board: nb } = applyMove(B, move.from, move.to, {ep:null, castle:{}});
   if (puzzle.type === 'Fork') {
     const targets = puzzleForkTargets(B, move);
-    return inCheck(nb, 'b') &&
-      targets.some(t => t.type === 'k') &&
-      targets.some(t => (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.r);
+    const valuableNonKingTargets = targets.filter(t => t.type !== 'k' && (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.n);
+    return (targets.some(t => t.type === 'k') && valuableNonKingTargets.some(t => (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.r)) ||
+      valuableNonKingTargets.length >= 2;
   }
   if (puzzle.type === 'Skewer') {
-    return inCheck(nb, 'b') && puzzleSkewerTargets(B, move).length > 0;
+    return puzzleSkewerTargets(B, move).length > 0;
   }
   if (puzzle.type === 'Pin') {
     return puzzlePinTargets(B, move).some(t => (PIECE_VALUES[t.type] || 0) >= PIECE_VALUES.n);
   }
   if (puzzle.type === 'Discovered Attack' || puzzle.type === 'Discovered Check') {
-    return inCheck(nb, 'b');
+    return puzzleIsDiscoveredAttackMove(B, move);
+  }
+  if (puzzle.type === 'Winning Capture') {
+    return puzzleIsWinningCaptureMove(B, move);
   }
   return false;
 }
@@ -7821,8 +7871,9 @@ function puzzlePassesQualityGate(puzzle) {
   }
   if (puzzle.solution.length === 1) {
     const correctMoves = puzzleCorrectMoves(puzzle, B, 0);
-    return correctMoves.length === 1 &&
-      puzzleMovesSame(correctMoves[0], puzzle.solution[0]) &&
+    return correctMoves.length > 0 &&
+      correctMoves.length <= 6 &&
+      correctMoves.some(move => puzzleMovesSame(move, puzzle.solution[0])) &&
       puzzleHasClearWhitePayoff(puzzle, B, puzzle.solution[0]);
   }
   return true;
@@ -7915,20 +7966,94 @@ function puzzleDefinitionPhrase(entry) {
     .toLowerCase();
 }
 
-function buildPuzzleVocabChoices(entry, puzzle) {
-  if (!entry?.word) return puzzle.sentences || puzzleSentencesFor(puzzle.word);
-  if (entry.example && Array.isArray(entry.distractors) && entry.distractors.length >= 2) {
-    return [
-      { text: entry.example, correct: true },
-      { text: entry.distractors[0], correct: false },
-      { text: entry.distractors[1], correct: false },
-    ];
-  }
-  return [
-    { text: `The word ___ means ${entry.def || 'the definition shown'}.`, correct: true },
-    { text: `The word ___ means the opposite of this definition.`, correct: false },
-    { text: `The word ___ describes a random move with no connection to its definition.`, correct: false },
+const CHESS_PUZZLE_VOCAB_TYPES = ['definition', 'meaning', 'tactic'];
+
+function getNextChessPuzzleVocabType() {
+  return CHESS_PUZZLE_VOCAB_TYPES[nextBalancedAnswerSlot('chess_puzzle_vocab_type', CHESS_PUZZLE_VOCAB_TYPES.length)] || 'definition';
+}
+
+function puzzleWordTitle(word) {
+  if (!word) return '';
+  return word.charAt(0) + word.slice(1).toLowerCase();
+}
+
+function getChessVocabDistractors(entry, wordBank, count, options = {}) {
+  if (!entry?.word) return [];
+  const puzzleWords = new Set(Object.keys(PUZZLE_WORD_SENTENCES));
+  const seen = new Set([entry.word]);
+  const pools = [
+    wordBank.filter(w => w.word !== entry.word && w.pos === entry.pos && (!options.puzzleWordsOnly || puzzleWords.has(w.word))),
+    wordBank.filter(w => w.word !== entry.word && (!options.puzzleWordsOnly || puzzleWords.has(w.word))),
+    wordBank.filter(w => w.word !== entry.word && w.pos === entry.pos),
+    wordBank.filter(w => w.word !== entry.word),
   ];
+  const picks = [];
+  for (const pool of pools) {
+    for (const candidate of shuffle(pool)) {
+      if (seen.has(candidate.word)) continue;
+      seen.add(candidate.word);
+      picks.push(candidate);
+      if (picks.length >= count) return picks;
+    }
+  }
+  return picks;
+}
+
+function buildPuzzleWordChoices(entry, wordBank, options = {}) {
+  const distractors = getChessVocabDistractors(entry, wordBank, 2, options);
+  return [
+    { text: puzzleWordTitle(entry.word), correct: true },
+    ...distractors.map(w => ({ text: puzzleWordTitle(w.word), correct: false })),
+  ];
+}
+
+function buildPuzzleMeaningChoices(entry, wordBank) {
+  const distractors = getChessVocabDistractors(entry, wordBank, 2);
+  return [
+    { text: entry.def || 'The matching definition', correct: true },
+    ...distractors.map(w => ({ text: w.def || 'A different definition', correct: false })),
+  ];
+}
+
+function buildPuzzleVocabQuiz(entry, puzzle, quizType, wordBank) {
+  if (!entry?.word) {
+    return {
+      entry,
+      title: 'VOCAB CHECK',
+      prompt: 'Which answer best matches this word?',
+      showWordHeader: false,
+      showPos: false,
+      choices: puzzle.sentences || puzzleSentencesFor(puzzle.word),
+    };
+  }
+  if (quizType === 'definition') {
+    return {
+      entry,
+      title: 'DEFINITION MATCH',
+      prompt: `Which word means: ${entry.def}?`,
+      showWordHeader: false,
+      showPos: false,
+      choices: buildPuzzleWordChoices(entry, wordBank),
+    };
+  }
+  if (quizType === 'tactic') {
+    return {
+      entry,
+      title: 'TACTIC WORD',
+      prompt: 'Which word best matches the tactic you just solved?',
+      showWordHeader: false,
+      showPos: false,
+      choices: buildPuzzleWordChoices(entry, wordBank, { puzzleWordsOnly: true }),
+    };
+  }
+  return {
+    entry,
+    title: puzzleWordTitle(entry.word),
+    prompt: `Which phrase is closest to ${entry.word}?`,
+    showWordHeader: true,
+    showPos: true,
+    choices: buildPuzzleMeaningChoices(entry, wordBank),
+  };
 }
 
 function generatedPuzzle(id, type, tactic, desc, B, solution, word) {
@@ -7939,7 +8064,7 @@ function puzzleMoveFromUci(uci) {
   return { from: puzzleSq(uci.slice(0, 2)), to: puzzleSq(uci.slice(2, 4)) };
 }
 
-function curatedPuzzle({ id, type, tactic, desc, fen, line, word, explanation, difficulty = 'easy' }) {
+function curatedPuzzle({ id, type, tactic, desc, fen, line, word, explanation, difficulty = 'easy', exact }) {
   return {
     id,
     type,
@@ -7950,7 +8075,7 @@ function curatedPuzzle({ id, type, tactic, desc, fen, line, word, explanation, d
     word,
     explanation,
     difficulty,
-    exact: true,
+    exact: exact ?? line.length > 1,
     source: 'curated',
     sentences: puzzleSentencesFor(word),
   };
@@ -8111,6 +8236,94 @@ const CURATED_CHESS_PUZZLES = [
     line: ['f1b5'],
     word: 'PRECLUDE',
     explanation: 'Bb5 pins the knight on c6 to the king on e8.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_opening_fried_liver_fork_1',
+    type: 'Fork',
+    tactic: 'Opening Knight Fork',
+    desc: 'The opening has left the queen and rook on knight-fork squares. Find the jump.',
+    fen: 'r1bqkb1r/ppp2ppp/2n5/4p1N1/2B5/8/PPPP1PPP/RNBQK2R',
+    line: ['g5f7'],
+    word: 'EXPLOIT',
+    explanation: 'Nxf7 attacks the queen on d8 and the rook on h8. The bishop on c4 protects the knight.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_opening_bishop_pin_2',
+    type: 'Pin',
+    tactic: 'Opening Bishop Pin',
+    desc: 'In this opening line, the d-pawn has moved. Use the bishop to pin the knight to the king.',
+    fen: 'r1bqkbnr/ppp2ppp/2np4/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R',
+    line: ['f1b5'],
+    word: 'PRECLUDE',
+    explanation: 'Bb5 pins the knight on c6 along the diagonal to the king on e8.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_opening_relative_pin_1',
+    type: 'Pin',
+    tactic: 'Opening Relative Pin',
+    desc: 'Develop the bishop and pin the knight to the queen behind it.',
+    fen: 'rnbqkb1r/pppp1ppp/4pn2/8/2PP4/2N5/PP2PPPP/R1BQKBNR',
+    line: ['c1g5'],
+    word: 'CONSTRAIN',
+    explanation: 'Bg5 attacks the knight on f6, and the queen on d8 sits behind it on the same diagonal.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_midgame_knight_fork_1',
+    type: 'Fork',
+    tactic: 'Midgame Knight Fork',
+    desc: 'The knight can attack two major pieces without giving check.',
+    fen: '1rbq1rk1/p1p1bppp/4pn2/4N3/3P4/2P2N2/PP3PPP/R1BQ1RK1',
+    line: ['e5c6'],
+    word: 'ASTUTE',
+    explanation: 'Nc6 attacks both the queen on d8 and the rook on b8.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_midgame_discovered_rook_attack_1',
+    type: 'Discovered Attack',
+    tactic: 'Discovered Rook Attack',
+    desc: 'Move the knight to uncover the rook attack and create a second threat.',
+    fen: '4q1k1/5ppp/8/3r4/8/8/4NPPP/4R1K1',
+    line: ['e2f4'],
+    word: 'INCISIVE',
+    explanation: 'Nf4 clears the e-file for the rook on e1 and also attacks the rook on d5.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_midgame_discovered_bishop_attack_1',
+    type: 'Discovered Attack',
+    tactic: 'Discovered Bishop Attack',
+    desc: 'Move the knight and reveal the bishop attack hiding behind it.',
+    fen: '6k1/5pqp/8/8/3N4/8/1B3PPP/6K1',
+    line: ['d4f5'],
+    word: 'ELUSIVE',
+    explanation: 'Nf5 moves off the long diagonal, uncovering the bishop on b2 against the queen on g7.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_midgame_loose_queen_capture_1',
+    type: 'Winning Capture',
+    tactic: 'Loose Queen',
+    desc: 'The queen has wandered too far into the center. Take the clean material.',
+    fen: 'r3k2r/ppp2ppp/2n5/3q4/3P4/2N5/PPP2PPP/R2QK2R',
+    line: ['c3d5'],
+    word: 'EXPLOIT',
+    explanation: 'Nxd5 wins the queen outright.',
+    difficulty: 'medium',
+  }),
+  curatedPuzzle({
+    id: 'cq_midgame_loose_queen_capture_2',
+    type: 'Winning Capture',
+    tactic: 'Loose Queen',
+    desc: 'A central queen is loose. Find the capture that wins material.',
+    fen: 'r4rk1/ppp2ppp/2n5/3q4/2BP4/5N2/PPP1PPPP/R2Q1RK1',
+    line: ['c4d5'],
+    word: 'DECISIVE',
+    explanation: 'Bxd5 wins the queen on d5.',
     difficulty: 'medium',
   }),
 ];
@@ -8433,7 +8646,8 @@ function buildGeneratedChessPuzzles() {
 function puzzleFamily(puzzle) {
   if (puzzle.type === 'Checkmate in 1') return 'Mate in 1';
   if (puzzle.type === 'Checkmate in 2') return 'Mate in 2';
-  if (puzzle.type === 'Discovered Check') return 'Discovered Check';
+  if (puzzle.type === 'Discovered Check' || puzzle.type === 'Discovered Attack') return 'Discovered Attack';
+  if (puzzle.type === 'Winning Capture') return 'Winning Capture';
   return puzzle.type;
 }
 
@@ -8450,6 +8664,8 @@ function balancePuzzleBank(puzzles) {
     Fork: 95,
     Pin: 85,
     Skewer: 75,
+    'Discovered Attack': 70,
+    'Winning Capture': 70,
   };
   const randomizedPuzzles = shufflePuzzleDeckRaw(puzzles);
   const primaryGroups = {};
@@ -8524,6 +8740,40 @@ function getPlayableChessPuzzles() {
   return PLAYABLE_CHESS_PUZZLES_CACHE;
 }
 
+function chessPuzzleValidationReport(puzzles = CURATED_CHESS_PUZZLES) {
+  const rows = puzzles.map(puzzle => {
+    const B = (puzzle.board || makePuzzleBoard(puzzle.fen)).map(row => row.map(piece => piece ? {...piece} : null));
+    const startLegal = puzzleStartIsLegal(B);
+    const acceptedMoves = startLegal ? puzzleCorrectMoves(puzzle, B, 0).map(puzzleMoveLabel) : [];
+    return {
+      id: puzzle.id,
+      type: puzzle.type,
+      tactic: puzzle.tactic,
+      exact: puzzleUsesExactSolution(puzzle),
+      playable: isPuzzlePlayable(puzzle),
+      solution: puzzleMoveLabel(puzzle.solution[0]),
+      acceptedMoves,
+      acceptedCount: acceptedMoves.length,
+    };
+  });
+  const byType = rows.reduce((acc, row) => {
+    acc[row.type] = (acc[row.type] || 0) + 1;
+    return acc;
+  }, {});
+  return {
+    total: rows.length,
+    playable: rows.filter(row => row.playable).length,
+    rejected: rows.filter(row => !row.playable),
+    multipleAccepted: rows.filter(row => row.acceptedCount > 1),
+    byType,
+    rows,
+  };
+}
+
+if (typeof window !== 'undefined') {
+  window.validateChessPuzzles = () => chessPuzzleValidationReport(CURATED_CHESS_PUZZLES);
+}
+
 function shufflePuzzleDeckRaw(puzzles) {
   const deck = [...puzzles];
   for (let i = deck.length - 1; i > 0; i--) {
@@ -8539,6 +8789,7 @@ function shufflePuzzleDeck(puzzles) {
 
 const CHESS_PUZZLE_RECENT_KEY = 'chess_puzzle_recent_ids';
 const CHESS_PUZZLE_RECENT_LIMIT = 12;
+const CHESS_PUZZLE_BAG_KEY = 'chess_puzzle_shuffle_bag_v2';
 
 function getRecentChessPuzzleIds() {
   try {
@@ -8556,18 +8807,62 @@ function rememberChessPuzzle(id) {
     ids.unshift(id);
     localStorage.setItem(CHESS_PUZZLE_RECENT_KEY, JSON.stringify(ids.slice(0, CHESS_PUZZLE_RECENT_LIMIT)));
   } catch(e) {}
+  try {
+    const pool = getPlayableChessPuzzles();
+    const byId = Object.fromEntries(pool.map(puzzle => [puzzle.id, puzzle]));
+    const bag = getChessPuzzleBag(pool);
+    const remaining = bag.remaining.filter(puzzleId => puzzleId !== id && byId[puzzleId]);
+    saveChessPuzzleBag(bag.signature, remaining);
+  } catch(e) {}
+}
+
+function chessPuzzlePoolSignature(puzzles) {
+  return puzzles.map(puzzle => puzzle.id).sort().join('|');
+}
+
+function makeChessPuzzleBag(puzzles) {
+  const recent = new Set(getRecentChessPuzzleIds());
+  const fresh = puzzles.filter(puzzle => !recent.has(puzzle.id));
+  const delayed = puzzles.filter(puzzle => recent.has(puzzle.id));
+  return [
+    ...balancePuzzleBank(fresh),
+    ...balancePuzzleBank(delayed),
+  ].map(puzzle => puzzle.id);
+}
+
+function saveChessPuzzleBag(signature, remaining) {
+  try {
+    localStorage.setItem(CHESS_PUZZLE_BAG_KEY, JSON.stringify({ signature, remaining }));
+  } catch(e) {}
+}
+
+function getChessPuzzleBag(puzzles) {
+  const byId = Object.fromEntries(puzzles.map(puzzle => [puzzle.id, puzzle]));
+  const signature = chessPuzzlePoolSignature(puzzles);
+  let remaining = [];
+  try {
+    const saved = JSON.parse(localStorage.getItem(CHESS_PUZZLE_BAG_KEY) || 'null');
+    if (saved?.signature === signature && Array.isArray(saved.remaining)) {
+      remaining = saved.remaining.filter(id => byId[id]);
+    }
+  } catch(e) {}
+  if (!remaining.length) {
+    remaining = makeChessPuzzleBag(puzzles);
+  }
+  saveChessPuzzleBag(signature, remaining);
+  return { signature, remaining };
 }
 
 function buildPuzzleSessionDeck() {
-  const deck = shufflePuzzleDeck(getPlayableChessPuzzles());
-  const recent = new Set(getRecentChessPuzzleIds());
-  const fresh = deck.filter(puzzle => !recent.has(puzzle.id));
-  const delayed = deck.filter(puzzle => recent.has(puzzle.id));
-  return fresh.length >= Math.min(8, Math.ceil(deck.length * 0.35)) ? [...fresh, ...delayed] : deck;
+  const pool = getPlayableChessPuzzles();
+  const byId = Object.fromEntries(pool.map(puzzle => [puzzle.id, puzzle]));
+  const bag = getChessPuzzleBag(pool);
+  const remainingDeck = bag.remaining.map(id => byId[id]).filter(Boolean);
+  return remainingDeck.length ? remainingDeck : pool;
 }
 
 function shufflePuzzleChoices(choices) {
-  return shuffleWithBalancedCorrect(choices, choice => choice.correct, 'chess_puzzle_sentence');
+  return shuffleWithBalancedCorrect(choices, choice => choice.correct, 'chess_puzzle_vocab_answer');
 }
 
 function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
@@ -8582,10 +8877,11 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const [wrongGuesses, setWrongGuesses] = useState(0);
   const MAX_GUESSES = 3;
   const [moveStep, setMoveStep] = useState(0);
-  const [quizChoices, setQuizChoices] = useState([]); // shuffled sentences
+  const [quizChoices, setQuizChoices] = useState([]);
   const [quizPicked, setQuizPicked] = useState(null); // index picked
   const [showSolvedPopup, setShowSolvedPopup] = useState(false);
   const [quizWord, setQuizWord] = useState(null);
+  const [quizQuestion, setQuizQuestion] = useState(null);
   const [puzzleCheckpointStreak, setPuzzleCheckpointStreak] = useState(0);
   const [checkpointCount, setCheckpointCount] = useState(PUZZLES_PER_VOCAB);
   const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth, 420) - 32 - 64) / 8));
@@ -8601,6 +8897,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
     setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
     setMoveStep(0); setQuizPicked(null); setWrongGuesses(0); setShowSolvedPopup(false);
     setQuizWord(null);
+    setQuizQuestion(null);
     setQuizChoices([]);
   }, [puzzleIdx, puzzle.id]);
 
@@ -8613,9 +8910,15 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   };
 
   const launchQuiz = () => {
-    const nextWord = getNextWord('chess_puzzle_vocab_queue', wordBank) || wordEntry;
-    setQuizWord(nextWord);
-    setQuizChoices(shufflePuzzleChoices(buildPuzzleVocabChoices(nextWord, puzzle)));
+    const quizType = getNextChessPuzzleVocabType();
+    const puzzleWordEntry = wordBank.find(w => w.word === puzzle.word);
+    const nextWord = quizType === 'tactic' && puzzleWordEntry
+      ? puzzleWordEntry
+      : getNextWord('chess_puzzle_vocab_queue', wordBank) || wordEntry;
+    const nextQuestion = buildPuzzleVocabQuiz(nextWord, puzzle, quizType, wordBank);
+    setQuizWord(nextQuestion.entry || nextWord);
+    setQuizQuestion(nextQuestion);
+    setQuizChoices(shufflePuzzleChoices(nextQuestion.choices));
     setShowSolvedPopup(false);
     setStatus('quiz');
     setMsg('');
@@ -8787,6 +9090,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
                       {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff33'}}/>}
                       {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff44',pointerEvents:'none'}}/>}
                       {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize}/>}
+                      <ChessSquareCoordinateLabels r={r} c={c} isLight={isLight} />
                     </div>
                   );
                 })}
@@ -8798,6 +9102,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
               setSelected(null); setLegalDests([]); setStatus('idle'); setMsg('');
               setMoveStep(0); setQuizPicked(null); setWrongGuesses(0); setShowSolvedPopup(false);
               setQuizWord(null);
+              setQuizQuestion(null);
               setQuizChoices([]);
             }} style={{
               padding:'8px 20px', borderRadius:8, background:'none',
@@ -8807,24 +9112,26 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
           </>
         )}
 
-        {/* Phase 2: Vocab sentence quiz */}
+        {/* Phase 2: Vocab checkpoint quiz */}
         {(status === 'quiz' || status === 'quizRight' || status === 'quizWrong') && (
           <div style={{width:'100%',maxWidth:`${cellSize*8+4}px`,display:'flex',flexDirection:'column',gap:12,animation:'fadeIn 0.3s ease'}}>
 
 	            {/* Header */}
 	            <div style={{background:theme.surface,borderRadius:10,padding:'16px 14px',border:`1px solid ${C}44`}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                <span style={{fontFamily:theme.fontMono,fontSize:16,fontWeight:700,color:'#fff',letterSpacing:2}}>{wordEntry.word.charAt(0) + wordEntry.word.slice(1).toLowerCase()}</span>
-                {wordEntry && <span style={{fontSize:11,color:C+'aa',fontStyle:'italic',background:C+'22',borderRadius:4,padding:'1px 7px'}}>
+                <span style={{fontFamily:theme.fontMono,fontSize:16,fontWeight:700,color:'#fff',letterSpacing:2}}>
+                  {quizQuestion?.title || puzzleWordTitle(wordEntry.word)}
+                </span>
+                {quizQuestion?.showPos !== false && wordEntry && <span style={{fontSize:11,color:C+'aa',fontStyle:'italic',background:C+'22',borderRadius:4,padding:'1px 7px'}}>
                   {wordEntry.pos==='v'?'verb':wordEntry.pos==='n'?'noun':wordEntry.pos==='adj'?'adjective':wordEntry.pos==='adv'?'adverb':wordEntry.pos}
                 </span>}
               </div>
               <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>
-                Which sentence uses <strong>{wordEntry.word}</strong> correctly?
+                {quizQuestion?.prompt || `Which answer best matches ${wordEntry.word}?`}
               </div>
             </div>
 
-            {/* Sentence choices */}
+            {/* Answer choices */}
             {quizChoices.map((choice, i) => {
               let bg = 'transparent', border = 'rgba(255,255,255,0.12)', color = 'rgba(255,255,255,0.85)';
               if (quizPicked !== null) {
@@ -8867,7 +9174,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
                 ) : (
                   <div style={{background:theme.danger+'18',borderRadius:10,padding:'12px 14px',border:`1px solid ${theme.danger}44`,marginBottom:8}}>
                     <div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.5}}>
-	                      Not quite — the correct sentence is highlighted above.
+	                      Not quite — the correct answer is highlighted above.
                     </div>
                     {wordEntry?.def && (
                       <div style={{marginTop:6,fontSize:12,color:theme.textMuted,lineHeight:1.45}}>
@@ -9621,6 +9928,7 @@ function VocabChess({ onBack, onCorrect, wordBank = WORD_BANK }) {
                     rainbowGlow={piece.color===playerColor && rainbowPreview}
                     flameSeed={r * 8 + c}
                   />}
+                  <ChessSquareCoordinateLabels r={r} c={c} displayR={displayR} displayC={displayC} isLight={isLight} />
                 </div>
               );
             })}
@@ -10025,6 +10333,7 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
       animation: 'fadeIn 0.2s ease',
       padding: '20px',
     }}>
+      {revealed && correct && <PixelWinBurst />}
       <div style={{
         background: theme.surface,
         border: `1.5px solid ${C}cc`,
@@ -10033,6 +10342,7 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
         padding: '28px 24px 24px',
         maxWidth: 360, width: '100%',
         position: 'relative',
+        zIndex: 1,
       }}>
         <div style={{ textAlign: 'center', marginBottom: quizReady ? 10 : 4 }}>
           <img
@@ -10813,8 +11123,7 @@ function VocabChessStockfish({ onBack, onCorrect, wordBank = WORD_BANK }) {
                 {isDest&&!piece&&<div style={{width:'33%',height:'33%',borderRadius:'50%',background:'#ffffff44'}}/>}
                 {isDest&&piece&&piece.color==='b'&&<div style={{position:'absolute',inset:2,borderRadius:'50%',border:'3px solid #ffffff55',pointerEvents:'none'}}/>}
                 {piece&&<ChessPiece color={piece.color} type={piece.type} size={cellSize} fireGlow={piece.color==='w' && correctStreak >= 3} flameSeed={r * 8 + c}/>}
-                {r===7&&<div style={{position:'absolute',bottom:1,right:3,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{'abcdefgh'[c]}</div>}
-                {c===0&&<div style={{position:'absolute',top:1,left:2,fontSize:9,color:isLight?'#4a7fa5':'#b8d4e8',fontFamily:'monospace',pointerEvents:'none',userSelect:'none'}}>{8-r}</div>}
+                <ChessSquareCoordinateLabels r={r} c={c} isLight={isLight} />
               </div>
             );
           })}

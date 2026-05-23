@@ -2252,22 +2252,37 @@ const globalStyle = `
     0%,100% { transform: translateY(0); }
     50% { transform: translateY(-3px); }
   }
+  @keyframes homeShipLaser {
+    0% { opacity: 0; transform: translateX(-50%) translateY(0); }
+    6% { opacity: 1; }
+    88% { opacity: 1; transform: translateX(-50%) translateY(calc(-100vh - 20px)); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(calc(-100vh - 44px)); }
+  }
   .home-ship-lane {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
     height: 64px;
-    overflow: hidden;
+    overflow: visible;
     pointer-events: none;
-    z-index: 2;
+    z-index: 1;
   }
   .home-ship-track {
     position: absolute;
     bottom: 6px;
     width: 52px;
     height: 52px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: crosshair;
+    pointer-events: auto;
     animation: homeShipCruise 7.2s linear infinite alternate;
+  }
+  .home-ship-track:focus-visible {
+    outline: 2px solid #00e5ff;
+    outline-offset: 3px;
   }
   .home-ship-sprite {
     width: 52px;
@@ -2277,6 +2292,19 @@ const globalStyle = `
     image-rendering: pixelated;
     filter: drop-shadow(0 0 3px #00e5ffcc) drop-shadow(0 0 7px #7c5cfc88);
     animation: homeShipBob 0.9s steps(2, end) infinite;
+  }
+  .home-ship-laser {
+    position: absolute;
+    left: 50%;
+    bottom: 43px;
+    width: 3px;
+    height: 26px;
+    transform: translateX(-50%) translateY(0);
+    background: #ff2d55;
+    box-shadow: 0 0 4px #ff2d55cc, 0 0 8px #ff5e7a88;
+    image-rendering: pixelated;
+    pointer-events: none;
+    animation: homeShipLaser 780ms steps(12, end) both;
   }
   @keyframes firePieceGlow {
     0%,100% { filter: drop-shadow(0 0 1px #fff6b0) drop-shadow(0 -1px 1px #ffd43b) drop-shadow(0 -2px 1px #ff4a16); }
@@ -2767,6 +2795,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
   const pct = Math.round((masteredCount / total) * 100);
   const [showMastered, setShowMastered] = useState(false);
   const [loadedIcons, setLoadedIcons] = useState({});
+  const [shipLaserId, setShipLaserId] = useState(0);
   const ICON_KEYS = ['hangman','crossword','search','oddoneout','ear','chess'];
   const allIconsLoaded = ICON_KEYS.every(k => loadedIcons[k]);
   const toggleProfile = () => {
@@ -3006,7 +3035,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
 
       {/* Compact header */}
       <div style={{
-        position: "relative", overflow: "hidden", flexShrink: 0,
+        position: "relative", zIndex: 3, overflow: "hidden", flexShrink: 0,
         padding: "32px 20px 22px",
       }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px)", zIndex: 2 }} />
@@ -3092,13 +3121,13 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
       </div>
 
       {/* Tagline */}
-      <div style={{ textAlign: 'center', padding: '4px 14px 12px', flexShrink: 0 }}>
+      <div style={{ textAlign: 'center', padding: '4px 14px 12px', flexShrink: 0, position: 'relative', zIndex: 3 }}>
           <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block' }}>6 GAMES. ONE GOAL:</span>
           <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#ffffff', letterSpacing: 2, display: 'block', marginTop: 4 }}>ACTUALLY LEARN THE WORDS.</span>
         </div>
 
       {/* 2×3 game grid */}
-      <div style={{ flex: '0 0 auto', padding: "6px 14px 8px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, minmax(88px, auto))', gap: 8, alignContent: 'start' }}>
+      <div style={{ flex: '0 0 auto', padding: "6px 14px 8px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, minmax(88px, auto))', gap: 8, alignContent: 'start', position: 'relative', zIndex: 3 }}>
         {games.map((g, i) => (
           <div key={g.id} className="fadeIn" style={{
             animationDelay: '0.1s', cursor: "pointer",
@@ -3133,14 +3162,20 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
         ))}
       </div>
 
-      <div className="home-ship-lane" aria-hidden="true">
-        <div className="home-ship-track">
+      <div className="home-ship-lane">
+        <button
+          type="button"
+          className="home-ship-track"
+          aria-label="Shoot laser"
+          onClick={() => setShipLaserId(id => id + 1)}
+        >
+          {shipLaserId > 0 && <span key={shipLaserId} className="home-ship-laser" />}
           <img
             className="home-ship-sprite"
             src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/ship.png"
             alt=""
           />
-        </div>
+        </button>
       </div>
 
       {/* Mastered words modal */}

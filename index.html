@@ -2785,6 +2785,39 @@ function PixelBolt({ size = 18, style = {} }) {
   );
 }
 
+let shipLaserAudioCtx = null;
+
+function playShipLaserSound() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
+  try {
+    const ctx = typeof getAudioContext === 'function'
+      ? getAudioContext()
+      : (shipLaserAudioCtx = shipLaserAudioCtx || new AudioCtx());
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(980, now);
+    osc.frequency.exponentialRampToValueAtTime(260, now + 0.13);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2400, now);
+    filter.frequency.exponentialRampToValueAtTime(800, now + 0.13);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.045, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.16);
+  } catch(e) {}
+}
+
 function GameHeaderTitle({ game, title, color, detail, fontSize = 15 }) {
   const src = HOME_GAME_ICON_SOURCES[game];
   const iconSize = game === 'crossword' || game === 'chess' ? 22 : 24;
@@ -2821,6 +2854,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
   const ICON_KEYS = ['hangman','crossword','search','oddoneout','ear','chess'];
   const allIconsLoaded = ICON_KEYS.every(k => loadedIcons[k]);
   const fireShipLaser = () => {
+    playShipLaserSound();
     const id = `${Date.now()}-${Math.random()}`;
     setShipLasers(lasers => [...lasers, id]);
   };
@@ -7883,36 +7917,17 @@ function puzzleDefinitionPhrase(entry) {
 
 function buildPuzzleVocabChoices(entry, puzzle) {
   if (!entry?.word) return puzzle.sentences || puzzleSentencesFor(puzzle.word);
-  const pos = puzzleWordPos(entry.pos);
-  const def = puzzleDefinitionPhrase(entry);
-  const correctByPos = {
-    adjective: `In the chess review, the coach used ___ to mean ${def}.`,
-    verb: `In the chess review, to ___ meant to ${def}.`,
-    noun: `In the chess review, ___ meant ${def}.`,
-    adverb: `In the chess review, White moved ___, meaning ${def}.`,
-  };
-  const wrongByPos = {
-    adjective: [
-      'White tried to ___ the rook with a knight check.',
-      'The queen gained a ___ after black moved the king.'
-    ],
-    verb: [
-      'The ___ rook gave check along the open file.',
-      'Black found a ___ on the back rank after the fork.'
-    ],
-    noun: [
-      'The bishop tried to ___ the pinned knight.',
-      'The ___ queen moved to the open diagonal.'
-    ],
-    adverb: [
-      'The ___ bishop pinned the knight to the king.',
-      'White tried to ___ the queen with a discovered attack.'
-    ],
-  };
+  if (entry.example && Array.isArray(entry.distractors) && entry.distractors.length >= 2) {
+    return [
+      { text: entry.example, correct: true },
+      { text: entry.distractors[0], correct: false },
+      { text: entry.distractors[1], correct: false },
+    ];
+  }
   return [
-    { text: correctByPos[pos] || correctByPos.adjective, correct: true },
-    { text: wrongByPos[pos][0], correct: false },
-    { text: wrongByPos[pos][1], correct: false },
+    { text: `The word ___ means ${entry.def || 'the definition shown'}.`, correct: true },
+    { text: `The word ___ means the opposite of this definition.`, correct: false },
+    { text: `The word ___ describes a random move with no connection to its definition.`, correct: false },
   ];
 }
 
@@ -8070,7 +8085,7 @@ const CURATED_CHESS_PUZZLES = [
     type: 'Checkmate in 1',
     tactic: 'Opening Mate',
     desc: 'This opening attack is already aimed at f7. Find the finishing move.',
-    fen: 'rnbqkbnr/pppppppp/8/7Q/2B1P3/8/PPPP1PPP/RNB1K1NR',
+    fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR',
     line: ['h5f7'],
     word: 'DECISIVE',
     explanation: 'Qxf7 is protected by the bishop on c4, and the boxed-in king has no escape.',
@@ -8081,7 +8096,7 @@ const CURATED_CHESS_PUZZLES = [
     type: 'Fork',
     tactic: 'Opening Royal Fork',
     desc: 'The knight can jump into the position and attack two high-value targets.',
-    fen: 'rnb1kbnr/pppppppp/8/1N6/4P3/8/PPPP1PPP/R1BQKBNR',
+    fen: 'r1b1kbnr/1pppqppp/p1n5/1N2p3/4P3/8/PPPP1PPP/R1BQKBNR',
     line: ['b5c7'],
     word: 'ASTUTE',
     explanation: 'Nxc7+ checks the king and attacks the rook on a8.',
@@ -8092,7 +8107,7 @@ const CURATED_CHESS_PUZZLES = [
     type: 'Pin',
     tactic: 'Opening Bishop Pin',
     desc: 'Develop the bishop to freeze the knight in front of the king.',
-    fen: 'r1bqkbnr/ppp1pppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR',
+    fen: 'r1bqkbnr/ppp1pppp/2np4/8/4P3/8/PPPP1PPP/RNBQKBNR',
     line: ['f1b5'],
     word: 'PRECLUDE',
     explanation: 'Bb5 pins the knight on c6 to the king on e8.',
@@ -8498,14 +8513,14 @@ function getPlayableChessPuzzles() {
     .map(puzzle => ({ ...puzzle, exact: true, source: 'legacy' }))
     .filter(isPuzzlePlayable)
     .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
-  const playable = [...curated, ...legacy]
+  const playable = curated
     .filter(puzzle => {
       const key = puzzleGeneratorKey(puzzle);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  PLAYABLE_CHESS_PUZZLES_CACHE = playable.length ? playable : CHESS_PUZZLES;
+  PLAYABLE_CHESS_PUZZLES_CACHE = playable.length ? playable : legacy;
   return PLAYABLE_CHESS_PUZZLES_CACHE;
 }
 
@@ -8805,7 +8820,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
                 </span>}
               </div>
               <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>
-                Which chess sentence uses <strong>{wordEntry.word}</strong> correctly?
+                Which sentence uses <strong>{wordEntry.word}</strong> correctly?
               </div>
             </div>
 

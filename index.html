@@ -2372,10 +2372,10 @@ const globalStyle = `
     z-index: 0;
     overflow: hidden;
   }
-  .pixel-win-bit {
-    position: absolute;
-    left: 50%;
-    top: 46%;
+	  .pixel-win-bit {
+	    position: absolute;
+	    left: 50%;
+	    top: 46%;
     width: 10px;
     height: 10px;
     background: var(--bit-color, ${theme.success});
@@ -2403,9 +2403,73 @@ const globalStyle = `
     100% {
       opacity: 0;
       transform: translate(calc(-50% + var(--bit-x)), calc(-50% + var(--bit-y))) scale(1);
-    }
-  }
-  @keyframes flameBed {
+	    }
+	  }
+	  .pixel-fireworks-layer {
+	    position: fixed;
+	    inset: 0;
+	    pointer-events: none;
+	    overflow: hidden;
+	    z-index: 2;
+	  }
+	  .pixel-firework {
+	    position: absolute;
+	    left: var(--fw-x);
+	    top: var(--fw-y);
+	    width: 0;
+	    height: 0;
+	  }
+	  .pixel-firework-bit {
+	    position: absolute;
+	    left: 0;
+	    top: 0;
+	    width: 8px;
+	    height: 8px;
+	    background: var(--fw-color);
+	    image-rendering: pixelated;
+	    opacity: 0;
+	    transform: translate(-50%, -50%) scale(0.65);
+	    box-shadow: 0 0 0 2px rgba(255,255,255,0.08), 0 0 10px var(--fw-color);
+	    animation: pixelFireworkBit 1450ms steps(8, end) var(--fw-delay, 0ms) both;
+	  }
+	  .pixel-firework-bit::after {
+	    content: "";
+	    position: absolute;
+	    left: 3px;
+	    top: -7px;
+	    width: 3px;
+	    height: 3px;
+	    background: var(--fw-color);
+	    box-shadow: 0 0 8px var(--fw-color);
+	  }
+	  @media (max-width: 520px) {
+	    .pixel-firework-bit {
+	      width: 7px;
+	      height: 7px;
+	      animation-duration: 1650ms;
+	    }
+	    .pixel-firework-bit::after {
+	      left: 2px;
+	      top: -6px;
+	    }
+	  }
+	  @keyframes pixelFireworkBit {
+	    0% {
+	      opacity: 0;
+	      transform: translate(-50%, -50%) scale(0.45);
+	    }
+	    10% {
+	      opacity: 1;
+	    }
+	    68% {
+	      opacity: 1;
+	    }
+	    100% {
+	      opacity: 0;
+	      transform: translate(calc(-50% + var(--fw-dx)), calc(-50% + var(--fw-dy))) scale(1.05);
+	    }
+	  }
+	  @keyframes flameBed {
     0%,100% { opacity: 0.78; transform: scaleX(0.94) scaleY(0.92); }
     50% { opacity: 0.9; transform: scaleX(1.01) scaleY(1); }
   }
@@ -7474,6 +7538,48 @@ function PixelWinBurst() {
   );
 }
 
+function PixelFireworksOverlay() {
+  const colors = ['#ff3b8a', '#ffd23c', '#31f5ff', '#a855f7', '#ffffff', '#22c55e'];
+  const bursts = [
+    ['50%', '24%', 0],
+    ['22%', '38%', 130],
+    ['78%', '38%', 210],
+    ['32%', '66%', 310],
+    ['68%', '66%', 390],
+  ];
+  const rays = [
+    [0, -96], [40, -82], [78, -44], [92, 0], [76, 42], [38, 78],
+    [0, 92], [-38, 78], [-76, 42], [-92, 0], [-78, -44], [-40, -82],
+  ];
+  return (
+    <div className="pixel-fireworks-layer" aria-hidden="true">
+      {bursts.map(([x, y, delay], burstIndex) => (
+        <div
+          key={`${x}-${y}`}
+          className="pixel-firework"
+          style={{ '--fw-x': x, '--fw-y': y }}
+        >
+          {rays.map(([dx, dy], bitIndex) => {
+            const spread = 0.82 + ((burstIndex + bitIndex) % 3) * 0.12;
+            return (
+              <span
+                key={bitIndex}
+                className="pixel-firework-bit"
+                style={{
+                  '--fw-dx': `${Math.round(dx * spread)}px`,
+                  '--fw-dy': `${Math.round(dy * spread)}px`,
+                  '--fw-delay': `${delay + (bitIndex % 4) * 24}ms`,
+                  '--fw-color': colors[(burstIndex + bitIndex) % colors.length],
+                }}
+              />
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 // ── Canvas-based Explosion Effect (GPU composited — no SVG lag on mobile) ──────
 function useExplosion() {
@@ -7619,6 +7725,34 @@ function puzzleMoveLabelWithPiece(B, move) {
   const piece = B?.[move.from[0]]?.[move.from[1]];
   const name = piece ? `${PIECE_NAMES[piece.type]} ` : '';
   return `${name}${puzzleMoveLabel(move)}`;
+}
+
+function puzzleMovePieceName(B, move) {
+  const piece = B?.[move?.from?.[0]]?.[move?.from?.[1]];
+  return piece ? PIECE_NAMES[piece.type] : 'piece';
+}
+
+function puzzleNeutralTacticLabel(puzzle, showPieceHint = false) {
+  if (showPieceHint) return puzzle.tactic;
+  if (puzzle.type === 'Fork') return puzzle.tactic.includes('Opening') ? 'Opening Fork' : puzzle.tactic.includes('Midgame') ? 'Midgame Fork' : 'Fork';
+  if (puzzle.type === 'Pin') return puzzle.tactic.includes('Opening') ? 'Opening Pin' : 'Pin';
+  if (puzzle.type === 'Skewer') return 'Skewer';
+  if (puzzle.type === 'Discovered Attack' || puzzle.type === 'Discovered Check') return 'Discovered Attack';
+  if (puzzle.type === 'Winning Capture') return 'Winning Capture';
+  if (puzzle.type.includes('Checkmate')) return puzzle.type.includes('2') ? 'Mate Pattern' : 'Checkmate';
+  return puzzle.tactic;
+}
+
+function puzzleNeutralPrompt(puzzle, showPieceHint = false) {
+  if (showPieceHint) return puzzle.desc;
+  if (puzzle.type === 'Fork') return 'Find the move that creates a fork.';
+  if (puzzle.type === 'Pin') return 'Find the move that creates a pin.';
+  if (puzzle.type === 'Skewer') return 'Find the move that creates a skewer.';
+  if (puzzle.type === 'Discovered Attack' || puzzle.type === 'Discovered Check') return 'Find the move that reveals a hidden attack.';
+  if (puzzle.type === 'Winning Capture') return 'Find the move that wins material.';
+  if (puzzle.type === 'Checkmate in 2') return 'Find the forcing first move. Black has one reply, then finish the checkmate.';
+  if (puzzle.type.includes('Checkmate')) return 'Find the move that delivers checkmate.';
+  return puzzle.desc;
 }
 
 function puzzleSolutionLineLabel(puzzle, fromStep = 0) {
@@ -8884,6 +9018,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const [quizQuestion, setQuizQuestion] = useState(null);
   const [puzzleCheckpointStreak, setPuzzleCheckpointStreak] = useState(0);
   const [checkpointCount, setCheckpointCount] = useState(PUZZLES_PER_VOCAB);
+  const [showPieceHint, setShowPieceHint] = useState(false);
   const cellSize = Math.min(44, Math.floor((Math.min(window.innerWidth, 420) - 32 - 64) / 8));
 
   const [shuffledPuzzles, setShuffledPuzzles] = useState(() => buildPuzzleSessionDeck());
@@ -8899,6 +9034,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
     setQuizWord(null);
     setQuizQuestion(null);
     setQuizChoices([]);
+    setShowPieceHint(false);
   }, [puzzleIdx, puzzle.id]);
 
   const goToNextPuzzle = () => {
@@ -8930,12 +9066,12 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
     const nextStreak = puzzleCheckpointStreak + 1;
     setPuzzleCheckpointStreak(nextStreak);
     setStatus('solved');
-    if (nextStreak >= PUZZLES_PER_VOCAB) {
-      setCheckpointCount(nextStreak);
+    if (nextStreak >= PUZZLES_PER_VOCAB && nextStreak % PUZZLES_PER_VOCAB === 0) {
+      setCheckpointCount(PUZZLES_PER_VOCAB);
       setMsg('');
       setShowSolvedPopup(true);
     } else {
-      const remaining = PUZZLES_PER_VOCAB - nextStreak;
+      const remaining = PUZZLES_PER_VOCAB - (nextStreak % PUZZLES_PER_VOCAB);
       setShowSolvedPopup(false);
       setMsg(`Nice tactic — ${remaining} more before vocab.`);
       setTimeout(() => {
@@ -8948,7 +9084,6 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const handleQuizPick = (idx) => {
     if (quizPicked !== null) return;
 	    setQuizPicked(idx);
-	    setPuzzleCheckpointStreak(0);
 	    if (quizChoices[idx].correct) {
 	      setStatus('quizRight');
 	      if (wordEntry?.word) onCorrect(wordEntry.word);
@@ -8994,9 +9129,9 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
         } else {
           const newWrong = wrongGuesses + 1;
           setWrongGuesses(newWrong);
+          setPuzzleCheckpointStreak(0);
           setSelected(null); setLegalDests([]);
 	          if (newWrong >= MAX_GUESSES) {
-	            setPuzzleCheckpointStreak(0);
 	            // Show the correct move
 	            const sol = puzzle.solution[moveStep];
 	            const answerLabel = puzzleUsesExactSolution(puzzle) ? 'Best move' : 'One correct move';
@@ -9034,7 +9169,9 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
         <div style={{position:'absolute',left:0,right:0,textAlign:'center',pointerEvents:'none'}}>
           <GameHeaderTitle game="chess" title="CHESS PUZZLES" color={C} />
         </div>
-        <div style={{width:60}} />
+        <div style={{minWidth:68,display:'flex',justifyContent:'flex-end'}}>
+          {puzzleCheckpointStreak >= 3 && <Badge color={theme.gold}>🔥 {puzzleCheckpointStreak}</Badge>}
+        </div>
       </div>
 
       <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'16px 16px 24px',gap:12}}>
@@ -9045,14 +9182,35 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
             <div style={{width:'100%',maxWidth:`${cellSize*8+4}px`,background:theme.surface,borderRadius:10,padding:'12px 14px',border:`1px solid ${C}44`}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:1,fontWeight:700}}>{puzzle.type}</span>
-                <span style={{fontSize:11,color:theme.textMuted,fontStyle:'italic'}}>{puzzle.tactic}</span>
+                <span style={{fontSize:11,color:theme.textMuted,fontStyle:'italic'}}>{puzzleNeutralTacticLabel(puzzle, showPieceHint)}</span>
 	              </div>
-	              <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>{puzzle.desc}</div>
+	              <div style={{fontSize:13,color:theme.text,lineHeight:1.5}}>{puzzleNeutralPrompt(puzzle, showPieceHint)}</div>
 	              {puzzle.solution.length > 1 && moveStep > 0 && status !== 'solved' && (
 	                <div style={{marginTop:8,fontSize:12,color:C,fontWeight:700,lineHeight:1.4}}>
 	                  Black replied. Find the finishing move.
 	                </div>
 	              )}
+              {status !== 'revealed' && (
+                <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                  <button onClick={() => setShowPieceHint(true)} disabled={showPieceHint} style={{
+                    display:'inline-flex',alignItems:'center',gap:5,
+                    background:showPieceHint ? C+'18' : 'transparent',
+                    border:`1px solid ${showPieceHint ? C+'55' : C+'44'}`,
+                    color:showPieceHint ? C : theme.textMuted,
+                    borderRadius:7,padding:'5px 9px',
+                    fontFamily:theme.fontMono,fontSize:10,fontWeight:700,
+                    cursor:showPieceHint ? 'default' : 'pointer',
+                    letterSpacing:0.4,
+                  }}>
+                    <PixelBolt size={11} /> PIECE HINT
+                  </button>
+                  {showPieceHint && (
+                    <span style={{fontFamily:theme.fontMono,fontSize:10,color:C,letterSpacing:0.5}}>
+                      Try moving the {puzzleMovePieceName(userBoard, puzzle.solution[moveStep])}.
+                    </span>
+                  )}
+                </div>
+              )}
 	              {/* Guess counter */}
               {wrongGuesses > 0 && status !== 'revealed' && (
                 <div style={{marginTop:6,display:'flex',gap:4}}>
@@ -9104,6 +9262,8 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK }) {
               setQuizWord(null);
               setQuizQuestion(null);
               setQuizChoices([]);
+              setPuzzleCheckpointStreak(0);
+              setShowPieceHint(false);
             }} style={{
               padding:'8px 20px', borderRadius:8, background:'none',
               border:`1px solid ${theme.border}`, color:theme.textMuted,
@@ -10333,17 +10493,17 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
       animation: 'fadeIn 0.2s ease',
       padding: '20px',
     }}>
-      {revealed && correct && <PixelWinBurst />}
-      <div style={{
-        background: theme.surface,
-        border: `1.5px solid ${C}cc`,
+	      {revealed && correct && <PixelFireworksOverlay />}
+	      <div style={{
+	        background: theme.surface,
+	        border: `1.5px solid ${C}cc`,
         boxShadow: `0 0 30px ${C}44, 0 8px 40px rgba(0,0,0,0.6)`,
         borderRadius: 16,
         padding: '28px 24px 24px',
         maxWidth: 360, width: '100%',
-        position: 'relative',
-        zIndex: 1,
-      }}>
+	        position: 'relative',
+	        zIndex: 3,
+	      }}>
         <div style={{ textAlign: 'center', marginBottom: quizReady ? 10 : 4 }}>
           <img
             src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/finalboss.png"
@@ -10448,15 +10608,15 @@ function MasteryToast({ word, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', animation: 'fadeIn 0.2s ease' }}
       onClick={onClose}>
-      <PixelWinBurst />
-      <div onClick={e => e.stopPropagation()} style={{
-        background: theme.surface,
-        border: '1.5px solid #ffd700cc',
+	      <PixelFireworksOverlay />
+	      <div onClick={e => e.stopPropagation()} style={{
+	        background: theme.surface,
+	        border: '1.5px solid #ffd700cc',
         boxShadow: '0 0 30px #ffd70044, 0 8px 40px rgba(0,0,0,0.6)',
         borderRadius: 16, padding: '32px 28px 24px',
         maxWidth: 300, width: '85%', textAlign: 'center',
-        position: 'relative', zIndex: 1,
-      }}>
+	        position: 'relative', zIndex: 3,
+	      }}>
         <div style={{ marginBottom: 10, overflow: 'visible', padding: '8px 0' }}>
           <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/graduationcap.png"
             width={100} height={100}

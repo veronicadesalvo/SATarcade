@@ -2405,70 +2405,6 @@ const globalStyle = `
       transform: translate(calc(-50% + var(--bit-x)), calc(-50% + var(--bit-y))) scale(1);
 	    }
 	  }
-	  .pixel-fireworks-layer {
-	    position: fixed;
-	    inset: 0;
-	    pointer-events: none;
-	    overflow: hidden;
-	    z-index: 2;
-	  }
-	  .pixel-firework {
-	    position: absolute;
-	    left: var(--fw-x);
-	    top: var(--fw-y);
-	    width: 0;
-	    height: 0;
-	  }
-	  .pixel-firework-bit {
-	    position: absolute;
-	    left: 0;
-	    top: 0;
-	    width: 8px;
-	    height: 8px;
-	    background: var(--fw-color);
-	    image-rendering: pixelated;
-	    opacity: 0;
-	    transform: translate(-50%, -50%) scale(0.65);
-	    box-shadow: 0 0 0 2px rgba(255,255,255,0.08), 0 0 10px var(--fw-color);
-	    animation: pixelFireworkBit 1450ms steps(8, end) var(--fw-delay, 0ms) both;
-	  }
-	  .pixel-firework-bit::after {
-	    content: "";
-	    position: absolute;
-	    left: 3px;
-	    top: -7px;
-	    width: 3px;
-	    height: 3px;
-	    background: var(--fw-color);
-	    box-shadow: 0 0 8px var(--fw-color);
-	  }
-	  @media (max-width: 520px) {
-	    .pixel-firework-bit {
-	      width: 7px;
-	      height: 7px;
-	      animation-duration: 1650ms;
-	    }
-	    .pixel-firework-bit::after {
-	      left: 2px;
-	      top: -6px;
-	    }
-	  }
-	  @keyframes pixelFireworkBit {
-	    0% {
-	      opacity: 0;
-	      transform: translate(-50%, -50%) scale(0.45);
-	    }
-	    10% {
-	      opacity: 1;
-	    }
-	    68% {
-	      opacity: 1;
-	    }
-	    100% {
-	      opacity: 0;
-	      transform: translate(calc(-50% + var(--fw-dx)), calc(-50% + var(--fw-dy))) scale(1.05);
-	    }
-	  }
 	  @keyframes flameBed {
     0%,100% { opacity: 0.78; transform: scaleX(0.94) scaleY(0.92); }
     50% { opacity: 0.9; transform: scaleX(1.01) scaleY(1); }
@@ -2912,10 +2848,14 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
   const masteredCount = [...mastered].filter(w => activeWords.some(aw => aw.word === w)).length;
   const seenCount = Object.keys(wordStats).filter(w => activeWords.some(aw => aw.word === w)).length;
   const pct = Math.round((masteredCount / total) * 100);
-  const [showMastered, setShowMastered] = useState(false);
-  const [loadedIcons, setLoadedIcons] = useState({});
-  const [shipLasers, setShipLasers] = useState([]);
-  const ICON_KEYS = ['hangman','crossword','search','oddoneout','ear','chess'];
+	  const [showMastered, setShowMastered] = useState(false);
+	  const [loadedIcons, setLoadedIcons] = useState({});
+	  const [shipLasers, setShipLasers] = useState([]);
+	  const [suggestionSalt, setSuggestionSalt] = useState(() => {
+	    const saved = Number(localStorage.getItem('close_mastery_suggestion_salt') || 0);
+	    return Number.isFinite(saved) ? saved : 0;
+	  });
+	  const ICON_KEYS = ['hangman','crossword','search','oddoneout','ear','chess'];
   const allIconsLoaded = ICON_KEYS.every(k => loadedIcons[k]);
   const fireShipLaser = () => {
     playShipLaserSound();
@@ -3107,20 +3047,33 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
     .sort(([,a],[,b]) => b.count - a.count)
     .slice(0, 5);
   const closeCount = closeToMastery.length;
-  // Suggest the game where close-to-mastery words haven't appeared yet
-  // Break ties using profile-based priority
-  const SAT_PRIORITY   = ['detective','hangman','oddoneout','eartrainer','crossword','chess'];
-  const VOCAB_PRIORITY = ['hangman','eartrainer','detective','crossword','oddoneout','chess'];
-  const gamePriority = profile === 'sat' ? SAT_PRIORITY : VOCAB_PRIORITY;
-
-  const GAME_LABELS = { hangman:'Hangman', detective:'Word Detective', oddoneout:'Impostor', eartrainer:'Ear Trainer', chess:'Vocab Chess', crossword:'Crossword' };
-  const gameCounts = {};
-  closeToMastery.forEach(([,v]) => {
-    ['hangman','detective','oddoneout','eartrainer','chess','crossword'].forEach(g => {
-      if (!v.games.has(g)) gameCounts[g] = (gameCounts[g]||0) + 1;
-    });
-  });
-  const suggestedGame = [...gamePriority].sort((a, b) => (gameCounts[b]||0) - (gameCounts[a]||0))[0] || 'detective';
+	  const GAME_LABELS = { hangman:'Hangman', detective:'Word Detective', oddoneout:'Impostor', eartrainer:'Ear Trainer', chess:'Vocab Chess', crossword:'Crossword' };
+	  const gamePriority = ['detective','oddoneout','eartrainer','hangman','chess','crossword'];
+	  const gameScores = {};
+	  closeToMastery.forEach(([,v]) => {
+	    gamePriority.forEach(g => {
+	      if (!v.games.has(g)) {
+	        gameScores[g] = (gameScores[g] || 0) + (v.count >= 2 ? 3 : 1);
+	      } else if (v.count >= 2 && v.games.size >= 2) {
+	        gameScores[g] = (gameScores[g] || 0) + 0.5;
+	      }
+	    });
+	  });
+	  const scoredSuggestions = gamePriority
+	    .map((game, order) => ({ game, order, score: gameScores[game] || 0 }))
+	    .filter(item => item.score > 0)
+	    .sort((a, b) => (b.score - a.score) || (a.order - b.order));
+	  const bestSuggestionScore = scoredSuggestions[0]?.score || 0;
+	  const suggestionPool = scoredSuggestions
+	    .filter(item => item.score >= bestSuggestionScore - 1)
+	    .slice(0, 3);
+	  const suggestedGame = (suggestionPool[suggestionSalt % Math.max(1, suggestionPool.length)] || scoredSuggestions[0] || { game: 'detective' }).game;
+	  const selectSuggestedGame = () => {
+	    const nextSalt = suggestionSalt + 1;
+	    setSuggestionSalt(nextSalt);
+	    localStorage.setItem('close_mastery_suggestion_salt', String(nextSalt));
+	    onSelect(suggestedGame);
+	  };
   // Preload images via useEffect so they start loading immediately on mount
   React.useEffect(() => {
     const sources = [
@@ -3206,7 +3159,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
 
         {/* Mastery nudge */}
         {closeCount > 0 && (
-          <div onClick={() => onSelect(suggestedGame)} style={{
+	          <div onClick={selectSuggestedGame} style={{
             flexShrink: 0, marginTop: 18, borderRadius: 12, cursor: 'pointer',
             background: `color-mix(in srgb, #00e5ff 12%, #0a0a12)`,
             position: 'relative', zIndex: 10,
@@ -7538,49 +7491,6 @@ function PixelWinBurst() {
   );
 }
 
-function PixelFireworksOverlay() {
-  const colors = ['#ff3b8a', '#ffd23c', '#31f5ff', '#a855f7', '#ffffff', '#22c55e'];
-  const bursts = [
-    ['50%', '24%', 0],
-    ['22%', '38%', 130],
-    ['78%', '38%', 210],
-    ['32%', '66%', 310],
-    ['68%', '66%', 390],
-  ];
-  const rays = [
-    [0, -96], [40, -82], [78, -44], [92, 0], [76, 42], [38, 78],
-    [0, 92], [-38, 78], [-76, 42], [-92, 0], [-78, -44], [-40, -82],
-  ];
-  return (
-    <div className="pixel-fireworks-layer" aria-hidden="true">
-      {bursts.map(([x, y, delay], burstIndex) => (
-        <div
-          key={`${x}-${y}`}
-          className="pixel-firework"
-          style={{ '--fw-x': x, '--fw-y': y }}
-        >
-          {rays.map(([dx, dy], bitIndex) => {
-            const spread = 0.82 + ((burstIndex + bitIndex) % 3) * 0.12;
-            return (
-              <span
-                key={bitIndex}
-                className="pixel-firework-bit"
-                style={{
-                  '--fw-dx': `${Math.round(dx * spread)}px`,
-                  '--fw-dy': `${Math.round(dy * spread)}px`,
-                  '--fw-delay': `${delay + (bitIndex % 4) * 24}ms`,
-                  '--fw-color': colors[(burstIndex + bitIndex) % colors.length],
-                }}
-              />
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-
 // ── Canvas-based Explosion Effect (GPU composited — no SVG lag on mobile) ──────
 function useExplosion() {
   const canvasRef = useRef(null);
@@ -10493,7 +10403,7 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
       animation: 'fadeIn 0.2s ease',
       padding: '20px',
     }}>
-	      {revealed && correct && <PixelFireworksOverlay />}
+	      {revealed && correct && <PixelWinBurst />}
 	      <div style={{
 	        background: theme.surface,
 	        border: `1.5px solid ${C}cc`,
@@ -10608,7 +10518,7 @@ function MasteryToast({ word, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', animation: 'fadeIn 0.2s ease' }}
       onClick={onClose}>
-	      <PixelFireworksOverlay />
+	      <PixelWinBurst />
 	      <div onClick={e => e.stopPropagation()} style={{
 	        background: theme.surface,
 	        border: '1.5px solid #ffd700cc',

@@ -4729,6 +4729,85 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
 
 
 // ─── WORD DETECTIVE ───────────────────────────────────────────────────────────
+function detectiveBaseForm(entry) {
+  return String(entry?.word || '').toLowerCase();
+}
+
+function detectivePastForm(word) {
+  const w = String(word || '').toLowerCase();
+  if (!w) return w;
+  if (w.endsWith('e')) return `${w}d`;
+  if (/[^aeiou]y$/.test(w)) return `${w.slice(0, -1)}ied`;
+  return `${w}ed`;
+}
+
+function detectiveIngForm(word) {
+  const w = String(word || '').toLowerCase();
+  if (!w) return w;
+  if (w.endsWith('ie')) return `${w.slice(0, -2)}ying`;
+  if (w.endsWith('e') && !w.endsWith('ee')) return `${w.slice(0, -1)}ing`;
+  return `${w}ing`;
+}
+
+function detectiveThirdPersonForm(word) {
+  const w = String(word || '').toLowerCase();
+  if (!w) return w;
+  if (/[^aeiou]y$/.test(w)) return `${w.slice(0, -1)}ies`;
+  if (/(s|x|z|ch|sh|o)$/.test(w)) return `${w}es`;
+  return `${w}s`;
+}
+
+function detectivePluralForm(word) {
+  const w = String(word || '').toLowerCase();
+  if (!w) return w;
+  if (/[^aeiou]y$/.test(w)) return `${w.slice(0, -1)}ies`;
+  if (/(s|x|z|ch|sh)$/.test(w)) return `${w}es`;
+  return `${w}s`;
+}
+
+function detectiveLooksPluralSubject(before) {
+  const text = String(before || '').trim().toLowerCase();
+  if (/^(i|you|we|they)\b/.test(text)) return true;
+  if (/^(animals|scientists|reporters|researchers|teachers|students|judges|officials|voters|people|disputes|data)\b/.test(text)) return true;
+  const firstWord = text.split(/\s+/)[0] || '';
+  return firstWord.length > 3 && /s$/.test(firstWord) && !/(his|this)$/.test(firstWord);
+}
+
+function detectiveAnswerForm(entry, contextExample = null) {
+  if (!entry) return '';
+  if (entry.answer && (!contextExample || contextExample === entry.example)) return entry.answer;
+  const base = detectiveBaseForm(entry);
+  const example = contextExample || entry.example || '';
+  const [beforeRaw = '', afterRaw = ''] = example.split('___');
+  const before = beforeRaw.toLowerCase();
+  const after = afterRaw.toLowerCase();
+  const pos = entry.pos || '';
+
+  if (pos === 'v') {
+    if (/\b(to|will|can|could|would|should|may|might|must|do|does|did)\s*$/.test(before)) return base;
+    if (/\b(help|helps|helped|let|lets|make|makes|made)\s*$/.test(before)) return base;
+    if (/\bstill\s*$/.test(before)) return detectiveIngForm(base);
+    if (/\b(of|by|for|without)\s*$/.test(before)) return detectiveIngForm(base);
+    if (/\b(has|have|had)\s*$/.test(before)) return detectivePastForm(base);
+    if (/\b(is|are|was|were|be|been|being)\s*$/.test(before)) {
+      if (/^\s*(with|about|through)\b/.test(after) || /\bstill\s*$/.test(before)) return detectiveIngForm(base);
+      return detectivePastForm(base);
+    }
+    if (/\b(quickly|eventually|suddenly|inadvertently|previously|originally|recently)\s*$/.test(before)) return detectivePastForm(base);
+    if (/\b(when|after|before|once|then|yesterday|last)\b/.test(before)) return detectivePastForm(base);
+    if (detectiveLooksPluralSubject(before)) return base;
+    return detectiveThirdPersonForm(base);
+  }
+
+  if (pos === 'n') {
+    if (/\b(many|several|few|various|multiple|numerous)\s*$/.test(before)) return detectivePluralForm(base);
+    if (/\bserious\s*$/.test(before) && /^\s*(for|among|between)\b/.test(after)) return detectivePluralForm(base);
+    return base;
+  }
+
+  return base;
+}
+
 function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const C = "#f5e000"; // game color
   const [pool] = useState(() =>
@@ -4749,9 +4828,11 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
 
   // Generate 3 distractor words dynamically from the rest of the pool
   const getDistractors = useCallback((entry) => {
+    const samePos = wordBank.filter(e => e.word !== entry.word && e.pos === entry.pos);
     const others = wordBank.filter(e => e.word !== entry.word);
-    return [...others].sort(() => Math.random() - 0.5).slice(0, 3).map(e => e.word);
-  }, []);
+    const source = samePos.length >= 3 ? samePos : others;
+    return [...source].sort(() => Math.random() - 0.5).slice(0, 3).map(e => e.word);
+  }, [wordBank]);
 
   useEffect(() => {
     if (current) {
@@ -4759,7 +4840,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
       setShuffledOptions(shuffleWithBalancedCorrect([current.word, ...distractors], option => option === current.word, 'word_detective'));
     }
     setChosen(null);
-  }, [idx]);
+  }, [idx, current, getDistractors]);
 
   const pick = (word) => {
     if (chosen) return;
@@ -4785,6 +4866,8 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const done = idx >= pool.length - 1 && chosen;
 
   const wordDef = (w) => wordBank.find(b => b.word === w);
+  const optionLabel = (w) => detectiveAnswerForm(wordDef(w) || { word: w, pos: current?.pos }, current?.example).toUpperCase();
+  const blankLabel = (w) => detectiveAnswerForm(wordDef(w) || { word: w, pos: current?.pos }, current?.example);
 
   return (
     <div className="fadeIn" style={{ maxWidth: 660, margin: "0 auto", padding: "24px 20px" }}>
@@ -4817,7 +4900,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
                       textAlign: "center", marginHorizontal: 6, padding: "0 8px", fontFamily: theme.fontMono, fontWeight: 700, fontSize: 16,
                       color: chosen ? (chosen === current.word ? theme.success : theme.danger) : theme.text, transition: "all 0.3s"
                     }}>
-                      {chosen ? current.word : "  ?  "}
+                      {chosen ? blankLabel(chosen) : "  ?  "}
                     </span>
                   )}
                 </span>
@@ -4851,7 +4934,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
                   style={{ cursor: chosen ? "default" : "pointer", background: bg, border: `1.5px solid ${border}`, borderRadius: 12, padding: "14px 16px", transition: "all 0.2s" }}
                   onMouseEnter={e => { if (!chosen) { e.currentTarget.style.background = theme.surfaceHover; e.currentTarget.style.border = `1.5px solid ${C}55`; }}}
                   onMouseLeave={e => { if (!chosen) { e.currentTarget.style.background = bg; e.currentTarget.style.border = `1.5px solid ${border}`; }}}>
-                  <div style={{ fontFamily: theme.fontMono, fontWeight: 700, fontSize: 15, color }}>{opt}</div>
+                  <div style={{ fontFamily: theme.fontMono, fontWeight: 700, fontSize: 15, color }}>{optionLabel(opt)}</div>
                   {showDefs && (
                     <div style={{ fontSize: 12, marginTop: 4, color: chosen ? (isCorrect ? theme.success + "cc" : theme.textMuted) : theme.textMuted, lineHeight: 1.5 }}>
                       {def?.pos} · {def?.def.substring(0, 60)}{def?.def.length > 60 ? "…" : ""}
@@ -4866,7 +4949,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
           {chosen && (
             <div className="fadeIn" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 15, color: chosen === current.word ? theme.success : theme.danger, fontWeight: 600 }}>
-                {chosen === current.word ? `✓ Correct!${streak >= 3 ? ` (${streak}x streak!)` : ''}` : `❌ The answer was ${current.word}`}
+                {chosen === current.word ? `✓ Correct!${streak >= 3 ? ` (${streak}x streak!)` : ''}` : `❌ The answer was ${optionLabel(current.word)}`}
               </div>
               <Btn variant="primary" color={C} small onClick={next} disabled={idx >= pool.length - 1}>Next →</Btn>
             </div>
@@ -5513,6 +5596,7 @@ function EarTrainer({ onBack, onCorrect, wordBank = WORD_BANK }) {
 
 const PIECE_NAMES = { p:'Pawn', n:'Knight', b:'Bishop', r:'Rook', q:'Queen', k:'King' };
 const PIECE_VALUES = { p:10, n:30, b:30, r:50, q:90, k:0 };
+const MATE_SCORE = 100000;
 const PIECE_DIFFICULTY = { p:'easy', n:'medium', b:'medium', r:'hard', q:'hard', k:'hardest' };
 const PIECE_TIME = { p:20, n:15, b:15, r:12, q:10, k:7 };
 
@@ -5875,7 +5959,12 @@ function minimax(B, depth, alpha, beta, maxing, state, lastMove, prevLastMove) {
   }
 
   const moves = getLegal(B, color, state);
-  if (!moves.length) return { score: evaluate(B), move: null };
+  if (!moves.length) {
+    if (inCheck(B, color)) {
+      return { score: maxing ? -MATE_SCORE - depth : MATE_SCORE + depth, move: null };
+    }
+    return { score: 0, move: null };
+  }
   if (depth === 0) return { score: quiesce(B, alpha, beta, maxing), move: null };
 
   // Null move pruning — skip a turn to get a quick bound
@@ -5965,6 +6054,21 @@ function gameLegal(game, fromSq) {
 function gameInCheck(game) { return inCheck(game.board, game.turn); }
 function gameIsCheckmate(game) { return gameLegal(game).length===0 && inCheck(game.board,game.turn); }
 function gameIsDraw(game) { return gameLegal(game).length===0 && !inCheck(game.board,game.turn); }
+
+function moveWinsGameForColor(game, move, color) {
+  const target = game.board[move.to[0]]?.[move.to[1]];
+  if (target?.type === 'k' && target.color === opp(color)) return true;
+  const result = gameMove({ ...game, turn: color }, move.from, move.to);
+  const enemyKingAlive = result.board.some(row => row.some(p => p?.type === 'k' && p.color === opp(color)));
+  return !enemyKingAlive || gameIsCheckmate(result);
+}
+
+function findImmediateWinningMove(game, color) {
+  const legal = getLegal(game.board, color, game);
+  const wins = legal.filter(move => moveWinsGameForColor(game, move, color));
+  if (!wins.length) return null;
+  return orderMoves(game.board, wins)[0] || wins[0];
+}
 // Black opening book — keyed by white's moves, value = array of black responses
 const BLACK_OPENING_BOOK = (() => {
   const col = s => s.charCodeAt(0) - 97;
@@ -5997,6 +6101,8 @@ function gameGetAiMove(game, lastPlayerMove, lastAiMove, aiColor = 'b') {
   ttClear();
   historyClear();
   KILLERS.forEach(k => { k[0] = null; k[1] = null; });
+  const immediateWin = findImmediateWinningMove(game, aiColor);
+  if (immediateWin) return immediateWin;
   // Try a light opening book for the side controlled by the opponent.
   const mh = game.moveHistory || [];
   if (aiColor === 'b' && mh.length <= 8) {
@@ -10660,11 +10766,16 @@ function MasteryToast({ word, onClose }) {
         maxWidth: 300, width: '85%', textAlign: 'center',
 	        position: 'relative', zIndex: 3,
 	      }}>
-        <div style={{ marginBottom: 10, overflow: 'visible', padding: '8px 0' }}>
+        <div style={{ margin: '0 auto 10px', width: 120, height: 120, overflow: 'visible', position: 'relative', display: 'grid', placeItems: 'center' }}>
+          <div style={{
+            position: 'absolute', inset: 18, borderRadius: '50%',
+            background: 'radial-gradient(circle, #ffd70066 0%, #ffd70028 46%, transparent 72%)',
+            filter: 'blur(7px)',
+          }} />
           <img src="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/graduationcap.png"
-            width={100} height={100}
-            style={{ display: 'block', margin: '0 auto', objectFit: 'contain',
-              filter: 'drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 20px #ffd70088)' }}
+            width={92} height={92}
+            style={{ display: 'block', objectFit: 'contain', position: 'relative', zIndex: 1,
+              filter: 'drop-shadow(0 0 4px #ffd700cc) drop-shadow(0 0 8px #ffd70066)' }}
             alt="🎓"
             onError={e => { e.target.style.display='none'; }}
           />

@@ -4840,7 +4840,7 @@ function WordDetective({ onBack, onCorrect, wordBank = WORD_BANK }) {
       setShuffledOptions(shuffleWithBalancedCorrect([current.word, ...distractors], option => option === current.word, 'word_detective'));
     }
     setChosen(null);
-  }, [idx, current, getDistractors]);
+  }, [idx]);
 
   const pick = (word) => {
     if (chosen) return;

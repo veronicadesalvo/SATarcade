@@ -2733,17 +2733,7 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
 	              const testWord = 'ELOQUENT';
 	              const entry = activeWords.find(w => w.word === testWord);
 	              if (entry) {
-	                const displayWord = (entry.answer || testWord).toLowerCase();
-	                const correct = (entry.example2 || entry.example).replace('___', displayWord);
-	                let distractors;
-	                if (entry.distractors && entry.distractors.length >= 2) {
-	                  distractors = entry.distractors.slice(0, 2).map(s => s.replace('___', displayWord));
-	                } else {
-	                  const pool = activeWords.filter(w => w.word !== testWord && w.example && w.pos === entry.pos).sort(() => Math.random() - 0.5).slice(0, 2);
-	                  distractors = pool.map(w => w.example.replace('___', displayWord));
-	                }
-	                const choices = shuffleWithBalancedCorrect([correct, ...distractors], choice => choice === correct, 'final_boss_sentence');
-	                onTestFinalBoss({ word: testWord, entry, choices, correctIdx: choices.indexOf(correct) });
+	                onTestFinalBoss({ word: testWord, entry });
 	              }
 	            }} style={{
 	              background: 'none', border: 'none', color: theme.border,
@@ -10587,16 +10577,45 @@ function OnboardingScreen({ onDone }) {
 }
 
 // ─── FINAL BOSS MODAL ────────────────────────────────────────────────────────
-function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
-  const [selected, setSelected] = React.useState(null);
-  const [revealed, setRevealed] = React.useState(false);
+function FinalBossModal({ word, entry, onDone }) {
+  const [sentence, setSentence] = React.useState('');
+  const [reviewing, setReviewing] = React.useState(false);
   const [quizReady, setQuizReady] = React.useState(false);
-  const correct = selected === correctIdx;
   const C = '#ffd700';
+  const sample = entry?.example2 || entry?.example || '';
+  const displayForm = sample.includes('___')
+    ? detectiveAnswerForm(entry, sample)
+    : (entry?.answer || word || '').toLowerCase();
+  const modelSentence = sample
+    ? sample.replace('___', displayForm)
+    : `The player used ${displayForm} correctly in a clear sentence.`;
+  const normalizedSentence = sentence.trim();
+  const lowerSentence = normalizedSentence.toLowerCase();
+  const baseAcceptedForms = [word, entry?.answer, displayForm, detectiveBaseForm(entry)];
+  const variantAcceptedForms = entry?.pos === 'v'
+    ? [detectivePastForm(word), detectiveIngForm(word), detectiveThirdPersonForm(word)]
+    : entry?.pos === 'n'
+      ? [detectivePluralForm(word)]
+      : [];
+  const acceptedForms = Array.from(new Set([...baseAcceptedForms, ...variantAcceptedForms]
+    .filter(Boolean)
+    .map(v => String(v).toLowerCase())));
+  const usesWord = acceptedForms.some(form => new RegExp(`\\b${form.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(normalizedSentence));
+  const wordCount = normalizedSentence ? normalizedSentence.split(/\s+/).filter(Boolean).length : 0;
+  const hasContext = wordCount >= 7;
+  const notDefinitionOnly = entry?.def
+    ? !lowerSentence.includes(entry.def.toLowerCase().slice(0, 28))
+    : true;
+  const readyToReview = usesWord && hasContext && notDefinitionOnly;
+  const checks = [
+    { label: `Includes ${word}`, ok: usesWord },
+    { label: 'Feels like a real sentence', ok: hasContext },
+    { label: 'Uses meaning, not just the definition', ok: notDefinitionOnly },
+  ];
 
   React.useEffect(() => {
-    setSelected(null);
-    setRevealed(false);
+    setSentence('');
+    setReviewing(false);
     setQuizReady(false);
     const timer = setTimeout(() => setQuizReady(true), 1600);
     return () => clearTimeout(timer);
@@ -10628,12 +10647,6 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
     } catch(e) {}
   }, []);
 
-  const handleSelect = (i) => {
-    if (!quizReady || revealed) return;
-    setSelected(i);
-    setRevealed(true);
-  };
-
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
@@ -10642,14 +10655,13 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
       animation: 'fadeIn 0.2s ease',
       padding: '20px',
     }}>
-	      {revealed && correct && <PixelWinBurst />}
 	      <div style={{
 	        background: theme.surface,
 	        border: `1.5px solid ${C}cc`,
         boxShadow: `0 0 30px ${C}44, 0 8px 40px rgba(0,0,0,0.6)`,
         borderRadius: 16,
         padding: '28px 24px 24px',
-        maxWidth: 360, width: '100%',
+        maxWidth: 390, width: '100%',
 	        position: 'relative',
 	        zIndex: 3,
 	      }}>
@@ -10665,55 +10677,97 @@ function FinalBossModal({ word, entry, choices, correctIdx, onDone }) {
         <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: C, letterSpacing: 2, marginBottom: quizReady ? 8 : 12, textAlign: 'center' }}>FINAL BOSS</div>
         {quizReady ? (
           <div style={{ animation: 'fadeIn 0.2s ease' }}>
-            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 26, color: '#fff', letterSpacing: 2, marginBottom: 20, textAlign: 'center' }}>{word}</div>
-            <div style={{ fontFamily: theme.fontBody, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 14, textAlign: 'center' }}>
-              Which sentence uses this word correctly?
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-              {choices.map((sentence, i) => {
-                let bg = 'transparent', border = 'rgba(255,255,255,0.15)', color = 'rgba(255,255,255,0.85)';
-                if (revealed) {
-                  if (i === correctIdx) { bg = '#00cc6622'; border = '#00cc66'; color = '#00cc66'; }
-                  else if (i === selected && selected !== correctIdx) { bg = '#ff444422'; border = '#ff4444'; color = '#ff4444'; }
-                  else { color = 'rgba(255,255,255,0.3)'; }
-                }
-                return (
-                  <button key={i} onClick={() => handleSelect(i)} style={{
-                    background: bg, border: `1.5px solid ${border}`,
-                    borderRadius: 8, padding: '12px 14px',
-                    color, fontSize: 13, lineHeight: 1.5,
-                    textAlign: 'left', cursor: revealed ? 'default' : 'pointer',
-                    fontFamily: theme.fontBody, transition: 'all 0.15s',
-                  }}>
-                    <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, marginRight: 8, opacity: 0.6 }}>
-                      {String.fromCharCode(65 + i)}.
-                    </span>
-                    {sentence}
-                    {revealed && i === correctIdx && <span style={{ marginLeft: 8 }}>✓</span>}
-                    {revealed && i === selected && selected !== correctIdx && <span style={{ marginLeft: 8 }}>✗</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {revealed ? (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, marginBottom: 16,
-                  color: correct ? '#00cc66' : '#ff8844', letterSpacing: 1 }}>
-                  {correct ? 'CORRECT! WORD MASTERED!' : ''}
+            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 23, color: '#fff', letterSpacing: 1.5, lineHeight: 1.4, marginBottom: 14, textAlign: 'center', wordBreak: 'break-word' }}>{word}</div>
+            {!reviewing ? (
+              <>
+                <div style={{ fontFamily: theme.fontBody, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 12, textAlign: 'center', lineHeight: 1.5 }}>
+                  Write your own sentence using this word.
                 </div>
-                {!correct && (
-                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', marginBottom: 16, lineHeight: 1.6, textAlign: 'center', fontFamily: theme.fontBody }}>
-                    Not quite! You'll get another shot at mastering this word next time it comes up in a game.
+                <textarea
+                  value={sentence}
+                  onChange={e => setSentence(e.target.value)}
+                  placeholder={`Use ${word.toLowerCase()} in a sentence...`}
+                  autoFocus
+                  style={{
+                    width: '100%', minHeight: 112, resize: 'vertical',
+                    background: '#060812', border: `1.5px solid ${readyToReview ? '#00cc66' : 'rgba(255,255,255,0.16)'}`,
+                    borderRadius: 10, color: '#fff', padding: '12px 13px',
+                    fontFamily: theme.fontBody, fontSize: 14, lineHeight: 1.5,
+                    outline: 'none', boxSizing: 'border-box', marginBottom: 12,
+                  }}
+                />
+                <div style={{ display: 'grid', gap: 7, marginBottom: 16 }}>
+                  {checks.map(check => (
+                    <div key={check.label} style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      color: check.ok ? '#00cc66' : 'rgba(255,255,255,0.45)',
+                      fontSize: 12, fontFamily: theme.fontBody,
+                    }}>
+                      <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8 }}>{check.ok ? '✓' : '□'}</span>
+                      <span>{check.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setReviewing(true)}
+                  disabled={!readyToReview}
+                  style={{
+                    width: '100%', fontFamily: "'Press Start 2P', monospace", fontSize: 9,
+                    background: readyToReview ? C : 'rgba(255,255,255,0.12)',
+                    color: readyToReview ? '#0a0a14' : 'rgba(255,255,255,0.4)',
+                    border: 'none', borderRadius: 8,
+                    padding: '13px 18px', cursor: readyToReview ? 'pointer' : 'default',
+                    letterSpacing: 1, boxShadow: readyToReview ? `0 3px 0 #a08800` : 'none',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  REVIEW SENTENCE
+                </button>
+              </>
+            ) : (
+              <div style={{ animation: 'fadeIn 0.2s ease' }}>
+                <div style={{ background: '#060812', border: `1px solid ${C}55`, borderRadius: 10, padding: '12px 13px', marginBottom: 12 }}>
+                  <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: C, letterSpacing: 1, marginBottom: 7 }}>YOUR SENTENCE</div>
+                  <div style={{ fontSize: 14, color: '#fff', lineHeight: 1.55 }}>{normalizedSentence}</div>
+                </div>
+                <div style={{ background: '#00cc6616', border: '1px solid #00cc6644', borderRadius: 10, padding: '12px 13px', marginBottom: 12 }}>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.82)', lineHeight: 1.5, marginBottom: 8 }}>
+                    <strong style={{ color: '#00cc66' }}>Definition:</strong> {entry?.def}
                   </div>
-                )}
-                <button onClick={() => onDone(correct)} style={{
-                  fontFamily: "'Press Start 2P', monospace", fontSize: 9,
-                  background: C, color: '#0a0a14', border: 'none', borderRadius: 2,
-                  padding: '10px 24px', cursor: 'pointer', letterSpacing: 1,
-                  boxShadow: `0 3px 0 #a08800`,
-                }}>CONTINUE</button>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.62)', lineHeight: 1.5 }}>
+                    <strong>Example:</strong> {modelSentence}
+                  </div>
+                </div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.78)', lineHeight: 1.5, textAlign: 'center', marginBottom: 15 }}>
+                  Does your sentence use <strong>{word}</strong> with this meaning?
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <button onClick={() => setReviewing(false)} style={{
+                    fontFamily: "'Press Start 2P', monospace", fontSize: 8,
+                    background: 'transparent', color: 'rgba(255,255,255,0.68)',
+                    border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8,
+                    padding: '12px 10px', cursor: 'pointer', letterSpacing: 1,
+                    lineHeight: 1.5,
+                  }}>REWRITE</button>
+                  <button onClick={() => onDone(true)} style={{
+                    fontFamily: "'Press Start 2P', monospace", fontSize: 8,
+                    background: '#00cc66', color: '#04120a',
+                    border: 'none', borderRadius: 8,
+                    padding: '12px 10px', cursor: 'pointer', letterSpacing: 1,
+                    boxShadow: `0 3px 0 #007a3d`, lineHeight: 1.5,
+                  }}>MASTERED</button>
+                </div>
+                <button onClick={() => onDone(false)} style={{
+                  marginTop: 10, width: '100%',
+                  background: 'transparent', border: 'none',
+                  color: 'rgba(255,255,255,0.42)', cursor: 'pointer',
+                  fontFamily: theme.fontBody, fontSize: 12,
+                  textDecoration: 'underline',
+                }}>
+                  Try this word again later
+                </button>
               </div>
-            ) : null}
+            )}
           </div>
         ) : (
           <div style={{ textAlign: 'center', minHeight: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -11541,7 +11595,7 @@ function App() {
   const mastered = new Set(Object.entries(wordStats).filter(([,v]) => isMastered(v)).map(([k]) => k));
 
   const [masteryToast, setMasteryToast] = useState(null);
-  const [finalBoss, setFinalBoss] = useState(null); // { word, entry, choices, correctIdx }
+  const [finalBoss, setFinalBoss] = useState(null); // { word, entry }
   const toastTimer = React.useRef(null);
 
   const showMasteryToast = (word) => {
@@ -11549,28 +11603,11 @@ function App() {
     setMasteryToast(word);
   };
 
-  // Build 3 sentence choices for the final boss
-  const buildFinalBossChoices = (word) => {
+  // Build the final self-graded mastery challenge
+  const buildFinalBossChallenge = (word) => {
     const entry = activeWords.find(w => w.word === word);
     if (!entry || !entry.example) return null;
-    const displayWord = (entry.answer || word).toLowerCase();
-    const correctSentence = (entry.example2 || entry.example).replace('___', displayWord);
-
-    let distractors;
-    if (entry.distractors && entry.distractors.length >= 2) {
-      // Use handcrafted wrong sentences
-      distractors = entry.distractors.slice(0, 2).map(s => s.replace('___', word.toLowerCase()));
-    } else {
-      // Fallback: same part-of-speech sentences only, so grammar is at least plausible
-      const pool = activeWords.filter(w => w.word !== word && w.example && w.pos === entry.pos);
-      const fallbackPool = pool.length >= 2 ? pool : activeWords.filter(w => w.word !== word && w.example);
-      const shuffled = fallbackPool.sort(() => Math.random() - 0.5);
-      distractors = shuffled.slice(0, 2).map(w => w.example.replace('___', word.toLowerCase()));
-    }
-
-    const choices = shuffleWithBalancedCorrect([correctSentence, ...distractors], choice => choice === correctSentence, 'final_boss_sentence');
-    const correctIdx = choices.indexOf(correctSentence);
-    return { word, entry, choices, correctIdx };
+    return { word, entry };
   };
 
   const markCorrect = (word, game) => {
@@ -11584,7 +11621,7 @@ function App() {
       const nowMastered = isMastered(newEntry);
       if (!wasMastered && nowMastered) {
         setTimeout(() => {
-          const boss = buildFinalBossChoices(word);
+          const boss = buildFinalBossChallenge(word);
           if (boss) setFinalBoss(boss);
           else showMasteryToast(word);
         }, 400);
@@ -11633,8 +11670,6 @@ function App() {
         <FinalBossModal
           word={finalBoss.word}
           entry={finalBoss.entry}
-          choices={finalBoss.choices}
-          correctIdx={finalBoss.correctIdx}
           onDone={(correct) => {
             if (correct) {
               setFinalBoss(null);

@@ -9151,34 +9151,57 @@ function balancePuzzleBank(puzzles) {
 }
 
 let PLAYABLE_CHESS_PUZZLES_CACHE = null;
+let FAST_CHESS_PUZZLES_CACHE = null;
+
+function hydrateChessPuzzle(puzzle) {
+  return { ...puzzle, sentences: puzzleSentencesFor(puzzle.word) };
+}
+
+function dedupeChessPuzzles(puzzles) {
+  const seen = new Set();
+  return puzzles.filter(puzzle => {
+    const key = puzzleGeneratorKey(puzzle);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getFastChessPuzzles() {
+  if (FAST_CHESS_PUZZLES_CACHE) return FAST_CHESS_PUZZLES_CACHE;
+  const starter = dedupeChessPuzzles([
+    ...CURATED_CHESS_PUZZLES,
+    ...buildCuratedPuzzleVariants(),
+  ])
+    .map(hydrateChessPuzzle);
+  FAST_CHESS_PUZZLES_CACHE = balancePuzzleBank(starter);
+  return FAST_CHESS_PUZZLES_CACHE;
+}
+
+function getCurrentChessPuzzlePool() {
+  return PLAYABLE_CHESS_PUZZLES_CACHE || FAST_CHESS_PUZZLES_CACHE || getFastChessPuzzles();
+}
 
 function getPlayableChessPuzzles() {
   if (PLAYABLE_CHESS_PUZZLES_CACHE) return PLAYABLE_CHESS_PUZZLES_CACHE;
-  const seen = new Set();
   const curated = CURATED_CHESS_PUZZLES
     .filter(isPuzzlePlayable)
-    .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
+    .map(hydrateChessPuzzle);
   const curatedVariants = buildCuratedPuzzleVariants()
     .filter(isPuzzlePlayable)
-    .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
+    .map(hydrateChessPuzzle);
   const generated = buildGeneratedChessPuzzles()
     .filter(isPuzzlePlayable)
-    .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
+    .map(hydrateChessPuzzle);
   const legacy = CHESS_PUZZLES
     .map(puzzle => ({ ...puzzle, exact: true, source: 'legacy' }))
     .filter(isPuzzlePlayable)
-    .map(puzzle => ({ ...puzzle, sentences: puzzleSentencesFor(puzzle.word) }));
-  const playable = [
+    .map(hydrateChessPuzzle);
+  const playable = dedupeChessPuzzles([
     ...curated,
     ...curatedVariants,
     ...generated,
-  ]
-    .filter(puzzle => {
-      const key = puzzleGeneratorKey(puzzle);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+  ]);
   PLAYABLE_CHESS_PUZZLES_CACHE = playable.length ? balancePuzzleBank(playable) : balancePuzzleBank(legacy);
   return PLAYABLE_CHESS_PUZZLES_CACHE;
 }
@@ -9252,7 +9275,7 @@ function rememberChessPuzzle(id) {
     localStorage.setItem(CHESS_PUZZLE_RECENT_KEY, JSON.stringify(ids.slice(0, CHESS_PUZZLE_RECENT_LIMIT)));
   } catch(e) {}
   try {
-    const pool = getPlayableChessPuzzles();
+    const pool = getCurrentChessPuzzlePool();
     const byId = Object.fromEntries(pool.map(puzzle => [puzzle.id, puzzle]));
     const bag = getChessPuzzleBag(pool);
     const remaining = bag.remaining.filter(puzzleId => puzzleId !== id && byId[puzzleId]);
@@ -9297,8 +9320,8 @@ function getChessPuzzleBag(puzzles) {
   return { signature, remaining };
 }
 
-function buildPuzzleSessionDeck() {
-  const pool = getPlayableChessPuzzles();
+function buildPuzzleSessionDeck(options = {}) {
+  const pool = options.includeGenerated ? getPlayableChessPuzzles() : getFastChessPuzzles();
   const byId = Object.fromEntries(pool.map(puzzle => [puzzle.id, puzzle]));
   const bag = getChessPuzzleBag(pool);
   const remainingDeck = bag.remaining.map(id => byId[id]).filter(Boolean);
@@ -9345,8 +9368,11 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK, sfReady = false
     if (pending.timer) clearTimeout(pending.timer);
     setPuzzlesLoading(true);
     const run = () => {
-      if (resetCache) PLAYABLE_CHESS_PUZZLES_CACHE = null;
-      const deck = buildPuzzleSessionDeck();
+      if (resetCache) {
+        PLAYABLE_CHESS_PUZZLES_CACHE = null;
+        FAST_CHESS_PUZZLES_CACHE = null;
+      }
+      const deck = buildPuzzleSessionDeck({ includeGenerated: false });
       setShuffledPuzzles(deck);
       setPuzzleIdx(0);
       setPuzzlesLoading(false);
@@ -9371,11 +9397,15 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK, sfReady = false
 
   useEffect(() => {
     const rebuildWithChessJs = () => {
-      schedulePuzzleDeckLoad(true);
+      PLAYABLE_CHESS_PUZZLES_CACHE = null;
+      FAST_CHESS_PUZZLES_CACHE = null;
+      const deck = buildPuzzleSessionDeck({ includeGenerated: false });
+      setShuffledPuzzles(current => current.length ? current : deck);
+      setPuzzlesLoading(false);
     };
     window.addEventListener('chessjs-ready', rebuildWithChessJs);
     return () => window.removeEventListener('chessjs-ready', rebuildWithChessJs);
-  }, [schedulePuzzleDeckLoad]);
+  }, []);
 
   useEffect(() => {
     if (!puzzle) return;
@@ -9410,7 +9440,7 @@ function ChessPuzzles({ onBack, onCorrect, wordBank = WORD_BANK, sfReady = false
     if (!shuffledPuzzles.length) return;
     setShuffledPuzzles(deck => {
       if (puzzleIdx + 1 < deck.length) return deck;
-      return buildPuzzleSessionDeck();
+      return buildPuzzleSessionDeck({ includeGenerated: true });
     });
     setPuzzleIdx(i => (i + 1 < shuffledPuzzles.length ? i + 1 : 0));
   };

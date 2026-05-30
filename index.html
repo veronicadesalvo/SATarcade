@@ -3861,7 +3861,9 @@ function generateCrossword(wordEntries, targetCount = 8) {
       return a.jitter - b.jitter;
     });
 
-    placeWord(word, allPlacements[0].r, allPlacements[0].c, allPlacements[0].dir, entry);
+    const preferredPlacements = allPlacements.filter(p => p.overlaps >= 2);
+    const chosenPlacement = preferredPlacements[0] || allPlacements[0];
+    placeWord(word, chosenPlacement.r, chosenPlacement.c, chosenPlacement.dir, entry);
     used.add(word);
   }
 
@@ -3893,6 +3895,22 @@ function generateCrossword(wordEntries, targetCount = 8) {
     row: p.row - minR,
     col: p.col - minC,
   }));
+
+  const wordIntersectionCounts = {};
+  for (const w of words) {
+    let crosses = 0;
+    for (let i = 0; i < w.word.length; i++) {
+      const r = w.dir === 'D' ? w.row + i : w.row;
+      const c = w.dir === 'A' ? w.col + i : w.col;
+      const hasAcross = (c > 0 && grid[r][c - 1] !== null) || (c < cols - 1 && grid[r][c + 1] !== null);
+      const hasDown = (r > 0 && grid[r - 1][c] !== null) || (r < rows - 1 && grid[r + 1][c] !== null);
+      if (hasAcross && hasDown) crosses++;
+    }
+    wordIntersectionCounts[`${w.word}-${w.dir}-${w.row}-${w.col}`] = crosses;
+  }
+  const wordsWithTwoIntersections = Object.values(wordIntersectionCounts).filter(count => count >= 2).length;
+  const lowOverlapWords = Object.values(wordIntersectionCounts).filter(count => count < 2).length;
+
   const intersectionCount = grid.reduce((total, rowCells, r) => {
     return total + rowCells.reduce((count, letter, c) => {
       if (!letter) return count;
@@ -3945,7 +3963,7 @@ function generateCrossword(wordEntries, targetCount = 8) {
     }
   }
 
-  return { grid, rows, cols, numberedCells, acrossClues, downClues, intersectionCount };
+  return { grid, rows, cols, numberedCells, acrossClues, downClues, intersectionCount, wordIntersectionCounts, wordsWithTwoIntersections, lowOverlapWords };
 }
 
 // Helper: get all [r,c] cells for a given clue number + direction
@@ -3984,10 +4002,13 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
   const [confirmAction, setConfirmAction] = useState(null); // { type: 'word'|'all', label }
   const [wordFlash, setWordFlash] = useState(null); // { word, def, pos, example } — shown briefly when word completed correctly
   const [completedWords, setCompletedWords] = useState(new Set()); // "num-dir" keys already flashed
+  const [revealedWordKeys, setRevealedWordKeys] = useState(new Set()); // clue keys revealed with reveal buttons
   const [showReview, setShowReview] = useState(false); // post-solve word review
   const [showPixelCelebrate, setShowPixelCelebrate] = useState(false);
   const wordFlashTimer = useRef(null);
   const inputRef = useRef(null);
+  const crosswordScrollRef = useRef(null);
+  const solvedCreditedRef = useRef(false);
 
 
   const generate = useCallback(() => {
@@ -4003,15 +4024,17 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
     setConfirmAction(null);
     setWordFlash(null);
     setCompletedWords(new Set());
+    setRevealedWordKeys(new Set());
     setShowReview(false);
     setShowPixelCelebrate(false);
+    solvedCreditedRef.current = false;
     setPuzzleNum(n => n + 1);
     // Run in setTimeout so the "Generating..." screen renders first
     setTimeout(() => {
       let p = null;
       let bestScore = -Infinity;
-      const candidateWords = getNextWords('crossword_queue', wordBank, 90);
-      for (let attempt = 0; attempt < 18; attempt++) {
+      const candidateWords = getNextWords('crossword_queue', wordBank, 110);
+      for (let attempt = 0; attempt < 24; attempt++) {
         const candidate = generateCrossword(candidateWords, 10);
         if (!candidate) continue;
         const clueCount = Object.keys(candidate.acrossClues).length + Object.keys(candidate.downClues).length;
@@ -4020,7 +4043,9 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
         const squareness = Math.abs(candidate.rows - candidate.cols);
         const intersections = candidate.intersectionCount || 0;
         const density = intersections / Math.max(1, clueCount);
-        const score = (clueCount * 10) + (intersections * 18) + (density * 22) - area * 0.35 - squareness * 5;
+        const twoPlus = candidate.wordsWithTwoIntersections || 0;
+        const lowOverlap = candidate.lowOverlapWords || 0;
+        const score = (clueCount * 8) + (intersections * 28) + (density * 34) + (twoPlus * 22) - (lowOverlap * 26) - area * 0.32 - squareness * 5;
         if (score > bestScore) { bestScore = score; p = candidate; }
       }
       // Fallback: try with fewer words if still null
@@ -4146,14 +4171,31 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
     }
   };
 
-  // Keep the active clue visible when a mobile keyboard reduces the viewport.
+  const keepSelectedCellVisible = useCallback((smooth = false) => {
+    const container = crosswordScrollRef.current;
+    const cell = document.querySelector('[data-selected="true"]');
+    if (!container || !cell) return;
+    requestAnimationFrame(() => {
+      const cellRect = cell.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const clueRect = document.querySelector('[data-clue-banner="true"]')?.getBoundingClientRect();
+      const visualBottom = window.visualViewport
+        ? window.visualViewport.offsetTop + window.visualViewport.height
+        : window.innerHeight;
+      const visibleTop = Math.max(containerRect.top, (clueRect?.bottom || containerRect.top) + 10);
+      const visibleBottom = Math.min(containerRect.bottom, visualBottom) - 14;
+      let delta = 0;
+      if (cellRect.bottom > visibleBottom) delta = cellRect.bottom - visibleBottom + 10;
+      else if (cellRect.top < visibleTop) delta = cellRect.top - visibleTop - 10;
+      if (!delta) return;
+      container.scrollBy({ top: delta, behavior: smooth ? 'smooth' : 'auto' });
+    });
+  }, []);
+
+  // Keep the active square visible when a mobile keyboard changes the viewport.
   React.useEffect(() => {
     if (!selected) return;
-    const handler = () => {
-      const el = document.querySelector('[data-clue-banner="true"]');
-      if (!el) return;
-      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-    };
+    const handler = () => setTimeout(() => keepSelectedCellVisible(true), 70);
     handler();
     window.visualViewport?.addEventListener('resize', handler);
     window.visualViewport?.addEventListener('scroll', handler);
@@ -4165,7 +4207,20 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
       window.removeEventListener('focusin', handler);
       window.removeEventListener('resize', handler);
     };
-  }, [selected, activeClue]);
+  }, [selected, keepSelectedCellVisible]);
+
+  React.useEffect(() => {
+    if (!selected) return;
+    const timer = setTimeout(() => {
+      try {
+        inputRef.current?.focus({ preventScroll: true });
+      } catch(e) {
+        inputRef.current?.focus();
+      }
+      keepSelectedCellVisible(false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [selected, keepSelectedCellVisible]);
 
   const prevInput = useRef('');
   const handleChange = (e) => {
@@ -4204,6 +4259,13 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
   // so this reveals the actual WORD in text above the grid as a hint)
   const activeWordKey = activeClue ? `${activeClue.num}-${activeClue.dir}` : null;
   const wordHintAvailable = activeWordKey && !(activeWordKey in wordHintsUsed);
+  const getAllCrosswordClues = useCallback(() => {
+    if (!puzzle) return [];
+    return [
+      ...Object.entries(puzzle.acrossClues).map(([num, c]) => ({ key: `${num}-A`, ...c })),
+      ...Object.entries(puzzle.downClues).map(([num, c]) => ({ key: `${num}-D`, ...c })),
+    ];
+  }, [puzzle]);
 
   const useWordHint = () => {
     if (!activeWordKey || !wordHintAvailable || !activeClue) return;
@@ -4236,6 +4298,7 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
     });
     setUserGrid(newUserGrid);
     setRevealed(newRevealed);
+    if (activeWordKey) setRevealedWordKeys(prev => new Set([...prev, activeWordKey]));
     setConfirmAction(null);
   };
 
@@ -4253,6 +4316,7 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
     }
     setUserGrid(newUserGrid);
     setRevealed(newRevealed);
+    setRevealedWordKeys(new Set(getAllCrosswordClues().map(clue => clue.key)));
     setConfirmAction(null);
   };
 
@@ -4305,21 +4369,26 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
   }, [puzzle, userGrid, checked]);
 
   useEffect(() => {
-    if (isSolved) {
+    if (isSolved && !solvedCreditedRef.current) {
+      solvedCreditedRef.current = true;
       setShowPixelCelebrate(true);
       const burstTimer = setTimeout(() => setShowPixelCelebrate(false), 1800);
       const reviewTimer = setTimeout(() => setShowReview(true), 1200);
-      // Mark all words in this puzzle as mastered
+      // Mark only solved words that were not revealed with the reveal buttons.
       if (puzzle) {
-        Object.values(puzzle.acrossClues).forEach(c => onCorrect(c.word));
-        Object.values(puzzle.downClues).forEach(c => onCorrect(c.word));
+        const creditedWords = new Set();
+        getAllCrosswordClues().forEach(clue => {
+          if (revealedWordKeys.has(clue.key) || creditedWords.has(clue.word)) return;
+          creditedWords.add(clue.word);
+          onCorrect(clue.word);
+        });
       }
       return () => {
         clearTimeout(burstTimer);
         clearTimeout(reviewTimer);
       };
     }
-  }, [isSolved]);
+  }, [isSolved, puzzle, revealedWordKeys, getAllCrosswordClues]);
 
   // Detect individual word completion when check is on
   useEffect(() => {
@@ -4369,7 +4438,7 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 20px', height: '100dvh', overflowY: 'auto' }}>
+    <div ref={crosswordScrollRef} style={{ maxWidth: 600, margin: '0 auto', padding: '24px 20px', height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', scrollPaddingTop: 120 }}>
       {/* Header */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <Btn variant="ghost" small onClick={onBack} color={C}>← Back</Btn>
@@ -4528,7 +4597,6 @@ function FreeformCrossword({ onBack, onCorrect, wordBank = WORD_BANK }) {
                   {isSelected ? (
                     <input
                       ref={inputRef}
-                      autoFocus
                       style={{
                         position: 'absolute', inset: 0,
                         width: '100%', height: '100%',
@@ -10874,7 +10942,7 @@ function OnboardingScreen({ onDone }) {
 }
 
 // ─── FINAL BOSS MODAL ────────────────────────────────────────────────────────
-function FinalBossModal({ word, entry, onDone }) {
+function FinalBossModal({ word, entry, onDone, onNotReady }) {
   const [sentence, setSentence] = React.useState('');
   const [reviewing, setReviewing] = React.useState(false);
   const [quizReady, setQuizReady] = React.useState(false);
@@ -10947,10 +11015,12 @@ function FinalBossModal({ word, entry, onDone }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      display: 'flex', alignItems: quizReady ? 'flex-start' : 'center', justifyContent: 'center',
       background: 'rgba(0,0,0,0.85)',
       animation: 'fadeIn 0.2s ease',
-      padding: '20px',
+      padding: 'max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom))',
+      overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
     }}>
 	      <div style={{
 	        background: theme.surface,
@@ -10961,6 +11031,10 @@ function FinalBossModal({ word, entry, onDone }) {
         maxWidth: 390, width: '100%',
 	        position: 'relative',
 	        zIndex: 3,
+          maxHeight: 'calc(100dvh - 44px)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          margin: quizReady ? '0 auto' : 0,
 	      }}>
         <div style={{ textAlign: 'center', marginBottom: quizReady ? 10 : 4 }}>
           <img
@@ -10983,14 +11057,19 @@ function FinalBossModal({ word, entry, onDone }) {
                 <textarea
                   value={sentence}
                   onChange={e => setSentence(e.target.value)}
+                  onFocus={e => {
+                    const target = e.currentTarget;
+                    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 90);
+                  }}
                   placeholder={`Use ${word.toLowerCase()} in a sentence...`}
-                  autoFocus
                   style={{
                     width: '100%', minHeight: 112, resize: 'vertical',
                     background: '#060812', border: `1.5px solid ${readyToReview ? '#00cc66' : 'rgba(255,255,255,0.16)'}`,
                     borderRadius: 10, color: '#fff', padding: '12px 13px',
                     fontFamily: theme.fontBody, fontSize: 14, lineHeight: 1.5,
                     outline: 'none', boxSizing: 'border-box', marginBottom: 12,
+                    scrollMarginTop: 28,
+                    scrollMarginBottom: 160,
                   }}
                 />
                 <div style={{ display: 'grid', gap: 7, marginBottom: 16 }}>
@@ -11019,6 +11098,15 @@ function FinalBossModal({ word, entry, onDone }) {
                   }}
                 >
                   REVIEW SENTENCE
+                </button>
+                <button onClick={() => onNotReady ? onNotReady() : onDone(false)} style={{
+                  marginTop: 10, width: '100%',
+                  background: 'transparent', border: 'none',
+                  color: 'rgba(255,255,255,0.48)', cursor: 'pointer',
+                  fontFamily: "'Press Start 2P', monospace", fontSize: 8,
+                  letterSpacing: 1, lineHeight: 1.8,
+                }}>
+                  I'M NOT READY
                 </button>
               </>
             ) : (
@@ -11054,7 +11142,7 @@ function FinalBossModal({ word, entry, onDone }) {
                     boxShadow: `0 3px 0 #007a3d`, lineHeight: 1.5,
                   }}>MASTERED</button>
                 </div>
-                <button onClick={() => onDone(false)} style={{
+                <button onClick={() => onNotReady ? onNotReady() : onDone(false)} style={{
                   marginTop: 10, width: '100%',
                   background: 'transparent', border: 'none',
                   color: 'rgba(255,255,255,0.42)', cursor: 'pointer',
@@ -12003,6 +12091,32 @@ function App() {
     setMasteryToast(word);
   };
 
+  const saveWordStats = (stats) => {
+    try {
+      const serializable = {};
+      Object.entries(stats).forEach(([k, v]) => {
+        serializable[k] = { count: v.count, games: [...v.games] };
+      });
+      localStorage.setItem('word_stats', JSON.stringify(serializable));
+    } catch(e) {}
+  };
+
+  const moveWordBelowMastery = (word) => {
+    setWordStats(prev => {
+      const entry = prev[word];
+      if (!entry) return prev;
+      const next = {
+        ...prev,
+        [word]: {
+          count: Math.min(entry.count || 0, 2),
+          games: new Set(entry.games),
+        },
+      };
+      saveWordStats(next);
+      return next;
+    });
+  };
+
   // Build the final self-graded mastery challenge
   const buildFinalBossChallenge = (word) => {
     const entry = activeWords.find(w => w.word === word);
@@ -12027,11 +12141,7 @@ function App() {
         }, 400);
       }
       const next = { ...prev, [word]: newEntry };
-      try {
-        const serializable = {};
-        Object.entries(next).forEach(([k, v]) => { serializable[k] = { count: v.count, games: [...v.games] }; });
-        localStorage.setItem('word_stats', JSON.stringify(serializable));
-      } catch(e) {}
+      saveWordStats(next);
       return next;
     });
   };
@@ -12075,22 +12185,15 @@ function App() {
               setFinalBoss(null);
               showMasteryToast(finalBoss.word);
             } else {
-              // Revert the word back to just-below-mastery so they get another shot
-              setWordStats(prev => {
-                const entry = prev[finalBoss.word];
-                if (!entry) return prev;
-                const next = { ...prev, [finalBoss.word]: { count: entry.count - 1, games: entry.games } };
-                try {
-                  const serializable = {};
-                  Object.entries(next).forEach(([k, v]) => { serializable[k] = { count: v.count, games: [...v.games] }; });
-                  localStorage.setItem('word_stats', JSON.stringify(serializable));
-                } catch(e) {}
-                return next;
-              });
+              // Revert the word back to just-below-mastery so they get another shot.
+              moveWordBelowMastery(finalBoss.word);
               setFinalBoss(null);
             }
           }}
-          onSkip={() => { setFinalBoss(null); showMasteryToast(finalBoss.word); }}
+          onNotReady={() => {
+            moveWordBelowMastery(finalBoss.word);
+            setFinalBoss(null);
+          }}
         />,
         document.body
       )}

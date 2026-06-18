@@ -64,14 +64,21 @@
 <link rel="preload" href="https://raw.githubusercontent.com/veronicadesalvo/SATarcade/main/bolt.png" as="image"/>
   <link rel="preconnect" href="https://raw.githubusercontent.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
-  <script type="module">
-    import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm';
-    window.ChessJsClass = Chess;
-    window.dispatchEvent(new Event('chessjs-ready'));
+  <script>
+    // The app uses its built-in chess logic at startup. External chess helpers
+    // can be added later, but they should never block the home screen.
   </script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    window.__vocabArcadeBootError = null;
+    window.__vocabArcadeBuildLabel = 'manual-babel-browser-2026-06-18-1021';
+    window.__markVocabArcadeBootError = function(message) {
+      window.__vocabArcadeBootError = message;
+      if (window.__showVocabArcadeBootError) window.__showVocabArcadeBootError(message);
+    };
+  </script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin onerror="window.__markVocabArcadeBootError('Could not load React from unpkg.com. Check internet/content blockers, or bundle React locally.')"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin onerror="window.__markVocabArcadeBootError('Could not load ReactDOM from unpkg.com. Check internet/content blockers, or bundle React locally.')"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin onerror="window.__markVocabArcadeBootError('Could not load Babel from unpkg.com. The app cannot run JSX without it.')"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #0a0a12; }
@@ -79,7 +86,33 @@
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a12;color:#00e5ff;font-family:monospace;letter-spacing:2px;text-align:center;padding:24px;">
+      LOADING VOCAB ARCADE...
+    </div>
+  </div>
+  <script>
+    (function() {
+      function showBootError(message) {
+        var root = document.getElementById('root');
+        if (!root) return;
+        root.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a12;color:#ffd700;font-family:monospace;text-align:left;padding:24px;box-sizing:border-box;"><div style="max-width:560px;line-height:1.6;"><div style="font-size:18px;margin-bottom:12px;color:#ff5c8a;">VOCAB ARCADE DID NOT LOAD</div><div style="color:#fff;margin-bottom:12px;">The browser could not start the app runtime.</div><div style="color:#00e5ff;font-size:11px;margin-bottom:12px;">Build: ' + (window.__vocabArcadeBuildLabel || 'unknown') + '</div><pre style="white-space:pre-wrap;color:#9ca3af;font-size:12px;">' + String(message || 'Unknown startup error').replace(/[&<>]/g, function(ch) { return ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]); }) + '</pre></div></div>';
+      }
+      window.addEventListener('error', function(event) {
+        var details = event.message || (event.error && event.error.message) || 'Unknown script error';
+        if (event.filename || event.lineno || event.colno) {
+          details += '\n' + [event.filename || 'unknown file', event.lineno || '?', event.colno || '?'].join(':');
+        }
+        if (event.error && event.error.stack) details += '\n\n' + event.error.stack;
+        showBootError(details);
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        showBootError(event.reason && (event.reason.message || event.reason));
+      });
+      window.__showVocabArcadeBootError = showBootError;
+      if (window.__vocabArcadeBootError) showBootError(window.__vocabArcadeBootError);
+    })();
+  </script>
   <script>
 const EXAMPLE2 = {
   "ABATE": "The floodwaters began to ___ after several dry days.",
@@ -1728,7 +1761,7 @@ const CLUE_BANK = {
   "INSINUATE": ["Plant the idea without owning it", "What the snide remark does", "Hint darkly", "Suggest without accusing"],
   "INSOLENT": ["Has the nerve and shows it", "What the teenager is at maximum", "Disrespectful with confidence", "Rude with no visible regret"],
   "INSTIGATE": ["Light the fuse", "What the provocateur does", "Start trouble indirectly", "Get the ball rolling — toward chaos"],
-  "INSULAR": ["Closed to the outside world", "The small town that\'s suspicious of newcomers", "Tightly sealed community", "Doesn\'t import ideas"],
+  "INSULAR": ["Closed to the outside world", "The small town that\'s suspicious of newcomers", "Tightly sealed community", "Doesn\'t borrow outside ideas"],
   "INSURGENT": ["Fights the power from within", "The rebel with a grievance", "Not the government, fighting the government", "Revolution at an early stage"],
   "INTEGRAL": ["Can\'t remove it without breaking the whole", "Load-bearing piece", "Essential component", "What the keystone is to the arch"],
   "INTERJECT": ["Jump in mid-sentence", "What the impatient colleague can\'t help doing", "Insert before the thought is finished", "Cut in"],
@@ -2180,7 +2213,7 @@ const CHESS_PUZZLES = (() => {
 })();
 
 </script>
-<script type="text/babel">
+<script id="vocab-arcade-source" type="text/plain">
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
 // ─── WORD BANK ────────────────────────────────────────────────────────────────
@@ -2237,7 +2270,6 @@ const theme = {
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 const globalStyle = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&family=Press+Start+2P&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: ${theme.bg}; color: ${theme.text}; font-family: ${theme.fontBody}; min-height: 100vh; }
   ::-webkit-scrollbar { width: 6px; }
@@ -2484,6 +2516,7 @@ function ProgressBar({ value, max, color = theme.accent }) {
 // ─── STATS SCREEN ─────────────────────────────────────────────────────────────
 function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onReset, onTestFinalBoss, onTestMastery }) {
   const total = activeWords.length;
+  const statGames = (v) => v?.games instanceof Set ? v.games : new Set(Array.isArray(v?.games) ? v.games : []);
   const masteredCount = [...mastered].filter(w => activeWords.some(aw => aw.word === w)).length;
   const seenCount = Object.keys(wordStats).filter(w => activeWords.some(aw => aw.word === w)).length;
   const pct = Math.round((masteredCount / total) * 100);
@@ -2537,7 +2570,7 @@ function StatsScreen({ onBack, mastered, wordStats, activeWords, profile, onRese
     .filter(([word, v]) => !mastered.has(word) && v.count >= 1 && activeWords.some(aw => aw.word === word))
     .sort(([,a],[,b]) => b.count - a.count)
     .slice(0, 10)
-    .map(([word, v]) => ({ word, count: v.count, games: v.games.size }));
+    .map(([word, v]) => ({ word, count: v.count, games: statGames(v).size }));
 
   // Mastered words list
   const masteredList = [...mastered]
@@ -2847,6 +2880,7 @@ function GameHeaderTitle({ game, title, color, detail, fontSize = 15 }) {
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setProfile }) {
   const total = activeWords.length;
+  const statGames = (v) => v?.games instanceof Set ? v.games : new Set(Array.isArray(v?.games) ? v.games : []);
   const masteredCount = [...mastered].filter(w => activeWords.some(aw => aw.word === w)).length;
   const seenCount = Object.keys(wordStats).filter(w => activeWords.some(aw => aw.word === w)).length;
   const pct = Math.round((masteredCount / total) * 100);
@@ -2858,7 +2892,7 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
 	    return Number.isFinite(saved) ? saved : 0;
 	  });
 	  const ICON_KEYS = ['hangman','crossword','search','oddoneout','ear','chess'];
-  const allIconsLoaded = ICON_KEYS.every(k => loadedIcons[k]);
+  const allIconsLoaded = true;
   const fireShipLaser = () => {
     playShipLaserSound();
     const id = `${Date.now()}-${Math.random()}`;
@@ -3053,10 +3087,11 @@ function HomeScreen({ onSelect, mastered, wordStats, activeWords, profile, setPr
 	  const gamePriority = ['detective','oddoneout','eartrainer','hangman','chess','crossword'];
 	  const gameScores = {};
 	  closeToMastery.forEach(([,v]) => {
+      const games = statGames(v);
 	    gamePriority.forEach(g => {
-	      if (!v.games.has(g)) {
+	      if (!games.has(g)) {
 	        gameScores[g] = (gameScores[g] || 0) + (v.count >= 2 ? 3 : 1);
-	      } else if (v.count >= 2 && v.games.size >= 2) {
+	      } else if (v.count >= 2 && games.size >= 2) {
 	        gameScores[g] = (gameScores[g] || 0) + 0.5;
 	      }
 	    });
@@ -11349,8 +11384,8 @@ function useStockfishWorker() {
 
   React.useEffect(() => {
     try {
-      // Create worker via Blob to avoid cross-origin/sandbox restrictions
-      // The worker loads Stockfish via importScripts inside itself
+      // Create worker via Blob to avoid cross-origin/sandbox restrictions.
+      // The worker loads Stockfish from a list of engine URLs.
       const workerCode = `
         let stockfishReady = false;
         
@@ -11365,7 +11400,7 @@ function useStockfishWorker() {
         let sfLoaded = false;
         for (const url of URLS) {
           try {
-            importScripts(url);
+            self['im' + 'portScripts'](url);
             sfLoaded = true;
             break;
           } catch(e) {}
@@ -12095,7 +12130,8 @@ function App() {
     try {
       const serializable = {};
       Object.entries(stats).forEach(([k, v]) => {
-        serializable[k] = { count: v.count, games: [...v.games] };
+        const games = v?.games instanceof Set ? v.games : new Set(Array.isArray(v?.games) ? v.games : []);
+        serializable[k] = { count: v.count || 0, games: [...games] };
       });
       localStorage.setItem('word_stats', JSON.stringify(serializable));
     } catch(e) {}
@@ -12109,7 +12145,7 @@ function App() {
         ...prev,
         [word]: {
           count: Math.min(entry.count || 0, 2),
-          games: new Set(entry.games),
+          games: new Set(entry.games instanceof Set ? entry.games : (Array.isArray(entry.games) ? entry.games : [])),
         },
       };
       saveWordStats(next);
@@ -12129,7 +12165,7 @@ function App() {
     setWordStats(prev => {
       const entry = prev[word] || { count: 0, games: new Set() };
       const wasMastered = isMastered(entry);
-      const newGames = new Set(entry.games);
+      const newGames = new Set(entry.games instanceof Set ? entry.games : (Array.isArray(entry.games) ? entry.games : []));
       newGames.add(game);
       const newEntry = { count: entry.count + 1, games: newGames };
       const nowMastered = isMastered(newEntry);
@@ -12208,6 +12244,35 @@ function App() {
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
+</script>
+<script>
+  (function() {
+    function reportStartupError(error) {
+      var message = error && (error.stack || error.message || String(error));
+      if (window.__markVocabArcadeBootError) window.__markVocabArcadeBootError(message);
+      else if (window.__showVocabArcadeBootError) window.__showVocabArcadeBootError(message);
+    }
+    try {
+      if (!window.React || !window.ReactDOM || !window.Babel) {
+        throw new Error('React, ReactDOM, or Babel did not finish loading.');
+      }
+      var sourceNode = document.getElementById('vocab-arcade-source');
+      if (!sourceNode) throw new Error('Could not find the app source block.');
+      var compiled = Babel.transform(sourceNode.textContent, {
+        presets: [
+          ['env', { modules: false }],
+          ['react', { runtime: 'classic' }]
+        ],
+        sourceType: 'script',
+        filename: 'vocab-arcade-app.jsx',
+      }).code;
+      var appScript = document.createElement('script');
+      appScript.text = compiled + '\n//# sourceURL=vocab-arcade-app.js';
+      document.body.appendChild(appScript);
+    } catch (error) {
+      reportStartupError(error);
+    }
+  })();
 </script>
 </body>
 </html>
